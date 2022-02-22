@@ -1,10 +1,15 @@
-baseurl      = "https://casvancooten.com"
-title        = "Cas' Security Ramblings"
-languageCode = "en-us"
-theme        = "hello-friend-ng"
-enableEmoji  = true
-# PygmentsCodeFences = true
-# PygmentsStyle = "native"
+baseurl            = "https://casvancooten.com"
+title              = "Cas' Security Ramblings"
+languageCode       = "en-us"
+theme              = "hello-friend-ng"
+
+enableEmoji        = true
+enableGitInfo      = true
+
+PygmentsCodeFences = true
+PygmentsStyle      = "native"
+
+copyright = '<a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>'
 
 [params]
   dateform        = "Jan 2, 2006"
@@ -16,12 +21,17 @@ enableEmoji  = true
 
   disableReadOtherPosts = false
 
-  description = "I ramble about security stuff, mostly"
-  keywords = "homepage, blog, cas van cooten, security"
+  description = "A blog about security stuff, mostly"
+  keywords = "homepage, blog, cas van cooten, security, hacking"
 
   images = ["/preview.png"]
   contentTypeName = "posts"
+  enableThemeToggle = true
   defaultTheme = "dark"
+
+  [params.logo]
+    logoText = "Security Ramblings"
+    logoHomeLink = "/"
 
   # Social icons
   [[params.social]]
@@ -40,6 +50,17 @@ enableEmoji  = true
     name = "linkedin"
     url  = "https://www.linkedin.com/in/chvancooten/"
 
+  [params.footer]
+    trademark = false
+    rss = true
+    copyright = true
+    author = true
+
+    topText = []
+    bottomText = [
+      "<a href=\"http://gohugo.io\">Hugo</a> theme by <a href=\"https://github.com/rhazdon\">rhazdon</a>"
+    ]
+
 [permalinks]
   posts = "/posts/:year/:month/:title/"
 
@@ -47,18 +68,6 @@ enableEmoji  = true
     category = "blog"
     tag      = "tags"
     series   = "series"
-
-[languages]
-  [languages.en]
-    title = "Cas van Cooten"
-    subtitle = "I ramble about security stuff, mostly"
-    keywords = "homepage, blog, cas van cooten, security, hacking"
-    copyright = '<a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>'
-    readOtherPosts = "Read other posts"
-
-    [languages.en.params.logo]
-      logoText = "Security Ramblings"
-      logoHomeLink = "/"
 
 [menu]
   [[menu.main]]
