@@ -3,8 +3,8 @@ title        = "Cas' Security Ramblings"
 languageCode = "en-us"
 theme        = "hello-friend-ng"
 enableEmoji  = true
-PygmentsCodeFences = true
-PygmentsStyle = "native"
+# PygmentsCodeFences = true
+# PygmentsStyle = "native"
 
 [params]
   dateform        = "Jan 2, 2006"
@@ -17,12 +17,11 @@ PygmentsStyle = "native"
   disableReadOtherPosts = false
 
   description = "I ramble about security stuff, mostly"
-  keywords = "homepage, blog, cas van cooten"
+  keywords = "homepage, blog, cas van cooten, security"
 
   images = ["/preview.png"]
   contentTypeName = "posts"
   defaultTheme = "dark"
-  themeColor = "#252627"
 
   # Social icons
   [[params.social]]
