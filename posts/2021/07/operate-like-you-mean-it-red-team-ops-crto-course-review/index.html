@@ -1,266 +1,159 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
-        <meta charset="UTF-8">
-<meta http-equiv="X-UA-Compatible" content="ie=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="author" content="map[name:Cas van Cooten]">
-<meta name="description" content="Introduction If you hang around the infosec &amp;ldquo;twittersphere&amp;rdquo; or in other security communities, odds are you have already seen someone share their experiences on the &amp;lsquo;Red Team Ops&amp;rsquo; course by ZeroPointSecurity. I had heard a lot about this course prior to enrolling in it myself - almost exclusively consisting of positive reviews. The author of the course, RastaMouse, is quite a well-known figure in the infosec community. You may know him for his open-source tool contributions, such as Watson or ThreatCheck, or if you are a HackTheBox-enthusiast you may know him for the RastaLabs pro lab." />
-<meta name="keywords" content="homepage, blog, cas van cooten, security, hacking, CRTO, Red Team Ops, Hacking" />
-<meta name="robots" content="noodp" />
-<meta name="theme-color" content="#252627" />
-<link rel="canonical" href="https://casvancooten.com/posts/2021/07/operate-like-you-mean-it-red-team-ops-crto-course-review/" />
-
-
-    <title>
-        
-            Operate Like You Mean It: &#39;Red Team Ops&#39; (CRTO) Course Review :: Cas van Cooten  — I ramble about security stuff, mostly
-        
-    </title>
-
-
-
-<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.2.1/css/flag-icon.min.css" rel="stylesheet"
-    type="text/css">
-
-
-
-<link rel="stylesheet" href="/main.min.753fac8f03736f0edc9be411eb20cee875dd7bb8e73c8155fbf6a629c863f4ca.css">
-
-
-
-
-
-
-<meta itemprop="name" content="Operate Like You Mean It: &#39;Red Team Ops&#39; (CRTO) Course Review">
-<meta itemprop="description" content="Introduction If you hang around the infosec &ldquo;twittersphere&rdquo; or in other security communities, odds are you have already seen someone share their experiences on the &lsquo;Red Team Ops&rsquo; course by ZeroPointSecurity. I had heard a lot about this course prior to enrolling in it myself - almost exclusively consisting of positive reviews. The author of the course, RastaMouse, is quite a well-known figure in the infosec community. You may know him for his open-source tool contributions, such as Watson or ThreatCheck, or if you are a HackTheBox-enthusiast you may know him for the RastaLabs pro lab.">
-<meta itemprop="datePublished" content="2021-07-10T00:00:00+00:00" />
-<meta itemprop="dateModified" content="2021-07-10T00:00:00+00:00" />
-<meta itemprop="wordCount" content="1564">
-<meta itemprop="image" content="https://casvancooten.com/preview.png"/>
-
-
-
-<meta itemprop="keywords" content="CRTO,Red Team Ops,Hacking," />
-
-<meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:image" content="https://casvancooten.com/preview.png"/>
-
-<meta name="twitter:title" content="Operate Like You Mean It: &#39;Red Team Ops&#39; (CRTO) Course Review"/>
-<meta name="twitter:description" content="Introduction If you hang around the infosec &ldquo;twittersphere&rdquo; or in other security communities, odds are you have already seen someone share their experiences on the &lsquo;Red Team Ops&rsquo; course by ZeroPointSecurity. I had heard a lot about this course prior to enrolling in it myself - almost exclusively consisting of positive reviews. The author of the course, RastaMouse, is quite a well-known figure in the infosec community. You may know him for his open-source tool contributions, such as Watson or ThreatCheck, or if you are a HackTheBox-enthusiast you may know him for the RastaLabs pro lab."/>
-
-
-
-    <meta property="og:title" content="Operate Like You Mean It: &#39;Red Team Ops&#39; (CRTO) Course Review" />
-<meta property="og:description" content="Introduction If you hang around the infosec &ldquo;twittersphere&rdquo; or in other security communities, odds are you have already seen someone share their experiences on the &lsquo;Red Team Ops&rsquo; course by ZeroPointSecurity. I had heard a lot about this course prior to enrolling in it myself - almost exclusively consisting of positive reviews. The author of the course, RastaMouse, is quite a well-known figure in the infosec community. You may know him for his open-source tool contributions, such as Watson or ThreatCheck, or if you are a HackTheBox-enthusiast you may know him for the RastaLabs pro lab." />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://casvancooten.com/posts/2021/07/operate-like-you-mean-it-red-team-ops-crto-course-review/" />
-<meta property="og:image" content="https://casvancooten.com/preview.png"/>
-<meta property="article:published_time" content="2021-07-10T00:00:00+00:00" />
-<meta property="article:modified_time" content="2021-07-10T00:00:00+00:00" /><meta property="og:site_name" content="Cas van Cooten" />
-
-
-
-
-
-
-    <meta property="article:published_time" content="2021-07-10 00:00:00 &#43;0000 UTC" />
-
-
-
-
-
-
-
-
-    </head>
-
-    <body class="dark-theme">
-        <div class="container">
-            <header class="header">
-    <span class="header__inner">
-        <a href="/" style="text-decoration: none;">
-    <div class="logo">
-        
-            <span class="logo__mark">></span>
-            <span class="logo__text">Security Ramblings</span>
-            <span class="logo__cursor" style=
-                  "
-                   
-                   ">
-            </span>
-        
-    </div>
-</a>
-
-
-        <span class="header__right">
-            
-                <nav class="menu">
-    <ul class="menu__inner"><li><a href="https://casvancooten.com/about/">About</a></li><li><a href="https://casvancooten.com/posts/">Blog</a></li>
-    </ul>
-</nav>
-
-                <span class="menu-trigger">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M0 0h24v24H0z" fill="none"/>
-                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-                    </svg>
-                </span>
-            
-
-            <span class="theme-toggle unselectable"><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
-  3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
-  13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"/>
-</svg>
+<!doctype html><html lang=en>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
+<meta name=author content="map[name:Cas van Cooten]">
+<meta name=description content="Introduction If you hang around the infosec &amp;ldquo;twittersphere&amp;rdquo; or in other security communities, odds are you have already seen someone share their experiences on the &amp;lsquo;Red Team Ops&amp;rsquo; course by ZeroPointSecurity. I had heard a lot about this course prior to enrolling in it myself - almost exclusively consisting of positive reviews. The author of the course, RastaMouse, is quite a well-known figure in the infosec community. You may know him for his open-source tool contributions, such as Watson or ThreatCheck, or if you are a HackTheBox-enthusiast you may know him for the RastaLabs pro lab.">
+<meta name=keywords content="homepage,blog,cas van cooten,security,hacking,CRTO,Red Team Ops,Hacking">
+<meta name=robots content="noodp">
+<meta name=theme-color content="#252627">
+<link rel=canonical href=https://casvancooten.com/posts/2021/07/operate-like-you-mean-it-red-team-ops-crto-course-review/>
+<title>
+Operate Like You Mean It: 'Red Team Ops' (CRTO) Course Review :: Cas van Cooten — I ramble about security stuff, mostly
+</title>
+<link href=https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css rel=stylesheet type=text/css>
+<link rel=stylesheet href=/main.4e5c639214707eff609bb55fe49e183dee42258a73bc90e4cc7b0a84f900798a.css>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<link rel=mask-icon href=/safari-pinned-tab.svg color>
+<link rel="shortcut icon" href=/favicon.ico>
+<meta name=msapplication-TileColor content>
+<meta itemprop=name content="Operate Like You Mean It: 'Red Team Ops' (CRTO) Course Review">
+<meta itemprop=description content="Introduction If you hang around the infosec &ldquo;twittersphere&rdquo; or in other security communities, odds are you have already seen someone share their experiences on the &lsquo;Red Team Ops&rsquo; course by ZeroPointSecurity. I had heard a lot about this course prior to enrolling in it myself - almost exclusively consisting of positive reviews. The author of the course, RastaMouse, is quite a well-known figure in the infosec community. You may know him for his open-source tool contributions, such as Watson or ThreatCheck, or if you are a HackTheBox-enthusiast you may know him for the RastaLabs pro lab."><meta itemprop=datePublished content="2021-07-10T00:00:00+00:00">
+<meta itemprop=dateModified content="2021-07-10T00:00:00+00:00">
+<meta itemprop=wordCount content="1564"><meta itemprop=image content="https://casvancooten.com/preview.png">
+<meta itemprop=keywords content="CRTO,Red Team Ops,Hacking,">
+<meta name=twitter:card content="summary_large_image">
+<meta name=twitter:image content="https://casvancooten.com/preview.png">
+<meta name=twitter:title content="Operate Like You Mean It: 'Red Team Ops' (CRTO) Course Review">
+<meta name=twitter:description content="Introduction If you hang around the infosec &ldquo;twittersphere&rdquo; or in other security communities, odds are you have already seen someone share their experiences on the &lsquo;Red Team Ops&rsquo; course by ZeroPointSecurity. I had heard a lot about this course prior to enrolling in it myself - almost exclusively consisting of positive reviews. The author of the course, RastaMouse, is quite a well-known figure in the infosec community. You may know him for his open-source tool contributions, such as Watson or ThreatCheck, or if you are a HackTheBox-enthusiast you may know him for the RastaLabs pro lab.">
+<meta property="og:title" content="Operate Like You Mean It: 'Red Team Ops' (CRTO) Course Review">
+<meta property="og:description" content="Introduction If you hang around the infosec &ldquo;twittersphere&rdquo; or in other security communities, odds are you have already seen someone share their experiences on the &lsquo;Red Team Ops&rsquo; course by ZeroPointSecurity. I had heard a lot about this course prior to enrolling in it myself - almost exclusively consisting of positive reviews. The author of the course, RastaMouse, is quite a well-known figure in the infosec community. You may know him for his open-source tool contributions, such as Watson or ThreatCheck, or if you are a HackTheBox-enthusiast you may know him for the RastaLabs pro lab.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://casvancooten.com/posts/2021/07/operate-like-you-mean-it-red-team-ops-crto-course-review/"><meta property="og:image" content="https://casvancooten.com/preview.png"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2021-07-10T00:00:00+00:00">
+<meta property="article:modified_time" content="2021-07-10T00:00:00+00:00"><meta property="og:site_name" content="Cas van Cooten">
+<meta property="article:published_time" content="2021-07-10 00:00:00 +0000 UTC">
+</head>
+<body>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ style=text-decoration:none>
+<div class=logo>
+<span class=logo__mark>></span>
+<span class=logo__text>Security Ramblings</span>
+<span class=logo__cursor>
 </span>
-        </span>
-    </span>
-</header>
-
-
-            <div class="content">
-                
-    <main class="post">
-
-        <div class="post-info">
-            <p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>8 minutes
-
-            
-
-            </p>
-        </div>
-
-        <article>
-            <h1 class="post-title">
-                <a href="https://casvancooten.com/posts/2021/07/operate-like-you-mean-it-red-team-ops-crto-course-review/">Operate Like You Mean It: &lsquo;Red Team Ops&rsquo; (CRTO) Course Review</a>
-            </h1>
-                <hr />
-                <aside id="toc">
-                <div class="toc-title">Table of Contents</div>
-                    <nav id="TableOfContents">
-  <ul>
-    <li><a href="#introduction">Introduction</a></li>
-    <li><a href="#the-course">The Course</a></li>
-    <li><a href="#the-labs">The Labs</a></li>
-    <li><a href="#the-exam">The Exam</a></li>
-    <li><a href="#conclusion">Conclusion</a></li>
-  </ul>
+</div>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class=menu__inner><li><a href=/about/>About</a></li><li><a href=/posts/>Blog</a></li>
+</ul>
 </nav>
-                </aside>
-                <hr />
-
-            
-
-            <div class="post-content">
-                <h2 id="introduction">Introduction</h2>
-<p>If you hang around the infosec &ldquo;twittersphere&rdquo; or in other security communities, odds are you have already seen someone share their experiences on the <a href="https://www.zeropointsecurity.co.uk/red-team-ops">&lsquo;Red Team Ops&rsquo; course by ZeroPointSecurity</a>. I had heard a <em>lot</em> about this course prior to enrolling in it myself - almost exclusively consisting of positive reviews. The author of the course, <a href="https://twitter.com/_RastaMouse">RastaMouse</a>, is quite a well-known figure in the infosec community. You may know him for his open-source tool contributions, such as <a href="https://github.com/rasta-mouse/Watson">Watson</a> or <a href="https://github.com/rasta-mouse/ThreatCheck">ThreatCheck</a>, or if you are a HackTheBox-enthusiast you may know him for the RastaLabs pro lab.</p>
-<p>Needless to say, I was quite intrigued about this red teaming course provided by his company ZeroPointSecurity. I enrolled in it not too long after passing the <a href="https://casvancooten.com/posts/2021/03/getting-the-osep-certification-evasion-techniques-and-breaching-defenses-pen-300-course-review/">OSEP certification</a>, excited to further build my knowledge and tradecraft as a red team operator!</p>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<main class=post>
+<div class=post-info>
+<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+8 minutes
+</p>
+</div>
+<article>
+<h1 class=post-title>
+<a href=https://casvancooten.com/posts/2021/07/operate-like-you-mean-it-red-team-ops-crto-course-review/>Operate Like You Mean It: &lsquo;Red Team Ops&rsquo; (CRTO) Course Review</a>
+</h1>
+<hr>
+<aside id=toc>
+<div class=toc-title>Table of Contents</div>
+<nav id=TableOfContents>
+<ul>
+<li><a href=#introduction>Introduction</a></li>
+<li><a href=#the-course>The Course</a></li>
+<li><a href=#the-labs>The Labs</a></li>
+<li><a href=#the-exam>The Exam</a></li>
+<li><a href=#conclusion>Conclusion</a></li>
+</ul>
+</nav>
+</aside>
+<hr>
+<div class=post-content>
+<h2 id=introduction>Introduction</h2>
+<p>If you hang around the infosec &ldquo;twittersphere&rdquo; or in other security communities, odds are you have already seen someone share their experiences on the <a href=https://www.zeropointsecurity.co.uk/red-team-ops>&lsquo;Red Team Ops&rsquo; course by ZeroPointSecurity</a>. I had heard a <em>lot</em> about this course prior to enrolling in it myself - almost exclusively consisting of positive reviews. The author of the course, <a href=https://twitter.com/_RastaMouse>RastaMouse</a>, is quite a well-known figure in the infosec community. You may know him for his open-source tool contributions, such as <a href=https://github.com/rasta-mouse/Watson>Watson</a> or <a href=https://github.com/rasta-mouse/ThreatCheck>ThreatCheck</a>, or if you are a HackTheBox-enthusiast you may know him for the RastaLabs pro lab.</p>
+<p>Needless to say, I was quite intrigued about this red teaming course provided by his company ZeroPointSecurity. I enrolled in it not too long after passing the <a href=https://casvancooten.com/posts/2021/03/getting-the-osep-certification-evasion-techniques-and-breaching-defenses-pen-300-course-review/>OSEP certification</a>, excited to further build my knowledge and tradecraft as a red team operator!</p>
 <p>The Red Team Ops course is hosted on the &lsquo;Canvas&rsquo; Learning Management System. It consists of roughly two parts: the course itself, which contains various modules with theory and lab exercises, and the exam. Both need to be completed with a satisfactory result for the student to attain the &ldquo;Certified Red Team Operator&rdquo; (CRTO) certification. Progress is managed through &ldquo;Badgr Pathways&rdquo; within the Canvas platform.</p>
-<p><img src="/images/crto-pathway.png" alt="CRTO Pathway"></p>
-<h2 id="the-course">The Course</h2>
+<p><img src=/images/crto-pathway.png alt="CRTO Pathway"></p>
+<h2 id=the-course>The Course</h2>
 <p>As mentioned, the course-side of the certification consists of a variety of modules, which contain the theoretical material of the course and lab exercises to test your understanding of the discussed subject matter. The figure above shows the 9 &ldquo;main&rdquo; modules, but these are only the modules that are graded through a lab exercise. At the time of writing, I counted 27 modules, each covering multiple subjects in varying levels of depth. The nice part about the course is that you get lifetime access to the materials, which are periodically updated by RastaMouse. As an example, the last update at the time of writing was mid-January, when a module on Kerberos Credential Cache was added to the course.</p>
 <p>Let&rsquo;s start with &ldquo;the good&rdquo; of the course materials. RTO felt like a very welcome break from other courses, in the sense that the materials are very informative, concrete, and focused on day-to-day tradecraft. All techniques are demonstrated with a C2 framework (either Covenant or Cobalt Strike if you have a license), giving you the means to immediately start applying these techniques in practice.</p>
-<p>The modules cover a very broad range of interesting topics, such as the &ldquo;standard&rdquo; killchain (reconnaissance, initial access, lateral movement, etc.), <a href="https://casvancooten.com/posts/2020/11/windows-active-directory-exploitation-cheat-sheet-and-command-reference/">Active Directory exploitation</a> (ranging from basic to advanced techniques), credentials and password cracking, AppLocker, AV evasion, advanced proxying techniques, and much more. I think the power of the course lies in the diversity of course material, which really set you up with a solid foundation of proven tradecraft as well as a solid toolset, no matter your experience level before coming into the RTO course. On top of that, RastaMouse really knows what he is talking about which does show in the materials.</p>
+<p>The modules cover a very broad range of interesting topics, such as the &ldquo;standard&rdquo; killchain (reconnaissance, initial access, lateral movement, etc.), <a href=https://casvancooten.com/posts/2020/11/windows-active-directory-exploitation-cheat-sheet-and-command-reference/>Active Directory exploitation</a> (ranging from basic to advanced techniques), credentials and password cracking, AppLocker, AV evasion, advanced proxying techniques, and much more. I think the power of the course lies in the diversity of course material, which really set you up with a solid foundation of proven tradecraft as well as a solid toolset, no matter your experience level before coming into the RTO course. On top of that, RastaMouse really knows what he is talking about which does show in the materials.</p>
 <p>As with any course, there are also improvement points. My main issue with the course comes down to the same point that I listed as a &lsquo;pro&rsquo; above - the course is quite focused on practical operations and tradecraft, so a lot of modules lack a clear background or explanation on the &ldquo;why&rdquo; of things. This means that the course will teach you quite some cool tricks, but it won&rsquo;t always equip you with the knowledge to understand <em>why</em> or <em>how</em> exactly these tricks work. Luckily, some of the more important modules do a better job at this, so overall it&rsquo;s not too much of a concern. I would however strongly advise people taking RTO to not take all the content at face value, and find some extra background to get a better grip on the &ldquo;why, what, and how&rdquo; of things. Luckily, RastaMouse gives you quite some references during the course to get you started with this.</p>
-<h2 id="the-labs">The Labs</h2>
+<h2 id=the-labs>The Labs</h2>
 <p>The labs are a key aspect of the course, and mostly function as a sandbox environment to practice techniques discussed during the course. The practical exercises that you are required to complete during the course all take place in the labs. Some exercises are quite straight-forward and mirror the techniques discussed in the theory, others require you to really get creative with the tools and techniques that have been discussed and apply some problem-solving skills of your own.</p>
 <p>The labs are quite strictly firewalled and hardened, so simply compromising every machine with the DA password hash and dumping all the flags is out of the question. Some machines have multiple entry points for you to practice, others have been hardened to allow you to compromise them only through a specific technique.</p>
 <p>Though you will see most of the labs as part of the course and exercises, I would recommend everyone to do a &ldquo;clean run&rdquo; after completing the exercises. There are for sure some parts of the lab that you can only discover on your own, which also gives you the opportunity get some more valuable practice in before your exam. 🙂</p>
-<blockquote class="twitter-tweet"><p lang="en" dir="ltr">NEEDS MORE BACON <a href="https://t.co/0Mu0UfLEYr">pic.twitter.com/0Mu0UfLEYr</a></p>&mdash; Cas van Cooten (@chvancooten) <a href="https://twitter.com/chvancooten/status/1393655024866283520?ref_src=twsrc%5Etfw">May 15, 2021</a></blockquote>
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
+<blockquote class=twitter-tweet><p lang=en dir=ltr>NEEDS MORE BACON <a href=https://t.co/0Mu0UfLEYr>pic.twitter.com/0Mu0UfLEYr</a></p>&mdash; Cas van Cooten (@chvancooten) <a href="https://twitter.com/chvancooten/status/1393655024866283520?ref_src=twsrc%5Etfw">May 15, 2021</a></blockquote>
+<script async src=https://platform.twitter.com/widgets.js></script>
 <p>I can think of very little improvement points regarding the labs. One of my primary objections is that initial access into the labs can be finnicky at times, and it cannot be bypassed once you already gained access. This is quite annoying if the lab has been reset and you just want to re-establish beacons, only to find that the phishes you sent earlier now stopped working due to infrastructure instability. Luckily, RastaMouse has confirmed that this is something that will be fixed in the next version of the course.</p>
 <p>If you at any point get stuck during the exercises or labs, a Slack Workspace and Canvas forum are available. I found the Slack channels to be a helpful resource with RastaMouse being very active, and quite some other folk also hanging around and being helpful. There&rsquo;s even a bot which auto-recognizes some error codes and tells you to migrate out of &ldquo;Session 0&rdquo; if you&rsquo;re stuck there (if you know you know 😉).</p>
-<h2 id="the-exam">The Exam</h2>
+<h2 id=the-exam>The Exam</h2>
 <p>As per usual and for obvious reasons I cannot disclose too much about the setup or contents of the exam. In a general sense though, the exam fits the course quite well. It consists of four flags, of which you need to submit at least three to pass. You get 48 hours to submit your flags, which should in any case be plenty of time to take it easy and go through the exam labs at your own pace.</p>
 <p>Truth be told, I was a bit disappointed at how easy the first three flags were in my version of the exam. The fourth flag however provided much more of a challenge and was a welcome change in pace from the others. It should be noted that the course is however marked as a beginner-level course, so I shouldn&rsquo;t complain about the difficulty too much. Obviously, there is no shame in &lsquo;only&rsquo; submitting three flags to pass the exam. However, based on my experience with the exam I would say that everyone who has prior red team operations experience (either working experience or through certs like OSEP) should really challenge themselves to try and submit all four flags - it&rsquo;s definitely worth it!</p>
-<blockquote class="twitter-tweet"><p lang="en" dir="ltr">So taking hacking exams with a slight fever (thanks Pfizer...) turns out not to be the best idea, but I made it! All four flags for the <a href="https://twitter.com/zeropointsecltd?ref_src=twsrc%5Etfw">@zeropointsecltd</a> CRTO certification exam submitted 😄<br><br>Very fun course and exam, especially the last flag was worth it. Blog post soon™! <a href="https://t.co/kvJXnIXbvj">pic.twitter.com/kvJXnIXbvj</a></p>&mdash; Cas van Cooten (@chvancooten) <a href="https://twitter.com/chvancooten/status/1410624406687260679?ref_src=twsrc%5Etfw">July 1, 2021</a></blockquote>
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<p>The exam doesn&rsquo;t require a report, which is a welcome break to some. I don&rsquo;t mind reporting for exams myself, and honestly it should become routine to take good and report-worthy notes in any case. So, even if it&rsquo;s not strictly required, my strong advice would be to challenge yourself to make a habit of keeping quality notes. If you need some inspiration, I discuss my technique for keeping quality notes and turning them into a report easily <a href="https://casvancooten.com/posts/2020/05/generating-pretty-pwk-reports-with-pandoc-and-markdown-templates-inside/">in this blog post</a>.</p>
-<h2 id="conclusion">Conclusion</h2>
+<blockquote class=twitter-tweet><p lang=en dir=ltr>So taking hacking exams with a slight fever (thanks Pfizer...) turns out not to be the best idea, but I made it! All four flags for the <a href="https://twitter.com/zeropointsecltd?ref_src=twsrc%5Etfw">@zeropointsecltd</a> CRTO certification exam submitted 😄<br><br>Very fun course and exam, especially the last flag was worth it. Blog post soon™! <a href=https://t.co/kvJXnIXbvj>pic.twitter.com/kvJXnIXbvj</a></p>&mdash; Cas van Cooten (@chvancooten) <a href="https://twitter.com/chvancooten/status/1410624406687260679?ref_src=twsrc%5Etfw">July 1, 2021</a></blockquote>
+<script async src=https://platform.twitter.com/widgets.js></script>
+<p>The exam doesn&rsquo;t require a report, which is a welcome break to some. I don&rsquo;t mind reporting for exams myself, and honestly it should become routine to take good and report-worthy notes in any case. So, even if it&rsquo;s not strictly required, my strong advice would be to challenge yourself to make a habit of keeping quality notes. If you need some inspiration, I discuss my technique for keeping quality notes and turning them into a report easily <a href=https://casvancooten.com/posts/2020/05/generating-pretty-pwk-reports-with-pandoc-and-markdown-templates-inside/>in this blog post</a>.</p>
+<h2 id=conclusion>Conclusion</h2>
 <p>The RTO course is the most practical red teaming course I have seen. Though it&rsquo;s a little thin on providing in-depth explanation or theory in some modules, it really sets you up with a solid toolbox and knowledge of proven tradecraft that you can start applying straight away. The labs are very qualitative and really give you the opportunity to internalize what you&rsquo;ve learnt, as well as the opportunity for further practice. The exam is a bit easy for more experienced red teamers, but getting all four flags is a fun challenge none the less. The course comes at a much lower price point than for example Offensive Security or SANS courses, especially considering that one or two months of lab time should be enough for most.</p>
 <p>Overall, I would say that the course is worthwhile for almost all (aspiring) red teamers. If you already have a lot of red teaming experience the course will lose some value, but you will for sure learn a lot of new tricks and the exam can be a fun challenge nonetheless. I personally can&rsquo;t wait to see what RastaMouse has in store for us with the future new rendition of this course (RTO2 when?!)!</p>
-
-            </div>
-        </article>
-
-        <hr />
-
-        <div class="post-info">
-                <p>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://casvancooten.com/tags/crto">CRTO</a></span><span class="tag"><a href="https://casvancooten.com/tags/red-team-ops">Red Team Ops</a></span><span class="tag"><a href="https://casvancooten.com/tags/hacking">Hacking</a></span>
-                </p>
-
-            <p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1564 Words</p>
-
-            <p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>10-07-2021</p>
-        </div>
-
-        
-            <div class="pagination">
-                <div class="pagination__title">
-                    <span class="pagination__title-h">Read other posts</span>
-                    <hr />
-                </div>
-
-                <div class="pagination__buttons">
-                    
-                        <span class="button previous">
-                            <a href="https://casvancooten.com/posts/2021/08/building-a-c2-implant-in-nim-considerations-and-lessons-learned/">
-                                <span class="button__icon">←</span>
-                                <span class="button__text">Building a C2 Implant in Nim - Considerations and Lessons Learned</span>
-                            </a>
-                        </span>
-                    
-
-                    
-                        <span class="button next">
-                            <a href="https://casvancooten.com/posts/2021/03/getting-the-osep-certification-evasion-techniques-and-breaching-defenses-pen-300-course-review/">
-                                <span class="button__text">Getting the OSEP Certification: &#39;Evasion Techniques and Breaching Defenses&#39; (PEN-300) Course Review</span>
-                                <span class="button__icon">→</span>
-                            </a>
-                        </span>
-                    
-                </div>
-            </div>
-        
-    </main>
-
-            </div>
-
-            
-                <footer class="footer">
-    <div class="footer__inner">
-        <div class="footer__content">
-            <span>&copy; 2022</span>
-            
-            <span><a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></span>
-            <span> <a href="https://casvancooten.com/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a></span>
-        </div>
-    </div>
-    <div class="footer__inner">
-        <div class="footer__content">
-            <span>Powered by <a href="http://gohugo.io">Hugo</a></span>
-            <span>Theme by  <a href="https://github.com/rhazdon">Djordje Atlialp</a></span>
-        </div>
-    </div>
-
+</div>
+</article>
+<hr>
+<div class=post-info>
+<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7" y2="7"/></svg>
+<span class=tag><a href=https://casvancooten.com/tags/crto/>CRTO</a></span>
+<span class=tag><a href=https://casvancooten.com/tags/red-team-ops/>Red Team Ops</a></span>
+<span class=tag><a href=https://casvancooten.com/tags/hacking/>Hacking</a></span>
+</p>
+<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6A2 2 0 004 4v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+1564 Words
+</p>
+<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+10-07-2021
+</p>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://casvancooten.com/posts/2021/08/building-a-c2-implant-in-nim-considerations-and-lessons-learned/>
+<span class=button__icon>←</span>
+<span class=button__text>Building a C2 Implant in Nim - Considerations and Lessons Learned</span>
+</a>
+</span>
+<span class="button next">
+<a href=https://casvancooten.com/posts/2021/03/getting-the-osep-certification-evasion-techniques-and-breaching-defenses-pen-300-course-review/>
+<span class=button__text>Getting the OSEP Certification: 'Evasion Techniques and Breaching Defenses' (PEN-300) Course Review</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</main>
+</div>
+<footer class=footer>
 </footer>
-
-            
-        </div>
-
-        
-
-
-
-
-<script type="text/javascript" src="/bundle.min.4a69500057d68129e88f497d354afe68422eb56de6d15e45dbe2190858ea5a76bfcb096406f992984b241db45f47388ac57ab0376e3b32125bef7a8a6d0f06c4.js" integrity="sha512-SmlQAFfWgSnoj0l9NUr&#43;aEIutW3m0V5F2&#43;IZCFjqWna/ywlkBvmSmEskHbRfRziKxXqwN247MhJb73qKbQ8GxA=="></script>
-
-
-
-    </body>
+</div>
+<script type=text/javascript src=/bundle.min.599099f1f14b78b657d524b28e10e0c5098e7cd46e9c7aed73d577068a276c3ff1bb234cbf29cb313333e83cf411727b43157c91ce5b809e2ffc81664614608e.js integrity="sha512-WZCZ8fFLeLZX1SSyjhDgxQmOfNRunHrtc9V3BoonbD/xuyNMvynLMTMz6Dz0EXJ7QxV8kc5bgJ4v/IFmRhRgjg=="></script>
+</body>
 </html>
