@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>CheatSheets on Cas van Cooten</title>
+    <link>https://casvancooten.com/series/cheatsheets/</link>
+    <description>Recent content in CheatSheets on Cas van Cooten</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+    <lastBuildDate>Wed, 04 Nov 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://casvancooten.com/series/cheatsheets/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Windows &amp; Active Directory Exploitation Cheat Sheet and Command Reference</title>
+      <link>https://casvancooten.com/posts/2020/11/windows-active-directory-exploitation-cheat-sheet-and-command-reference/</link>
+      <pubDate>Wed, 04 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://casvancooten.com/posts/2020/11/windows-active-directory-exploitation-cheat-sheet-and-command-reference/</guid>
+      <description>Last update: November 3rd, 2021
+Updated November 3rd, 2021: Included several fixes and actualized some techniques. Changes made to the Defender evasion, RBCD, Domain Enumeration, Rubeus, and Mimikatz sections. Fixed some whoopsies as well 🙃.
+Updated June 5th, 2021: I have made some more changes to this post based on (among others) techniques discussed in ZeroPointSecurity&amp;rsquo;s &amp;lsquo;Red Team Ops&amp;rsquo; course (for the CRTO certification). I&amp;rsquo;ve re-written and improved many sections. New sections have been added on DPAPI and GPO abuse.</description>
+    </item>
+    
+    <item>
+      <title>OSCP Cheat Sheet and Command Reference</title>
+      <link>https://casvancooten.com/posts/2020/05/oscp-cheat-sheet-and-command-reference/</link>
+      <pubDate>Sun, 03 May 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://casvancooten.com/posts/2020/05/oscp-cheat-sheet-and-command-reference/</guid>
+      <description>Updated May 18th, 2020
+Since my OSCP certification exam is coming up, I decided to do a writeup of the commands and techniques I have most frequently used in the PWK labs and in similar machines. I aimed for it to be a basic command reference, but in writing it it has grown out to be a bit more than that!
+That being said - it is far from an exhaustive list.</description>
+    </item>
+    
+  </channel>
+</rss>
