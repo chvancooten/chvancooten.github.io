@@ -1,5 +1,5 @@
 baseurl            = "https://casvancooten.com"
-title              = "Cas' Security Ramblings"
+title              = "Cas van Cooten"
 languageCode       = "en-us"
 theme              = "hello-friend-ng"
 
@@ -17,7 +17,7 @@ copyright = '<a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_
   dateformNum     = "02-01-2006"
   dateformNumTime = "02-01-2006"
   
-  homeSubtitle = "I ramble about security stuff, mostly"
+  homeSubtitle = "A blog about security stuff, mostly"
 
   disableReadOtherPosts = false
 
