@@ -30,7 +30,7 @@ jobs:
       # See: https://github.com/rhazdon/hugo-theme-hello-friend-ng/issues/353
       - name: Ugly hotpatch to enforce dark theme as standard
         run: |
-          sed -i 's/"data-theme", "light"/"data-theme", "dark"/g' assets/js/main.js
+          sed -i 's/"data-theme", "light"/"data-theme", "dark"/g' themes/hello-friend-ng/assets/js/main.js
 
       - name: Build
         run: hugo --minify
