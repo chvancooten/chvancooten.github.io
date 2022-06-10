@@ -369,7 +369,7 @@
 </span></span><span style="display:flex;"><span>            compileNim(<span style="color:#ed9d13">&#34;dll&#34;</span>)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#40ffff">dll</span> = open(<span style="color:#ed9d13">&#34;client/bin/NimPlant.dll&#34;</span>, <span style="color:#ed9d13">&#34;rb&#34;</span>).read()
-</span></span><span style="display:flex;"><span>        <span style="color:#40ffff">shellcode</span> = ConvertToShellcode(dll, HashFunctionName(<span style="color:#ed9d13">&#39;Update&#39;</span>), <span style="color:#40ffff">flags</span>=0x5)
+</span></span><span style="display:flex;"><span>        <span style="color:#40ffff">shellcode</span> = ConvertToShellcode(dll, HashFunctionName(<span style="color:#ed9d13">&#39;Connect&#39;</span>), <span style="color:#40ffff">flags</span>=0x5)
 </span></span><span style="display:flex;"><span>        with open(<span style="color:#ed9d13">&#34;client/bin/NimPlant.bin&#34;</span>, <span style="color:#ed9d13">&#34;wb&#34;</span>) as f:
 </span></span><span style="display:flex;"><span>            f.write(shellcode)
 </span></span><span style="display:flex;"><span>
