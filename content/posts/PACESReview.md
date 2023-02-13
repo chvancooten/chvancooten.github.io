@@ -1,11 +1,12 @@
 +++
-title = "So You Wanna Hack a Bank? 'Global Central Bank' (PACES) Certification Review"
+title = "So You Wanna Hack a Bank? 'Global Central Bank' (CRTM) Certification Review"
 date = "2021-10-05"
 toc = true
 draft = false
 type = ["posts","post"]
 tags = [
     "PACES",
+    "CRTM",
     "GCB",
     "Active Directory",
     "Hacking",
@@ -15,11 +16,13 @@ tags = [
   name = "Cas van Cooten"
 +++
 
+*Updated **February 13th, 2023**: The PACES certification has been renamed to 'Certified Red Team Master' (CRTM) and is now licensed by AlteredSecurity instead of PentesterAcademy, this blog post has been updated to reflect.*
+
 ## Introduction
 
-The ["Global Central Bank" (GCB)](https://www.pentesteracademy.com/gcb) labs and accompanying "PentesterAcademy Certified Enterprise Security Specialist" (PACES) certification are definitely something else. It is more or less the "level-up" from the respective ["Attacking and Defending Active Directory" (CRTP)](https://www.pentesteracademy.com/activedirectorylab) and ["Windows Red Team Lab" (CRTE)](https://www.pentesteracademy.com/redteamlab) courses, also provided by PentesterAcademy. GCB is the hardest of the three, so if you're looking for more beginner-friendly material, you're probably better off reading [my blog post on CRTP](https://casvancooten.com/posts/2020/10/getting-the-crtp-certification-attacking-and-defending-active-directory-course-review/) instead.
+The ["Global Central Bank" (GCB)](https://www.alteredsecurity.com/gcb) labs and accompanying "Certified Red Team Master" (CRTM) certification are definitely something else. It is more or less the "level-up" from the respective ["Attacking and Defending Active Directory" (CRTP)](https://www.alteredsecurity.com/adlab) and ["Windows Red Team Lab" (CRTE)](https://www.alteredsecurity.com/redteamlab) courses, also provided by AlteredSecurity. GCB is the hardest of the three, so if you're looking for more beginner-friendly material, you're probably better off reading [my blog post on CRTP](https://casvancooten.com/posts/2020/10/getting-the-crtp-certification-attacking-and-defending-active-directory-course-review/) instead.
 
-PentesterAcademy calls GCB a "Cyber Range" rather than a course, and I definitely have to agree with them. The labs are the main focus of the course, followed by the certification exam. There is not much courseware included, the participant is only provided with 9 videos (totaling 3 hours) covering certain topics that are relevant in the labs. These videos only serve as a primer, as you will for sure have to do your own research when tackling the labs (or the "Cyber Range" if you're into that business lingo 😉).
+AlteredSecurity calls GCB a "Cyber Range" rather than a course, and I definitely have to agree with them. The labs are the main focus of the course, followed by the certification exam. There is not much courseware included, the participant is only provided with 9 videos (totaling 3 hours) covering certain topics that are relevant in the labs. These videos only serve as a primer, as you will for sure have to do your own research when tackling the labs (or the "Cyber Range" if you're into that business lingo 😉).
 
 ## The Labs
 
@@ -37,16 +40,16 @@ Despite these occasional frustrations, though, the labs are very challenging and
 
 ## The Exam
 
-The PACES certification exam is different from a lot of other course exams in that it includes two parts. The first part is compromising several machines across multiple forests by getting low- or high-privileged command execution. The second part is fixing the vulnerabilities you identified, as well as implementing some 'client requirements' that are shared in advance. In total, you get 48 hours to complete the practical part, and 48 hours after that to hand in your report.
+The CRTM certification exam is different from a lot of other course exams in that it includes two parts. The first part is compromising several machines across multiple forests by getting low- or high-privileged command execution. The second part is fixing the vulnerabilities you identified, as well as implementing some 'client requirements' that are shared in advance. In total, you get 48 hours to complete the practical part, and 48 hours after that to hand in your report.
 
 Given all of the exciting stuff covered in the labs, the exploitation part of the exam felt a bit bland. The exploitation steps are way easier than those in the labs, and not as much fancy technologies are brought out to play. Because of this, it feels more or less the same as the CRTP or CRTE exams, where you use your low-privileged RDP foothold to escalate your privileges and move laterally (not necessarily in that order), as well as jump the forest boundary by abusing AD misconfigurations. 
 
 The mitigation part however was a lot of fun to do. Fixing vulnerabilities is definitely not something I'm used to doing, so it was a nice change of pace from the other certs I've done. For this part of the exam you will be rummaging around on target computers and domain controllers to patch the issues you identified and implement some specific features as requested by the "client". Nothing you do in this part of the exam will be very hard, but it will definitely help solidify your understanding of certain technologies.
 
-To achieve the PACES certification, an exam report has to be submitted. This report should extensively discuss both the exploitation and mitigation parts in such a way that your thought process is clear and your steps are reproducible. I (again) used a similar approach to the one described in [this blog post](https://casvancooten.com/posts/2020/05/generating-pretty-pwk-reports-with-pandoc-and-markdown-templates-inside/), drafting my exploitation and remediation notes in Markdown and converting them to a pretty report after completing the exam. This way, creating the exam report didn't cost a lot of time beyond the hours spent in the labs. 
+To achieve the CRTM certification, an exam report has to be submitted. This report should extensively discuss both the exploitation and mitigation parts in such a way that your thought process is clear and your steps are reproducible. I (again) used a similar approach to the one described in [this blog post](https://casvancooten.com/posts/2020/05/generating-pretty-pwk-reports-with-pandoc-and-markdown-templates-inside/), drafting my exploitation and remediation notes in Markdown and converting them to a pretty report after completing the exam. This way, creating the exam report didn't cost a lot of time beyond the hours spent in the labs. 
 
 In total, I spent about 8 hours in the exam labs for the exploitation and remediation parts, and compiling the report took me approximately two more hours on top of that. I can see some rabbit holes taking more time, but 48 hours for the practical part of the exam should be more than plenty in most cases!
 
 ## The Verdict
 
-Overall, the exam was fun to do but the offensive part was a bit of a letdown. It feels like the exam could have been quite a bit more challenging if the requirement "you have to fix everything you abuse" was dropped. The main part of GCB is for sure the labs, and because of that I'm not sure if the PACES certification "proves" a lot of skill if one didn't complete the labs. Overall though, GCB is very fun to do and the PACES certification is a nice cherry on top. Let's see if PentesterAcademy will come up with an even more challenging lab in the future (looking at you Nikhil 😁)!
+Overall, the exam was fun to do but the offensive part was a bit of a letdown. It feels like the exam could have been quite a bit more challenging if the requirement "you have to fix everything you abuse" was dropped. The main part of GCB is for sure the labs, and because of that I'm not sure if the CRTM certification "proves" a lot of skill if one didn't complete the labs. Overall though, GCB is very fun to do and the CRTM certification is a nice cherry on top. Let's see if AlteredSecurity will come up with an even more challenging lab in the future (looking at you Nikhil 😁)!

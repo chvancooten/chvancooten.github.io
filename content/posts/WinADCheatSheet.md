@@ -27,7 +27,7 @@ Since I recently completed my CRTP and CRTE exams, I decided to compile a list o
 
 That being said - it is *far from* an exhaustive list. If you feel any important tips, tricks, commands or techniques are missing from this list just get in touch. I will try to keep it updated as much as possible!
 
-Many items of this list are shamelessly stolen from certification courses (that come highly recommended) that discuss Active Directory, such as [CRTP](https://www.pentesteracademy.com/activedirectorylab), [CRTE](https://www.pentesteracademy.com/redteamlab), [OSEP](https://www.offensive-security.com/pen300-osep/), and [CRTO](https://www.zeropointsecurity.co.uk/red-team-ops).
+Many items of this list are shamelessly stolen from certification courses (that come highly recommended) that discuss Active Directory, such as [CRTP](https://www.alteredsecurity.com/adlab), [CRTE](https://www.alteredsecurity.com/redteamlab), [OSEP](https://www.offensive-security.com/pen300-osep/), and [CRTO](https://www.zeropointsecurity.co.uk/red-team-ops).
 If you are looking for the cheat sheet and command reference I used for OSCP, please refer to [this post](https://cas.vancooten.com/posts/2020/05/oscp-cheat-sheet-and-command-reference/).
 
 *Note: I tried to highlight some poor OpSec choices for typical red teaming engagements with 🚩. I will likely have missed some though, so make sure you **understand what you are running** before you run it!*
