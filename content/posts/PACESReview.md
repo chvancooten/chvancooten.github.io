@@ -1,5 +1,5 @@
 +++
-title = "So You Wanna Hack a Bank? 'Global Central Bank' (CRTM) Certification Review"
+title = "So You Wanna Hack a Bank? 'Global Central Bank' (PACES) Certification Review"
 date = "2021-10-05"
 toc = true
 draft = false
