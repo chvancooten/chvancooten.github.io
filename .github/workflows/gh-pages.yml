@@ -32,6 +32,11 @@ jobs:
         run: |
           sed -i 's/window.matchMedia("(prefers-color-scheme: dark)").matches/true/' themes/hello-friend-ng/assets/js/main.js
 
+      # Another ugly hot-patch to fix faulty 'aria-role' attribute
+      - name: Modify index layout to fix faulty 'aria-role' attribute
+        run: |
+          sed -i 's/aria-role/role/' themes/hello-friend-ng/layouts/index.html
+
       - name: Build
         run: hugo --minify
 
