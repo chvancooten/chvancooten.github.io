@@ -28,9 +28,9 @@ jobs:
 
       # Ugly hot-patch to enforce dark theme as standard
       # See: https://github.com/rhazdon/hugo-theme-hello-friend-ng/issues/353
-      - name: Modify theme JS to force dark theme by default
-        run: |
-          sed -i 's/window.matchMedia("(prefers-color-scheme: dark)").matches/true/' themes/hello-friend-ng/assets/js/main.js
+      #- name: Modify theme JS to force dark theme by default
+      #  run: |
+      #    sed -i 's/window.matchMedia("(prefers-color-scheme: dark)").matches/true/' themes/hello-friend-ng/assets/js/main.js
 
       # Another ugly hot-patch to fix faulty 'aria-role' attribute
       - name: Modify index layout to fix faulty 'aria-role' attribute
