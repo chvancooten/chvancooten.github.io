@@ -144,7 +144,7 @@ Powershell -EncodedCommand $encodedCommand
 
 ### AD Enumeration With PowerView
 
-Though the below gives a good reperesentation of the commands that usually come in most useful for me, this only scratches the surface of what PowerView can do. PowerView is available [here](https://github.com/PowerShellMafia/PowerSploit/blob/master/Recon/PowerView.ps1).
+Though the below gives a good representation of the commands that usually come in most useful for me, this only scratches the surface of what PowerView can do. PowerView is available [here](https://github.com/PowerShellMafia/PowerSploit/blob/master/Recon/PowerView.ps1).
 
 ```powershell
 # Get all users in the current domain
@@ -402,7 +402,7 @@ Invoke-TokenManipulation -CreateProcess "C:\Windows\system32\calc.exe" -ProcessI
 
 ### Lateral Movement with Rubeus
 
-We can use Rubeus to execute a technique called "Overpass-the-Hash". In this technique, instead of passing the hash directly (another technique known as Pass-the-Hash), we use the NTLM hash of an account to request a valid Kerberost ticket (TGT). We can then use this ticket to authenticate towards the domain as the target user.
+We can use Rubeus to execute a technique called "Overpass-the-Hash". In this technique, instead of passing the hash directly (another technique known as Pass-the-Hash), we use the NTLM hash of an account to request a valid Kerberos ticket (TGT). We can then use this ticket to authenticate towards the domain as the target user.
 
 ```powershell
 # Request a TGT as the target user and pass it into the current session

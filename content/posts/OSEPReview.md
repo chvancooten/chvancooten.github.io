@@ -14,7 +14,7 @@ tags = [
   name = "Cas van Cooten"
 +++
 
-*Updated **February 13th, 2023**: Some referenced courses are now licensed by AlteredSecurity instead of PentesterAcademy, this post has been udpated to reflect.*
+*Updated **February 13th, 2023**: Some referenced courses are now licensed by AlteredSecurity instead of PentesterAcademy, this post has been updated to reflect.*
 
 ## Introduction
 
