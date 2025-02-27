@@ -15,9 +15,10 @@ permissions:
   contents: write
   pull-requests: write
 
+# Only cancel in-progress runs of the same PR, never cancel production deployment
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   deploy:
@@ -92,8 +93,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
           destination_dir: ${{ env.PUBLISH_DIR }}
-          remove_files: true
-          keep_files: true
+          keep_files: false
 
       # Comment on PR with preview URL
       - name: Comment on PR
