@@ -42,7 +42,7 @@ The labs are quite strictly firewalled and hardened, so simply compromising ever
 
 Though you will see most of the labs as part of the course and exercises, I would recommend everyone to do a "clean run" after completing the exercises. There are for sure some parts of the lab that you can only discover on your own, which also gives you the opportunity get some more valuable practice in before your exam. 🙂
 
-{{< tweet user="chvancooten" id="1393655024866283520" >}}
+{{< x user="chvancooten" id="1393655024866283520" >}}
 
 I can think of very little improvement points regarding the labs. One of my primary objections is that initial access into the labs can be finnicky at times, and it cannot be bypassed once you already gained access. This is quite annoying if the lab has been reset and you just want to re-establish beacons, only to find that the phishes you sent earlier now stopped working due to infrastructure instability. Luckily, RastaMouse has confirmed that this is something that will be fixed in the next version of the course.
 
@@ -54,7 +54,7 @@ As per usual and for obvious reasons I cannot disclose too much about the setup 
 
 Truth be told, I was a bit disappointed at how easy the first three flags were in my version of the exam. The fourth flag however provided much more of a challenge and was a welcome change in pace from the others. It should be noted that the course is however marked as a beginner-level course, so I shouldn't complain about the difficulty too much. Obviously, there is no shame in 'only' submitting three flags to pass the exam. However, based on my experience with the exam I would say that everyone who has prior red team operations experience (either working experience or through certs like OSEP) should really challenge themselves to try and submit all four flags - it's definitely worth it! 
 
-{{< tweet user="chvancooten" id="1410624406687260679" >}}
+{{< x user="chvancooten" id="1410624406687260679" >}}
 
 The exam doesn't require a report, which is a welcome break to some. I don't mind reporting for exams myself, and honestly it should become routine to take good and report-worthy notes in any case. So, even if it's not strictly required, my strong advice would be to challenge yourself to make a habit of keeping quality notes. If you need some inspiration, I discuss my technique for keeping quality notes and turning them into a report easily [in this blog post](https://casvancooten.com/posts/2020/05/generating-pretty-pwk-reports-with-pandoc-and-markdown-templates-inside/).
 

@@ -24,7 +24,7 @@ The course materials state that PEN-300 is a course focused at advanced penetrat
 
 When I saw the first positive reviews of the PEN-300 course rolling in, it didn't take me long to enroll in the course. I ordered the 90 days package, since I took the course next to my full-time day job. Unless you can dedicate a lot of time I would probably advise most to do the same, even though it is possible to complete the full course materials and labs in way less time (I completed both in about six weeks). Do note that I completed the course during a Covid-lockdown, which gave me a bit more free time and flexibility in the evenings and weekends. 🙂
 
-{{< tweet user="chvancooten" id="1374993077639733250" >}}
+{{< x user="chvancooten" id="1374993077639733250" >}}
 
 *As always - if you have any questions about the course that are unanswered in this post, please do [hit me up on Twitter](https://twitter.com/chvancooten). I'll gladly discuss any questions you may have (except specific questions on the exam, duh) and will add them to this post if relevant.*
 
