@@ -17,14 +17,14 @@ permissions:
 
 # Only cancel in-progress runs of the same PR, never cancel production deployment
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'production' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action != 'closed' }}
 
 jobs:
   deploy:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
@@ -46,56 +46,43 @@ jobs:
         run: |
           sed -i 's/window.matchMedia("(prefers-color-scheme: dark)").matches/true/' themes/hello-friend-ng/assets/js/main.js
 
-      # Set base URL depending on whether this is a PR or push to main
+      # Handle PR cleanup for non-merged PRs that are closed
+      - name: Create empty directory for PR cleanup
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
+        run: mkdir -p /tmp/empty-dir
+
+      - name: Remove PR preview (non-merged PR)
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: /tmp/empty-dir
+          destination_dir: pr-preview/pr-${{ github.event.pull_request.number }}
+
+      # Handle PR preview when opened/updated
       - name: Set PR build configuration
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
         run: |
           echo "HUGO_BASEURL=https://casvancooten.com/pr-preview/pr-${{ github.event.pull_request.number }}/" >> $GITHUB_ENV
-          echo "PUBLISH_DIR=pr-preview/pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
 
-      - name: Set production build configuration
-        if: github.event_name != 'pull_request'
-        run: |
-          echo "HUGO_BASEURL=https://casvancooten.com/" >> $GITHUB_ENV
-          echo "PUBLISH_DIR=." >> $GITHUB_ENV
-
-      - name: Build Production
-        if: github.event_name != 'pull_request'
-        run: hugo --minify --baseURL ${{ env.HUGO_BASEURL }}
-
-      # Build PR preview with canonical URLs to fix some paths
       - name: Build PR Preview
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
         run: |
-          # Create temporary config file with PR-specific settings
           cat > config.pr.toml << EOF
           baseurl = "${{ env.HUGO_BASEURL }}"
           canonifyURLs = true
           EOF
-          # Build with the PR config and the main config
           hugo --minify --baseURL ${{ env.HUGO_BASEURL }} --config config.pr.toml,config.toml
 
-      # Handle PR preview deployment
       - name: Deploy PR preview
         uses: peaceiris/actions-gh-pages@v3
         if: github.event_name == 'pull_request' && github.event.action != 'closed'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
-          destination_dir: ${{ env.PUBLISH_DIR }}
+          destination_dir: pr-preview/pr-${{ github.event.pull_request.number }}
           keep_files: true
 
-      # Clean up PR preview when PR is closed
-      - name: Remove PR preview
-        uses: peaceiris/actions-gh-pages@v3
-        if: github.event_name == 'pull_request' && github.event.action == 'closed'
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
-          destination_dir: ${{ env.PUBLISH_DIR }}
-          keep_files: false
-
-      # Comment on PR with preview URL
       - name: Comment on PR
         if: github.event_name == 'pull_request' && github.event.action != 'closed'
         uses: actions/github-script@v5
@@ -131,7 +118,15 @@ jobs:
               });
             }
 
-      # Standard production deployment
+      # Handle production deployment (push to main)
+      - name: Production build and deployment
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Clean build directory first
+          rm -rf ./public
+          # Build production site
+          hugo --minify --baseURL https://casvancooten.com/
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main'
