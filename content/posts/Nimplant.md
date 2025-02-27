@@ -38,7 +38,7 @@ Building your own C2, on the other hand, brings a couple of advantages. First an
 
 With all that out of the way, let's get to the meat 'n' potatoes of this post - **Nimplant**! Nimplant is what I dubbed the C2, obviously (and very unoriginally) because of the implant written in Nim. As it turns out, I wasn't the first with this idea...
 
-{{< tweet user="domchell" id="1414267057617739782" >}}
+{{< x user="domchell" id="1414267057617739782" >}}
 
 Nimplant is meant for use as a first-stage implant. This means that it is typically used for an initial infection, before dropping more elaborate malware such as a Cobalt Strike beacon. This use case poses a couple of requirements for the implant:
 
