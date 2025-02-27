@@ -27,7 +27,6 @@ copyright = '<a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_
   images = ["/preview.png"]
   contentTypeName = "posts"
   enableThemeToggle = true
-  defaultTheme = "dark"
 
   gitUrl = "https://github.com/chvancooten/chvancooten.github.io/commit/"
 

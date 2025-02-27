@@ -58,8 +58,21 @@ jobs:
           echo "HUGO_BASEURL=https://casvancooten.com/" >> $GITHUB_ENV
           echo "PUBLISH_DIR=." >> $GITHUB_ENV
 
-      - name: Build
+      - name: Build Production
+        if: github.event_name != 'pull_request'
         run: hugo --minify --baseURL ${{ env.HUGO_BASEURL }}
+
+      # Build PR preview with canonical URLs to fix some paths
+      - name: Build PR Preview
+        if: github.event_name == 'pull_request'
+        run: |
+          # Create temporary config file with PR-specific settings
+          cat > config.pr.toml << EOF
+          baseurl = "${{ env.HUGO_BASEURL }}"
+          canonifyURLs = true
+          EOF
+          # Build with the PR config and the main config
+          hugo --minify --baseURL ${{ env.HUGO_BASEURL }} --config config.pr.toml,config.toml
 
       # Handle PR preview deployment
       - name: Deploy PR preview
