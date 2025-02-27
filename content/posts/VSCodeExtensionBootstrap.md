@@ -21,7 +21,7 @@ Wow, been a while since my last blog 😅. During some research I came across a 
 
 It's no secret that the popularity of VS Code brings a lot of risk exposure in the form of its plugin system. [Threat actors](https://unit42.paloaltonetworks.com/stately-taurus-abuses-vscode-southeast-asian-espionage/) and [researchers](https://www.bleepingcomputer.com/news/security/malicious-vscode-extensions-with-millions-of-installs-discovered/) alike have been happily [abusing it](https://arxiv.org/html/2411.07479v1) to [target developers](https://www.reversinglabs.com/blog/malicious-helpers-vs-code-extensions-observed-stealing-sensitive-information) - [even your favorite dark theme is not safe](https://www.bleepingcomputer.com/news/security/vscode-extensions-with-9-million-installs-pulled-over-security-risks/).
 
-Of course, this type of threat is inherent to allowing untrusted (or _semi-trusted?_) code to run within a trusted process. As attackers, it's very enticing to be able to run our own code inside of the trusted, signed, and highly prevalent process "Code.exe" process. This process is also known to perform a variety of activities, like call out to the Internet, spawn shells as child processes, and continually interact with local and remote filesystems. This makes it hard for defenders to fingerprint what constitutes benign versus malicious behavior, and by extension makes it easier for us as attackers to "blend in" with the noise.
+Of course, this type of threat is inherent to allowing untrusted (or _semi-trusted?_) code to run within a trusted process. As attackers, it's very enticing to be able to run our own code inside of the trusted, signed, and highly prevalent process "Code.exe". This process is also known to perform a variety of activities, like call out to the Internet, spawn shells as child processes, and continually interact with local and remote filesystems. This makes it hard for defenders to fingerprint what constitutes benign versus malicious behavior, and by extension makes it easier for us as attackers to "blend in" with the noise.
 
 Creating custom VS Code extensions is easy, the team even has a great [getting started guide](https://code.visualstudio.com/api/get-started/your-first-extension) for it.
 
@@ -47,9 +47,9 @@ To bootstrap extensions on a machine where VS Code is already installed and init
 
 This unlocks a variety of attack scenarios that could be interesting for initial access or persistence. An attacker could use the legitimate VS Code installation zip (or bring their own), and simply inject the `./data` and `./bootstrap/extensions` directories to silently install and run the malicious extension. Alternatively, bootstrapping could be abused to inject an extension in the user's existing VS Code installation (see caveat below), then use the extension to restore the user's normal environment. All without any prompts or warnings! 
 
-![We all know messageboxes are the _real_ impact 😎](/images/vscode-extensioninstalled.png)
+![We all know message boxes are the _real_ impact 😎](/images/vscode-extensioninstalled.png)
 
-> **Note:** In my testing it was not possible to simply create a `./data` directory in the default VS Code installation folder to convert it to a portable install. Investigating the bootstrapping source code ([source](https://github.com/microsoft/vscode/blob/bd4ab867f9ca31105f05032cf09edbce31fc6fe3/src/bootstrap-node.ts#L163)), this appears to be because this check evaluates to `False`:
+> **Note:** In my testing it was not possible to simply create a `./data` directory in the default VS Code installation folder to convert it to a portable install. Analyzing the portability source code ([source](https://github.com/microsoft/vscode/blob/bd4ab867f9ca31105f05032cf09edbce31fc6fe3/src/bootstrap-node.ts#L163)), this appears to be because the following value evaluates to `False`:
 >
 > ```typescript
 > const isPortable = !('target' in product) && fs.existsSync(portableDataPath);
