@@ -3,8 +3,21 @@ name: github pages
 on:
   push:
     branches:
-      - main  # Set a branch to deploy
+      - main
   pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -12,8 +25,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          submodules: recursive  # Fetch Hugo themes (true OR recursive)
-          fetch-depth: 0         # Fetch all history for .GitInfo and .Lastmod
+          submodules: recursive # Fetch Hugo themes (true OR recursive)
+          fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
 
       - name: Fix timezone
         uses: szenius/set-timezone@v1.0
@@ -23,7 +36,7 @@ jobs:
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
         with:
-          hugo-version: 'latest'
+          hugo-version: "latest"
           extended: true
 
       # Ugly hot-patch to enforce dark theme as standard
@@ -37,10 +50,81 @@ jobs:
         run: |
           sed -i 's/aria-role/role/' themes/hello-friend-ng/layouts/index.html
 
-      - name: Build
-        run: hugo --minify
+      # Set base URL depending on whether this is a PR or push to main
+      - name: Set PR build configuration
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "HUGO_BASEURL=https://casvancooten.com/pr-preview/pr-${{ github.event.pull_request.number }}/" >> $GITHUB_ENV
+          echo "PUBLISH_DIR=pr-preview/pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
 
-      - name: Deploy
+      - name: Set production build configuration
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "HUGO_BASEURL=https://casvancooten.com/" >> $GITHUB_ENV
+          echo "PUBLISH_DIR=." >> $GITHUB_ENV
+
+      - name: Build
+        run: hugo --minify --baseURL ${{ env.HUGO_BASEURL }}
+
+      # Handle PR preview deployment
+      - name: Deploy PR preview
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          destination_dir: ${{ env.PUBLISH_DIR }}
+          keep_files: true
+
+      # Clean up PR preview when PR is closed
+      - name: Remove PR preview
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.event_name == 'pull_request' && github.event.action == 'closed'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          destination_dir: ${{ env.PUBLISH_DIR }}
+          remove_files: true
+          keep_files: true
+
+      # Comment on PR with preview URL
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const previewUrl = 'https://casvancooten.com/pr-preview/pr-${{ github.event.pull_request.number }}/';
+            const comment = `📝 PR Preview deployed! [View Preview](${previewUrl})`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot' && comment.body.includes('PR Preview deployed!');
+            });
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+      # Standard production deployment
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main'
         with:
