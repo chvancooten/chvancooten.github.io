@@ -23,7 +23,7 @@ It's no secret that the popularity of VS Code brings a lot of risk exposure in t
 
 Of course, this type of threat is inherent to allowing untrusted (or _semi-trusted?_) code to run within a trusted process. As attackers, it's very enticing to be able to run our own code inside of the trusted, signed, and highly prevalent process "Code.exe". This process is also known to perform a variety of activities, like call out to the Internet, spawn shells as child processes, and continually interact with local and remote filesystems. This makes it hard for defenders to fingerprint what constitutes benign versus malicious behavior, and by extension makes it easier for us as attackers to "blend in" with the noise.
 
-Creating custom VS Code extensions is easy, the team even has a great [getting started guide](https://code.visualstudio.com/api/get-started/your-first-extension) for it.
+Creating malicious Code extensions is outside of the scope of this post. However, creating custom VS Code extensions is easy, the team even has a great [getting started guide](https://code.visualstudio.com/api/get-started/your-first-extension) for it. You'll manage. 😉
 
 ## VS Code Extensions for Initial Access
 
@@ -39,7 +39,7 @@ However, there is a trick to get around these prompts and quietly install your p
 
 However, there is an issue with this method. While it works well for a "Bring-Your-Own" installation of VS Code, it does _not_ work on systems where VS Code is already installed. This is because the ExtensionsInitializer ([source](https://github.com/microsoft/vscode/blob/main/src/vs/code/electron-utility/sharedProcess/contrib/defaultExtensionsInitializer.ts)) stores a value in the `StorageTarget.Machine` field, which is machine-specific (on Windows it equates to `%AppData%\Code`). This field ensures the ExtensionsInitializer only runs on first boot, meaning we are out of luck if the key is set on subsequent runs. Or are we?
 
-> **Note:** Removing the `%AppData%\Code` directory does "reset" the settings in `StorageTarget.Machine`, and makes it so the bootstrap functionality works even for users who have extensions configured in their user profile (which is typically in `%USERPROFILE%\.vscode`), merging the bootstrapped extensions with their own. However, this directory contains other important configuration data such as the `settings.json` file, so taking this approach is not recommended.
+> **Note:** Removing the `%AppData%\Code` directory does "reset" the settings in `StorageTarget.Machine`, and makes it so the bootstrap functionality works even for users who have extensions configured in their user profile (which is typically in `%USERPROFILE%\.vscode`), merging the bootstrapped extensions with their own. However, this directory contains other important configuration data such as the `settings.json` file, so taking this approach is not recommended. If you want to persist within a user's existing profile, backdooring the user's `extensions.json` is probably the better route.
 
 ## Making It Portable
 
