@@ -226,20 +226,30 @@ def check_urls_exist(b, fx):
     return [(p, "missing from build") for p in fx.urls if not os.path.isfile(b.file_for(p))]
 
 
+def check_redirect_page(b, path, target, pg):
+    ok = {b.site.abs(target), b.site.base + target.lstrip("/")}
+    if pg.refresh_url not in ok:
+        yield f"meta refresh -> {pg.refresh_url!r}, expected {b.site.abs(target)}"
+    canon = [l.get("href") for l in pg.links_with_rel("canonical")]
+    if not canon or canon[0] not in ok:
+        yield f"canonical {canon[0] if canon else None!r}, expected {b.site.abs(target)}"
+    if not pg.noindex:
+        yield "redirect page lacks noindex"
+
+
+def is_consolidated_pager(path, info, pg):
+    return (pg.refresh_url is not None and re.search(r"/page/\d+/$", path) is not None
+            and info["canonical_path"] != path)
+
+
 def check_redirects(b, fx):
     for path, target in fx.redirects.items():
         pg = b.page(path)
         if pg is None:
             yield path, "redirect page missing"
             continue
-        ok = {b.site.abs(target), b.site.base + target.lstrip("/")}
-        if pg.refresh_url not in ok:
-            yield path, f"meta refresh -> {pg.refresh_url!r}, expected {b.site.abs(target)}"
-        canon = [l.get("href") for l in pg.links_with_rel("canonical")]
-        if not canon or canon[0] not in ok:
-            yield path, f"canonical {canon[0] if canon else None!r}, expected {b.site.abs(target)}"
-        if not pg.noindex:
-            yield path, "redirect page lacks noindex"
+        for msg in check_redirect_page(b, path, target, pg):
+            yield path, msg
 
 
 def check_heading_ids(b, fx):
@@ -575,8 +585,10 @@ def check_robots_txt(b):
     issues = []
     if not re.search(r"(?im)^\s*sitemap:\s*\S+", text):
         issues.append("robots.txt has no Sitemap: line")
-    if not b.preview and not re.search(r"(?im)^\s*disallow:\s*/pr-preview/?\s*$", text):
-        issues.append("robots.txt lacks Disallow: /pr-preview/")
+    # Previews are kept out of the index with per-page noindex, not robots.txt: a Disallow would stop
+    # crawlers from ever seeing that noindex. Production must not block the site itself.
+    if not b.preview and re.search(r"(?im)^\s*disallow:\s*/\s*$", text):
+        issues.append("robots.txt disallows the whole site")
     return issues
 
 
@@ -587,6 +599,12 @@ def gate_g2(b, fx, rep):
         pg = b.page(path)
         if pg is None:
             missing.append((path, "page missing"))
+            continue
+        if is_consolidated_pager(path, info, pg):
+            # A /page/N/ list page that already canonicalised elsewhere may become a redirect
+            # to that canonical target (e.g. all tags on /tags/); it is then checked as a redirect.
+            per_check[PAGE_CHECKS[0][0]] += [(path, m) for m in
+                                             check_redirect_page(b, path, info["canonical_path"], pg)]
             continue
         for name, fn in PAGE_CHECKS:
             per_check[name] += [(path, msg) for msg in fn(b, path, info, pg)]
@@ -613,7 +631,7 @@ def gate_g2(b, fx, rep):
     rep.add("G2", "sitemap.xml" + (" well-formed (preview)" if b.preview else
                                    " well-formed, complete, no redirects or previews"),
             check_sitemap(b, fx))
-    rep.add("G2", "robots.txt has Sitemap:" + ("" if b.preview else " and Disallow: /pr-preview/"),
+    rep.add("G2", "robots.txt has Sitemap:" + ("" if b.preview else " and does not block the site"),
             check_robots_txt(b))
     rep.warn("G2", "<img> has width and height", wide["size"])
     rep.warn("G2", "posts have BreadcrumbList JSON-LD", no_crumbs)
