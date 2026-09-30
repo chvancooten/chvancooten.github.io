@@ -1,0 +1,28 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b0e14">
+{{- /* Apply the stored theme before first paint (dark is the default) and keep theme-color in sync. */}}
+<script>(function(d){var t;try{t=localStorage.getItem("theme")}catch(e){}if(t==="light"||t==="dark")d.dataset.theme=t;d.classList.add("js");if(d.dataset.theme==="light")document.querySelector('meta[name="theme-color"]').content="#ffffff"})(document.documentElement)</script>
+<title>{{ partial "func/title.html" . }}</title>
+{{- partial "seo.html" . }}
+<link rel="icon" href="{{ "favicon.ico" | relURL }}" sizes="32x32">
+<link rel="icon" href="{{ "favicon.svg" | relURL }}" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{{ "apple-touch-icon.png" | relURL }}">
+<link rel="manifest" href="{{ "site.webmanifest" | relURL }}">
+{{- with site.Home.OutputFormats.Get "rss" }}
+<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ site.Title }}">
+{{- end }}
+{{- if not .IsHome }}
+{{- with .OutputFormats.Get "rss" }}
+<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ $.Title }} · {{ site.Title }}">
+{{- end }}
+{{- end }}
+<link rel="preload" href="{{ "fonts/inter-latin-wght-normal.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
+{{- $css := slice }}
+{{- range slice "tokens" "base" "layout" "components" "syntax" }}
+{{- $css = $css | append (resources.Get (printf "css/%s.css" .)) }}
+{{- end }}
+{{- $css = $css | resources.Concat "css/main.css" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+{{- $js := resources.Get "js/main.js" | js.Build (dict "format" "esm" "minify" true "target" "es2020") | fingerprint }}
+<script type="module" src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>

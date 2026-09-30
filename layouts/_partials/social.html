@@ -1,0 +1,9 @@
+{{- /* Social links list. Pass a CSS modifier string, e.g. "social--large". */ -}}
+<ul class="social {{ . }}">
+  {{- range site.Params.social }}
+  <li><a href="{{ .url }}"{{ if not (strings.HasPrefix .url "mailto:") }} rel="me"{{ end }} aria-label="{{ .name }}" title="{{ .name }}">{{ partial "icon.html" (dict "name" .icon "size" 20) }}</a></li>
+  {{- end }}
+  {{- with site.Home.OutputFormats.Get "rss" }}
+  <li><a href="{{ .RelPermalink }}" aria-label="RSS feed" title="RSS feed">{{ partial "icon.html" (dict "name" "rss" "size" 20) }}</a></li>
+  {{- end }}
+</ul>

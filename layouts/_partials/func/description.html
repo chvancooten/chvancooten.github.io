@@ -1,0 +1,21 @@
+{{- /* Meta description: front matter first, then a generated one per page kind. */ -}}
+{{- $d := "" -}}
+{{- if .IsHome -}}
+  {{- $d = site.Params.description -}}
+{{- else if .Description -}}
+  {{- $d = .Description -}}
+{{- else if eq .Kind "term" -}}
+  {{- if eq .Data.Plural "series" -}}
+    {{- $d = printf "Every post in the %s series by Cas van Cooten, in reading order." .Title -}}
+  {{- else -}}
+    {{- $d = printf "Posts tagged %s by Cas van Cooten, on offensive security, red teaming and security tooling." .Title -}}
+  {{- end -}}
+{{- else if eq .Kind "404" -}}
+  {{- $d = "This page does not exist. Find your way back to the posts on offensive security, red teaming and tooling." -}}
+{{- else if .IsPage -}}
+  {{- /* Drop headings (and their decorative "##" anchors) so the text starts with prose. */ -}}
+  {{- $d = .Summary | replaceRE `(?s)<div class="hx[^"]*">.*?</div>` " " | plainify | htmlUnescape | truncate 154 -}}
+{{- else -}}
+  {{- $d = printf "%s on %s: %s" .Title site.Title site.Params.description -}}
+{{- end -}}
+{{- return (trim ($d | plainify | htmlUnescape) " \n") -}}

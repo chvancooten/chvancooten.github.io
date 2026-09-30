@@ -1,0 +1,3 @@
+{{- /* Social card for a page: returns a dict with url, width, height, alt. */ -}}
+{{- $img := dict "url" (index site.Params.images 0 | absURL) "width" 1200 "height" 630 "alt" site.Params.imageAlt -}}
+{{- return $img -}}

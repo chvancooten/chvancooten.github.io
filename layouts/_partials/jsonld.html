@@ -1,0 +1,78 @@
+{{- /* Schema.org JSON-LD @graph. Expects dict: page, desc, img, isPost. */ -}}
+{{- $p := .page -}}
+{{- $home := site.Home.Permalink -}}
+{{- $me := dict "@id" (print $home "#me") -}}
+{{- $website := dict "@id" (print $home "#website") -}}
+{{- $sameAs := slice -}}
+{{- range site.Params.social -}}
+  {{- if not (strings.HasPrefix .url "mailto:") -}}{{ $sameAs = $sameAs | append .url }}{{- end -}}
+{{- end -}}
+{{- $person := dict
+  "@type" "Person"
+  "@id" (print $home "#me")
+  "name" site.Params.author.name
+  "url" $home
+  "image" (site.Params.author.image | absURL)
+  "jobTitle" site.Params.author.jobTitle
+  "sameAs" $sameAs
+  "worksFor" (dict "@type" "Organization" "name" site.Params.company.name "url" site.Params.company.url)
+-}}
+{{- $graph := slice $person -}}
+{{- if $p.IsHome -}}
+  {{- $graph = $graph | append (dict
+    "@type" "WebSite"
+    "@id" (print $home "#website")
+    "url" $home
+    "name" site.Title
+    "description" .desc
+    "inLanguage" "en-US"
+    "publisher" $me
+  ) -}}
+{{- else if .isPost -}}
+  {{- $graph = $graph | append (dict
+    "@type" "BlogPosting"
+    "@id" (print $p.Permalink "#article")
+    "headline" $p.Title
+    "description" .desc
+    "datePublished" ($p.PublishDate.Format "2006-01-02T15:04:05Z07:00")
+    "dateModified" ($p.Lastmod.Format "2006-01-02T15:04:05Z07:00")
+    "author" $me
+    "publisher" $me
+    "image" .img.url
+    "mainEntityOfPage" (dict "@type" "WebPage" "@id" $p.Permalink)
+    "keywords" (default slice $p.Params.tags)
+    "wordCount" $p.WordCount
+    "url" $p.Permalink
+    "inLanguage" "en-US"
+    "isPartOf" $website
+  ) -}}
+  {{- $posts := site.GetPage "/posts" -}}
+  {{- $graph = $graph | append (dict
+    "@type" "BreadcrumbList"
+    "itemListElement" (slice
+      (dict "@type" "ListItem" "position" 1 "name" site.Title "item" $home)
+      (dict "@type" "ListItem" "position" 2 "name" $posts.Title "item" $posts.Permalink)
+      (dict "@type" "ListItem" "position" 3 "name" $p.Title "item" $p.Permalink)
+    )
+  ) -}}
+{{- else if eq $p.Kind "page" -}}
+  {{- $graph = $graph | append (dict
+    "@type" (cond (eq $p.RelPermalink ((site.GetPage "/about").RelPermalink)) "ProfilePage" "WebPage")
+    "@id" $p.Permalink
+    "url" $p.Permalink
+    "name" $p.Title
+    "description" .desc
+    "mainEntity" $me
+    "isPartOf" $website
+  ) -}}
+{{- else if in (slice "section" "taxonomy" "term") $p.Kind -}}
+  {{- $graph = $graph | append (dict
+    "@type" "CollectionPage"
+    "@id" $p.Permalink
+    "url" $p.Permalink
+    "name" $p.Title
+    "description" .desc
+    "isPartOf" $website
+  ) -}}
+{{- end }}
+<script type="application/ld+json">{{ dict "@context" "https://schema.org" "@graph" $graph | jsonify | safeJS }}</script>

@@ -1,0 +1,14 @@
+<footer class="site-footer">
+  <div class="wrap site-footer__inner">
+    <div class="site-footer__id">
+      <p class="site-footer__logo" aria-hidden="true"><span class="logo__prompt">&gt;</span> {{ site.Params.logoText }}</p>
+      <p>Co-founder of <a href="{{ site.Params.company.url }}">{{ site.Params.company.name }}</a></p>
+    </div>
+    {{- partial "social.html" "" }}
+    <p class="site-footer__meta">
+      <span>&copy; {{ site.Lastmod.Year }} {{ site.Params.author.name }}</span>
+      <span>Content licensed <a href="{{ site.Params.license }}" rel="license">{{ site.Copyright }}</a></span>
+      <span><a href="{{ site.Params.repoURL }}">Source on GitHub</a></span>
+    </p>
+  </div>
+</footer>
