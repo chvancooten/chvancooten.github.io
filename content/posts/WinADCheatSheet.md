@@ -852,7 +852,7 @@ The DSRM admin is the local administrator account of the DC. Remote logon needs 
 New-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\" -Name "DsrmAdminLogonBehavior" -Value 2 -PropertyType DWORD
 ```
 
-Now we can login remotely using the local admin hash dumped on the DC before (with `lsadump::sam`, see ['Dumping secrets with Mimikatz']({{<ref "#dumping-secrets-with-mimikatz" >}}) below). Use e.g. 'overpass-the-hash' to get a session (see ['Mimikatz']({{<ref "#mimikatz" >}}) above).
+Now we can login remotely using the local admin hash dumped on the DC before (with `lsadump::sam`, see ['Dumping secrets with Mimikatz']({{<ref "#dumping-os-credentials-with-mimikatz" >}}) below). Use e.g. 'overpass-the-hash' to get a session (see ['Mimikatz']({{<ref "#lateral-movement-with-mimikatz" >}}) above).
 
 ### Modifying security descriptors for remote WMI access
 
@@ -872,7 +872,7 @@ Give user PowerShell Remoting access to a machine, using [Set-RemotePSRemoting.p
 Set-RemotePSRemoting -UserName BackdoorUser -ComputerName dc.targetdomain.com
 ```
 
-For execution, see ['Command execution with PowerShell Remoting']({{<ref "#command-executin-with-powershell-remoting" >}}) above.
+For execution, see ['Command execution with PowerShell Remoting']({{<ref "#command-execution-with-powershell-remoting" >}}) above.
 
 ### Modifying DC registry security descriptors for remote hash retrieval using DAMP
 
