@@ -1,0 +1,98 @@
+baseURL       = "https://casvancooten.com/"
+title         = "Cas van Cooten"
+locale        = "en-US"
+enableGitInfo = true
+enableEmoji   = true
+copyright     = "CC BY-NC 4.0"
+
+# Post URLs are live and linked from elsewhere: never change this pattern.
+[permalinks]
+  posts = "/posts/:year/:month/:title/"
+
+# `category = "blog"` looks odd, but /blog/ and its feed are live URLs.
+[taxonomies]
+  category = "blog"
+  tag      = "tags"
+  series   = "series"
+
+# Every list fits on one page; paginating still emits the /page/1/ redirect aliases.
+[pagination]
+  pagerSize = 1000
+
+[outputs]
+  home = ["html", "rss", "json"]
+
+# Prefer an explicit `lastmod` in front matter, then the git author date.
+[frontmatter]
+  lastmod = ["lastmod", ":git", "date"]
+
+[markup]
+  [markup.goldmark.renderer]
+    unsafe = false
+  [markup.goldmark.parser]
+    wrapStandAloneImageWithinParagraph = false
+  [markup.highlight]
+    noClasses   = false
+    codeFences  = true
+    guessSyntax = false
+    tabWidth    = 4
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel   = 3
+    ordered    = false
+
+[params]
+  description = "Cas van Cooten's blog on offensive security, red teaming and security tooling. Red teamer and co-founder of Offensys."
+  homeTitle   = "Offensive security, red teaming and tooling"
+  logoText    = "Security Ramblings"
+  images      = ["preview.png"]
+  imageAlt    = "Security Ramblings by Cas van Cooten"
+  repoURL     = "https://github.com/chvancooten/chvancooten.github.io"
+  commitURL   = "https://github.com/chvancooten/chvancooten.github.io/commit/"
+  license     = "https://creativecommons.org/licenses/by-nc/4.0/"
+  # Set by CI for preview builds (HUGO_PARAMS_PREVIEWPR=<N>).
+  previewPR   = ""
+
+  [params.author]
+    name     = "Cas van Cooten"
+    handle   = "chvancooten"
+    jobTitle = "Red Teamer and co-founder of Offensys"
+    image    = "images/me.png"
+
+  [params.company]
+    name = "Offensys"
+    url  = "https://offensys.com"
+
+  [[params.social]]
+    name  = "GitHub"
+    icon  = "github"
+    url   = "https://github.com/chvancooten"
+  [[params.social]]
+    name  = "X"
+    icon  = "x"
+    url   = "https://twitter.com/chvancooten"
+  [[params.social]]
+    name  = "LinkedIn"
+    icon  = "linkedin"
+    url   = "https://www.linkedin.com/in/chvancooten/"
+  [[params.social]]
+    name  = "Email"
+    icon  = "mail"
+    url   = "mailto:hello@casvancooten.com"
+
+[menus]
+  [[menus.main]]
+    identifier = "blog"
+    name       = "Blog"
+    pageRef    = "/posts"
+    weight     = 10
+  [[menus.main]]
+    identifier = "tags"
+    name       = "Tags"
+    pageRef    = "/tags"
+    weight     = 20
+  [[menus.main]]
+    identifier = "about"
+    name       = "About"
+    pageRef    = "/about"
+    weight     = 30
