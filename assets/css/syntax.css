@@ -1,6 +1,7 @@
 /* Chroma token colours, generated with `hugo gen chromastyles` (github-dark / github),
-   scoped per theme. Backgrounds come from the theme tokens instead. */
-[data-theme="dark"] .chroma .err{color:#f85149}
+   scoped per theme. Backgrounds come from the theme tokens instead. Error tokens are
+   neutralised: lexers flag valid shell/PowerShell as errors, which should not look alarming. */
+[data-theme="dark"] .chroma .err{color:inherit;background:none}
 [data-theme="dark"] .chroma .k{color:#ff7b72}
 [data-theme="dark"] .chroma .kc{color:#79c0ff}
 [data-theme="dark"] .chroma .kd{color:#ff7b72}
@@ -69,7 +70,7 @@
 [data-theme="dark"] .chroma .gu{color:#79c0ff}
 [data-theme="dark"] .chroma .gt{color:#ff7b72}
 [data-theme="dark"] .chroma .gl{text-decoration:underline}
-[data-theme="light"] .chroma .err{color:#f6f8fa;background-color:#82071e}
+[data-theme="light"] .chroma .err{color:inherit;background:none}
 [data-theme="light"] .chroma .k{color:#cf222e}
 [data-theme="light"] .chroma .kc{color:#cf222e}
 [data-theme="light"] .chroma .kd{color:#cf222e}
