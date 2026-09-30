@@ -199,11 +199,17 @@ jobs:
       - name: Check that this run built the tip of main
         id: tip
         run: |
-          main_sha=$(git ls-remote --exit-code origin refs/heads/main | cut -f1)
+          # Match the ref name exactly: ls-remote patterns also match any ref
+          # that merely ends in refs/heads/main.
+          main_sha=$(git ls-remote origin refs/heads/main | awk '$2 == "refs/heads/main" {print $1}')
+          if [[ ! "$main_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Could not resolve refs/heads/main on origin to a single commit"
+            exit 1
+          fi
           if [[ "$main_sha" == "$GITHUB_SHA" ]]; then
             echo "current=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::notice::main is at ${main_sha:0:12} but this run built ${GITHUB_SHA:0:12}; skipping the production deploy"
+            echo "::notice::main has a newer commit (${main_sha:0:12}) than the one this run built (${GITHUB_SHA:0:12}), so this run does not deploy. The run for that newer commit publishes it. If that run did not deploy, start this workflow manually (workflow_dispatch) on main to republish main."
             echo "current=false" >> "$GITHUB_OUTPUT"
           fi
 

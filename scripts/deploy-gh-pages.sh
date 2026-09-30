@@ -205,7 +205,7 @@ apply_change() {
 # Refuse to commit anything outside the scope of this mode. Cleanup and prune
 # may only delete.
 check_scope() {
-  local status path
+  local status path n
   git diff --cached --name-status --no-renames -z > "$tmp/changed"
   while IFS= read -r -d '' status && IFS= read -r -d '' path; do
     case "$mode" in
@@ -220,8 +220,12 @@ check_scope() {
           || die "cleanup may only delete under $target/, not $status $path; aborting"
         ;;
       prune)
-        [[ "$status" == D && "$path" == pr-preview/pr-*/* ]] \
-          || die "prune may only delete under pr-preview/, not $status $path; aborting"
+        # Independent of select_prune_dirs: only deletions inside
+        # pr-preview/pr-<N>/ where N is a valid PR number that is not open.
+        n=${path#pr-preview/pr-}
+        n=${n%%/*}
+        [[ "$status" == D && "$path" == pr-preview/pr-*/* ]] && valid_pr "$n" && [[ -z "${keep[$n]:-}" ]] \
+          || die "prune may only delete previews of closed PRs, not $status $path; aborting"
         ;;
     esac
   done < "$tmp/changed"
