@@ -1,0 +1,14 @@
+version: 2
+updates:
+  # Keeps the SHA-pinned actions in .github/workflows current. Hugo is pinned
+  # separately (HUGO_VERSION + HUGO_SHA256 in gh-pages.yml) and updated by hand.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: ci
