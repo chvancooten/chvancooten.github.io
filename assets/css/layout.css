@@ -171,6 +171,7 @@
 .section-head__cmd,
 .list-head__cmd {
   margin: 0 0 0.5rem;
+  overflow-wrap: anywhere;
   font: var(--fs-xs) / 1.5 var(--font-mono);
   color: var(--muted);
 }

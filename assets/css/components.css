@@ -166,6 +166,7 @@
 .row {
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.15rem 1.5rem;
   padding: 1rem 0.75rem 1.05rem;
   border-bottom: 1px solid var(--border);
@@ -199,6 +200,7 @@
   color: var(--text-strong);
   text-decoration: none;
   text-wrap: pretty;
+  overflow-wrap: anywhere;
 }
 .row__title:hover { color: var(--accent); }
 .row__meta {
@@ -221,7 +223,9 @@
 .tag {
   display: inline-flex;
   align-items: center;
+  max-width: 100%;
   min-height: 1.5rem;
+  overflow-wrap: anywhere;
   padding: 0 0.45rem;
   border: 1px solid var(--border-strong);
   border-radius: 4px;
@@ -234,7 +238,7 @@
 
 /* ---------- List pages ---------- */
 .list-head { padding-block: clamp(2.5rem, 6vw, 4rem) 1.5rem; }
-.list-head__title { font-size: clamp(2rem, 1.5rem + 2vw, 2.75rem); letter-spacing: -0.03em; }
+.list-head__title { font-size: clamp(2rem, 1.5rem + 2vw, 2.75rem); letter-spacing: -0.03em; overflow-wrap: anywhere; }
 .list-head__title .hash { color: var(--muted); font-family: var(--font-mono); font-weight: 500; margin-right: 0.1em; }
 .list-head__lede { margin-top: 0.75rem; max-width: var(--measure); }
 .list-head__lede p:last-child { margin: 0; }
@@ -260,6 +264,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   min-height: 2.5rem;
   padding: 0.35rem 0.8rem;
   border: 1px solid var(--border-strong);
@@ -337,10 +343,11 @@
   border-radius: var(--radius);
   background: var(--bg-elevated);
 }
-.box__title { margin: 0 0 0.75rem; font-size: 1.125rem; letter-spacing: -0.01em; }
+.box__title { margin: 0 0 0.75rem; font-size: 1.125rem; letter-spacing: -0.01em; overflow-wrap: anywhere; }
 .box__title a { text-decoration-thickness: 1px; }
 .series__list {
   margin: 0;
+  overflow-wrap: anywhere;
   padding-left: 1.5rem;
   font-size: var(--fs-sm);
   line-height: 1.5;
@@ -395,6 +402,7 @@
 .crumbs a:hover { text-decoration: underline; }
 .post-title {
   margin: 0 0 1.25rem;
+  overflow-wrap: anywhere;
   font-size: clamp(1.9rem, 1.35rem + 2.3vw, 2.75rem);
   line-height: 1.14;
   letter-spacing: -0.03em;
@@ -441,7 +449,7 @@
   transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 .pager__dir { font: var(--fs-xs) / 1.4 var(--font-mono); color: var(--muted); }
-.pager__title { color: var(--text-strong); font-weight: 600; font-size: 1rem; line-height: 1.4; transition: color var(--dur) var(--ease); }
+.pager__title { color: var(--text-strong); font-weight: 600; font-size: 1rem; line-height: 1.4; overflow-wrap: anywhere; transition: color var(--dur) var(--ease); }
 .pager__link:hover { border-color: var(--accent); }
 .pager__link:hover .pager__title { color: var(--accent); }
 @media (min-width: 40em) {
@@ -490,6 +498,7 @@
 #TableOfContents ul ul { margin-left: 0.6rem; padding-left: 0.5rem; border-left: 1px solid var(--border); }
 #TableOfContents a {
   display: block;
+  overflow-wrap: anywhere;
   padding: 0.3rem 0.5rem;
   border-radius: 4px;
   color: var(--muted);
@@ -542,7 +551,9 @@
   background: var(--bg-elevated);
   color: var(--text-strong);
   font-size: 0.84em;
-  overflow-wrap: anywhere;
+  /* break-word (not anywhere): long tokens still wrap in running text, but keep their
+     min-content width, so table cells do not collapse to one character per line. */
+  overflow-wrap: break-word;
 }
 .prose a > code { color: inherit; }
 .prose blockquote {
@@ -677,7 +688,7 @@ pre:not(.chroma) code { color: var(--text); }
 
 /* ---------- Generic pages (About) ---------- */
 .page-head { padding-block: clamp(2.5rem, 6vw, 4rem) 1.5rem; }
-.page-head h1 { font-size: clamp(2rem, 1.5rem + 2vw, 2.75rem); letter-spacing: -0.03em; }
+.page-head h1 { font-size: clamp(2rem, 1.5rem + 2vw, 2.75rem); letter-spacing: -0.03em; overflow-wrap: anywhere; }
 .page--about .prose > .img-block:first-child {
   float: right;
   width: clamp(7rem, 28vw, 11rem);
@@ -776,7 +787,7 @@ pre:not(.chroma) code { color: var(--text); }
   text-decoration: none;
 }
 .palette__item[aria-selected="true"] { background: var(--accent-soft); box-shadow: inset 2px 0 0 var(--accent); }
-.palette__title { display: block; color: var(--text-strong); font-weight: 600; line-height: 1.4; }
+.palette__title { display: block; overflow-wrap: anywhere; color: var(--text-strong); font-weight: 600; line-height: 1.4; }
 .palette__item[aria-selected="true"] .palette__title { color: var(--accent); }
 .palette__meta { display: block; margin-top: 0.15rem; font: var(--fs-xs) / 1.5 var(--font-mono); color: var(--muted); }
 .palette mark {
