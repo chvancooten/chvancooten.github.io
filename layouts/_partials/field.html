@@ -1,0 +1,13 @@
+{{- /* The flow field: a canvas (added by js/field) over a pre-rendered still of the same composition, which is
+       what shows without JS and before the script boots. The still is an external SVG drawn through <use>
+       (vector content, so it is never the largest-contentful-paint element), coloured by the page's --field-*
+       properties. Pass the mode: "hero" or "quiet" (404). */ -}}
+<div class="field" data-field="{{ . }}" aria-hidden="true">
+  <svg class="field__still field__still--wide" focusable="false"><use href="{{ "field/still-wide.svg#still" | relURL }}"/></svg>
+  <svg class="field__still field__still--band" focusable="false"><use href="{{ "field/still-band.svg#still" | relURL }}"/></svg>
+</div>
+<div class="field-ctrl">
+  <button class="motion-btn" type="button" data-motion-toggle hidden>
+    {{- partial "icon.html" (dict "name" "pause" "size" 12) }}{{ partial "icon.html" (dict "name" "play" "size" 12) }}<span>Pause motion</span>
+  </button>
+</div>
