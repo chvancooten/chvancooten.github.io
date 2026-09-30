@@ -127,7 +127,7 @@ export function initSearch() {
       note.hidden = true;
       list.replaceChildren(...options);
     } else {
-      message(`No posts match "${input.value.trim()}".`);
+      message(terms.length ? `No posts match "${input.value.trim()}".` : "No posts published yet.");
     }
     active = -1;
     setActive(options.length ? 0 : -1);

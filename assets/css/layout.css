@@ -184,6 +184,7 @@
   margin: 1.5rem 0 0;
 }
 .section-foot--split { justify-content: space-between; align-items: flex-start; }
+.section-empty { margin: 0; padding-block: 1rem; border-block: 1px solid var(--border); font: var(--fs-sm) / 1.5 var(--font-mono); color: var(--muted); }
 
 /* Post layout: one centred column; from 75em the TOC becomes a sticky sidebar. */
 .post {

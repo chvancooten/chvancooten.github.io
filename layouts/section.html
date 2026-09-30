@@ -1,7 +1,7 @@
 {{ define "main" }}
 <div class="wrap wrap--narrow">
   {{- $n := len (where site.RegularPages "Section" "posts") }}
-  {{- partial "list-head.html" (dict "page" . "cmd" (printf "ls -lt ~/%s" .Section) "count" (printf "%d posts, newest first" $n)) }}
+  {{- partial "list-head.html" (dict "page" . "cmd" (printf "ls -lt ~/%s" .Section) "count" (cond (eq $n 0) "No posts published yet" (printf "%d %s, newest first" $n (cond (eq $n 1) "post" "posts")))) }}
   {{- partial "archive.html" . }}
 </div>
 {{ end }}

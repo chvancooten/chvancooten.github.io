@@ -13,7 +13,8 @@
       </p>
       {{- partial "social.html" "social--hero" }}
     </div>
-    {{- partial "shell-intro.html" (dict "latest" (index $posts 0)) }}
+    {{- /* first 1 (not index 0): the build must not fail when every post is a draft. */}}
+    {{- partial "shell-intro.html" (dict "latest" (first 1 $posts)) }}
   </div>
 </section>
 
@@ -23,8 +24,12 @@
       <p class="section-head__cmd" aria-hidden="true"><span class="prompt">$</span> ls -lt ~/posts | head -5</p>
       <h2 class="section-head__title" id="latest-title">Latest writing</h2>
     </header>
-    {{- partial "post-list.html" (first 5 $posts) }}
-    <p class="section-foot"><a class="link-arrow" href="{{ $postsPage.RelPermalink }}">All {{ len $posts }} posts{{ partial "icon.html" "arrow-right" }}</a></p>
+    {{- with first 5 $posts }}
+    {{- partial "post-list.html" . }}
+    <p class="section-foot"><a class="link-arrow" href="{{ $postsPage.RelPermalink }}">All {{ len $posts }} {{ cond (eq (len $posts) 1) "post" "posts" }}{{ partial "icon.html" "arrow-right" }}</a></p>
+    {{- else }}
+    <p class="section-empty">Nothing published yet.</p>
+    {{- end }}
   </div>
 </section>
 

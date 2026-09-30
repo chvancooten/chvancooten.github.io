@@ -3,7 +3,7 @@
   {{- if eq .Data.Plural "blog" }}
   {{- /* The legacy /blog/ taxonomy has no terms: show the full archive instead. */}}
   {{- $n := len (where site.RegularPages "Section" "posts") }}
-  {{- partial "list-head.html" (dict "page" . "cmd" "ls -lt ~/blog" "count" (printf "%d posts, newest first" $n)) }}
+  {{- partial "list-head.html" (dict "page" . "cmd" "ls -lt ~/blog" "count" (cond (eq $n 0) "No posts published yet" (printf "%d %s, newest first" $n (cond (eq $n 1) "post" "posts")))) }}
   {{- partial "archive.html" . }}
   {{- else }}
   {{- /* Not rendered: paginating (one page, pagerSize 1000) keeps the live /<taxonomy>/page/1/ redirect alias. */}}

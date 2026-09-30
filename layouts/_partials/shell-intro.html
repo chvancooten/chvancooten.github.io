@@ -1,11 +1,14 @@
 {{- /* The hero terminal. Decorative (everything it says is also on the page), so aria-hidden.
        All text is in the HTML; CSS types the commands once when JS is on and motion is allowed.
-       --n = command length, --d = start delay; delays are computed here. */ -}}
+       --n = command length, --d = start delay; delays are computed here.
+       Pass dict "latest" = a collection with at most one post; the posts.log line is left out when it is empty. */ -}}
 {{- $steps := slice
   (dict "cmd" "whoami" "out" (printf "%s. Red teamer, security researcher, co-founder of %s." site.Params.author.name site.Params.company.name))
   (dict "cmd" "ls ~/topics" "out" "red-teaming/  maldev/  active-directory/  c2/  certs/" "dirs" true)
-  (dict "cmd" "tail -n 1 ~/posts.log" "out" (printf "%s  %s" (.latest.Date.Format "2006-01-02") .latest.Title))
 -}}
+{{- range .latest }}
+  {{- $steps = $steps | append (dict "cmd" "tail -n 1 ~/posts.log" "out" (printf "%s  %s" (.Date.Format "2006-01-02") .Title)) -}}
+{{- end -}}
 {{- $t := 400 -}}
 <div class="shell hero__shell" aria-hidden="true">
   <div class="shell__bar"><span class="shell__dots"><i></i><i></i><i></i></span><span class="shell__title">cas@offensys: ~</span></div>
