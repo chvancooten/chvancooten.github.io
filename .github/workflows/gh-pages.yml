@@ -7,7 +7,9 @@
 #   https://casvancooten.com/pr-preview/pr-<N>/ plus one sticky PR comment.
 # - PR closed (merged or not): pr-preview/pr-<N>/ is removed.
 # - Push to main, or a manual run on main: production deploy to the branch root.
-#   Existing pr-preview/ directories are kept.
+#   Existing pr-preview/ directories are kept. The deploy is skipped when main
+#   has moved past the commit this run built (for example a re-run of an old
+#   run). Afterwards, previews of PRs that are no longer open are pruned.
 #
 # All writes to gh-pages go through scripts/deploy-gh-pages.sh.
 name: github pages
@@ -184,6 +186,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
+      pull-requests: read # list open PRs to prune stale previews
     steps:
       - name: Check out the deploy script
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -191,16 +194,67 @@ jobs:
           sparse-checkout: scripts
           persist-credentials: false
 
+      # Re-running an old run (or a manual run after main moved on) must not
+      # publish an older commit over a newer one.
+      - name: Check that this run built the tip of main
+        id: tip
+        run: |
+          main_sha=$(git ls-remote --exit-code origin refs/heads/main | cut -f1)
+          if [[ "$main_sha" == "$GITHUB_SHA" ]]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::main is at ${main_sha:0:12} but this run built ${GITHUB_SHA:0:12}; skipping the production deploy"
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Download site
+        if: steps.tip.outputs.current == 'true'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: site
           path: ${{ runner.temp }}/site
 
       - name: Publish to the gh-pages root
+        if: steps.tip.outputs.current == 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: scripts/deploy-gh-pages.sh production "$RUNNER_TEMP/site"
+
+      # Backstop for previews whose cleanup never ran (GitHub skips pull_request
+      # workflows for PRs with merge conflicts) or failed. If the lookup fails,
+      # nothing is pruned.
+      - name: List open PRs
+        id: open-prs
+        if: steps.tip.outputs.current == 'true'
+        continue-on-error: true
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          result-encoding: string
+          script: |
+            const prs = await github.paginate(github.rest.pulls.list, {
+              ...context.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const numbers = prs.map((p) => p.number);
+            if (!numbers.every((n) => Number.isInteger(n) && n > 0)) {
+              throw new Error('Unexpected PR number in the API response');
+            }
+            core.info(`Open PRs: ${numbers.join(', ') || 'none'}`);
+            return numbers.length > 0 ? numbers.join(' ') : 'none';
+
+      - name: Prune previews of closed PRs
+        if: steps.open-prs.outcome == 'success'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          OPEN_PRS: ${{ steps.open-prs.outputs.result }}
+        run: |
+          read -r -a open_prs <<< "$OPEN_PRS"
+          scripts/deploy-gh-pages.sh prune "${open_prs[@]}"
+
+      - name: Report skipped pruning
+        if: steps.tip.outputs.current == 'true' && steps.open-prs.outcome != 'success'
+        run: echo "::warning::Could not list open PRs, so no previews were pruned"
 
   cleanup-preview:
     name: Remove PR preview

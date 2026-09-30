@@ -9,6 +9,10 @@
 #       Publish <site-dir> into pr-preview/pr-<pr-number>/ and nothing else.
 #   deploy-gh-pages.sh cleanup <pr-number>
 #       Remove pr-preview/pr-<pr-number>/ and nothing else.
+#   deploy-gh-pages.sh prune none | <open-pr-number>...
+#       Remove every pr-preview/pr-<N>/ whose N is not in the list of open PRs.
+#       Pass "none" when the lookup found no open PRs. Without a list (for
+#       example after a failed lookup) nothing is removed.
 #
 # Environment:
 #   DEPLOY_REPO_URL      repository to publish to
@@ -21,14 +25,15 @@
 #   GITHUB_SHA           source commit, recorded in the commit message
 #
 # A deploy that changes nothing exits 0 without committing. A rejected push
-# (another deploy landed first) is retried after a fetch and rebase.
+# (another deploy landed first) is retried: the script fetches the new tip and
+# re-applies the same scoped change on top of it.
 
 set -euo pipefail
 
 log() { printf 'deploy-gh-pages: %s\n' "$*"; }
 die() { printf 'deploy-gh-pages: error: %s\n' "$*" >&2; exit 1; }
 usage() {
-  sed -n '4,11s/^# \{0,1\}//p' "$0" >&2
+  sed -n '/^# Usage:/,/^#$/{/^#$/d; s/^# \{0,1\}//; p;}' "$0" >&2
   exit 2
 }
 
@@ -48,6 +53,7 @@ mode=${1:-}
 pr=""
 site=""
 target=""
+declare -A keep=()
 case "$mode" in
   production)
     [[ $# -eq 2 ]] || usage
@@ -65,6 +71,20 @@ case "$mode" in
     valid_pr "$2" || die "PR number must be a positive integer, got '$2'"
     pr=$2
     target="pr-preview/pr-$pr"
+    ;;
+  prune)
+    shift
+    if [[ $# -eq 0 ]]; then
+      log "prune: no list of open PRs given; nothing removed"
+      exit 0
+    fi
+    open_desc="$*"
+    if [[ $# -ne 1 || "$1" != none ]]; then
+      for n in "$@"; do
+        valid_pr "$n" || die "open PR numbers must be positive integers (or 'none'), got '$n'"
+        keep[$n]=1
+      done
+    fi
     ;;
   *)
     usage
@@ -118,76 +138,133 @@ cd "$work"
 git config user.name 'github-actions[bot]'
 git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
+# --- the change --------------------------------------------------------------
+
 # Previews only ever live in real directories inside the work tree.
-if [[ -n "$target" ]]; then
-  for p in pr-preview "$target"; do
+check_tree() {
+  local p
+  [[ "$mode" != production ]] || return 0
+  for p in pr-preview ${target:+"$target"}; do
     if [[ -L "$p" ]] || { [[ -e "$p" ]] && [[ ! -d "$p" ]]; }; then
       die "$p on $branch is not a plain directory; refusing to touch it"
     fi
   done
-fi
+}
 
-# --- apply the change --------------------------------------------------------
+# prune: decide once, from the first clone, which previews to remove. A retry
+# re-applies this same list, so a preview that appears meanwhile is kept.
+prune_dirs=()
+select_prune_dirs() {
+  local dir n names=()
+  for dir in pr-preview/pr-*; do
+    [[ -e "$dir" || -L "$dir" ]] || continue # the glob matched nothing
+    n=${dir#pr-preview/pr-}
+    if ! valid_pr "$n"; then
+      log "prune: leaving $dir alone (not pr-<number>)"
+      continue
+    fi
+    [[ -z "${keep[$n]:-}" ]] || continue
+    prune_dirs+=("$dir")
+    names+=("#$n")
+  done
+  log "prune: open PRs: ${open_desc}; removing previews of: ${names[*]:-nothing}"
+  message="Remove previews of closed PRs: ${names[*]:-}"
+}
+
+# Apply the change to the work tree and stage it. Safe to repeat on a fresh tip.
+# --checksum: compare content, not size + mtime, since git only sees content.
+apply_change() {
+  local dir
+  case "$mode" in
+    production)
+      rsync -a --checksum --delete --exclude=.git --exclude=/pr-preview/ -- "$site"/ "$work"/
+      printf '%s\n' "$cname" > CNAME
+      : > .nojekyll
+      git add -A -- . ':(exclude)pr-preview'
+      ;;
+    preview)
+      mkdir -p -- "$target"
+      rsync -a --checksum --delete --exclude=.git -- "$site"/ "$target"/
+      git add -A -- "$target"
+      ;;
+    cleanup)
+      git rm -r -q --ignore-unmatch -- "$target"
+      rm -rf -- "$target"
+      ;;
+    prune)
+      for dir in "${prune_dirs[@]}"; do
+        [[ -e "$dir" || -L "$dir" ]] || continue # already gone
+        [[ -d "$dir" && ! -L "$dir" ]] || die "$dir is not a plain directory; refusing to touch it"
+        git rm -r -q --ignore-unmatch -- "$dir"
+        rm -rf -- "$dir"
+      done
+      ;;
+  esac
+}
+
+# Refuse to commit anything outside the scope of this mode. Cleanup and prune
+# may only delete.
+check_scope() {
+  local status path
+  git diff --cached --name-status --no-renames -z > "$tmp/changed"
+  while IFS= read -r -d '' status && IFS= read -r -d '' path; do
+    case "$mode" in
+      production)
+        [[ "$path" != pr-preview/* ]] || die "production deploy would change $path; aborting"
+        ;;
+      preview)
+        [[ "$path" == "$target"/* ]] || die "preview would change $path outside $target/; aborting"
+        ;;
+      cleanup)
+        [[ "$status" == D && "$path" == "$target"/* ]] \
+          || die "cleanup may only delete under $target/, not $status $path; aborting"
+        ;;
+      prune)
+        [[ "$status" == D && "$path" == pr-preview/pr-*/* ]] \
+          || die "prune may only delete under pr-preview/, not $status $path; aborting"
+        ;;
+    esac
+  done < "$tmp/changed"
+}
 
 source_sha=""
 if [[ "${GITHUB_SHA:-}" =~ ^[0-9a-f]{40}$ ]]; then
   source_sha=" from ${GITHUB_SHA:0:12}"
 fi
-
-# --checksum: compare content, not size + mtime, since git only sees content.
 case "$mode" in
-  production)
-    rsync -a --checksum --delete --exclude=.git --exclude=/pr-preview/ -- "$site"/ "$work"/
-    printf '%s\n' "$cname" > CNAME
-    : > .nojekyll
-    git add -A -- . ':(exclude)pr-preview'
-    message="Deploy production${source_sha}"
-    ;;
-  preview)
-    mkdir -p -- "$target"
-    rsync -a --checksum --delete --exclude=.git -- "$site"/ "$target"/
-    git add -A -- "$target"
-    message="Deploy preview for PR #${pr}${source_sha}"
-    ;;
-  cleanup)
-    git rm -r -q --ignore-unmatch -- "$target"
-    rm -rf -- "$target"
-    message="Remove preview for PR #${pr}"
-    ;;
+  production) message="Deploy production${source_sha}" ;;
+  preview) message="Deploy preview for PR #${pr}${source_sha}" ;;
+  cleanup) message="Remove preview for PR #${pr}" ;;
+  prune) check_tree; select_prune_dirs ;;
 esac
 
-if git diff --cached --quiet; then
-  log "no changes; $branch is already up to date"
-  exit 0
-fi
+# --- commit and push, re-applying on the new tip if another deploy won -------
 
-# Refuse to commit anything outside the scope of this mode.
-git diff --cached --name-only --no-renames -z > "$tmp/changed"
-while IFS= read -r -d '' path; do
-  if [[ "$mode" == production ]]; then
-    [[ "$path" != pr-preview/* ]] || die "production deploy would change $path; aborting"
-  else
-    [[ "$path" == "$target"/* ]] || die "$mode would change $path outside $target/; aborting"
-  fi
-done < "$tmp/changed"
-
-log "$mode: $(git diff --cached --shortstat)"
-git commit --quiet --no-verify -m "$message"
-
-# --- push, retrying when another deploy got there first -----------------------
-
+# A rejected push is not rebased: previews share content, so git's rename
+# detection turns "remove pr-A, add pr-B" upstream into a conflict with our
+# change. Re-applying the same scoped change on the fresh tip cannot conflict.
 attempt=1
-until git push --quiet origin "HEAD:refs/heads/$branch"; do
+while :; do
+  check_tree
+  apply_change
+  if git diff --cached --quiet; then
+    log "no changes; $branch is already up to date"
+    exit 0
+  fi
+  check_scope
+  log "$mode: $(git diff --cached --shortstat)"
+  git commit --quiet --no-verify -m "$message"
+  if git push --quiet origin "HEAD:refs/heads/$branch"; then
+    break
+  fi
   if (( attempt >= max_attempts )); then
     die "push still rejected after $max_attempts attempts"
   fi
-  log "push rejected (attempt $attempt of $max_attempts); fetching and rebasing"
+  log "push rejected (attempt $attempt of $max_attempts); re-applying on the new $branch"
   sleep $((attempt * 2 + RANDOM % 3))
   git fetch --quiet origin "$branch"
-  if ! git rebase --quiet "origin/$branch"; then
-    git rebase --abort || true
-    die "could not rebase onto the updated $branch"
-  fi
+  git reset --quiet --hard "origin/$branch"
+  git clean -ffdq
   attempt=$((attempt + 1))
 done
 
