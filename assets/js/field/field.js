@@ -110,7 +110,8 @@ function mount(host) {
     const ndpr = Math.min(2, window.devicePixelRatio || 1);
     if (f && nw === w && nh === h && ndpr === dpr) return false;
     w = nw; h = nh; dpr = ndpr;
-    band = w / h > 1.25;
+    // "band" (own band below the copy, fades on all sides) or "side" (beside the copy, long fade toward it).
+    band = getComputedStyle(host).getPropertyValue("--field-layout").trim() === "band";
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
     f = createField(w, h, { seed: 7, density: mode.density, speed: mode.speed });

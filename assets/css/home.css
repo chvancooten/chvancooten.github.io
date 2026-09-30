@@ -37,7 +37,7 @@
 .hero__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.75rem; margin-top: 2.25rem; }
 
 /* The field: canvas (JS) over a pre-rendered still of the same composition (no JS, and before JS boots). */
-.field { position: relative; z-index: 0; overflow: hidden; pointer-events: none; }
+.field { --field-layout: side; position: relative; z-index: 0; overflow: hidden; pointer-events: none; }
 .field > canvas, .field__still { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .field__still--band { display: none; }
 /* The canvas takes over from the still with a short crossfade (none for the intro, which fades itself in). */
@@ -47,8 +47,6 @@
 @media (prefers-reduced-motion: no-preference) {
   .field > canvas, .field__still { transition: opacity 0.4s var(--ease-out); }
   .field.is-intro > canvas { transition: none; }
-}
-@media (prefers-reduced-motion: no-preference) {
   /* A first visit starts with the intro gesture (a line unfurling), so the still stays out of the way;
      it comes back if the script never arrives. */
   .js[data-intro] .field:not(.is-live) .field__still { opacity: 0; animation: still-late 0.4s 2.5s forwards; }
@@ -82,7 +80,7 @@
 @media (max-width: 59.99em) {
   .hero { grid-template-rows: auto minmax(11rem, 1fr); }
   .hero__copy { align-self: end; padding-block: clamp(2rem, 6vh, 4rem) 0.5rem; }
-  .field { margin-inline: calc(-1 * var(--pad)); }
+  .field { --field-layout: band; margin-inline: calc(-1 * var(--pad)); }
   .field__still--wide { display: none; }
   .field__still--band { display: block; }
 }
@@ -245,6 +243,6 @@
 }
 @media (max-width: 59.99em) {
   .notfound { align-content: start; }
-  .notfound .field { height: 13rem; margin: 2rem calc(-1 * var(--pad)) 0; }
+  .notfound .field { --field-layout: band; height: 13rem; margin: 2rem calc(-1 * var(--pad)) 0; }
   .notfound .field-ctrl { bottom: 0.75rem; }
 }
