@@ -1,70 +1,89 @@
 {{ define "main" }}
 {{- $posts := where site.RegularPages "Section" "posts" }}
 {{- $postsPage := site.GetPage "/posts" }}
-<section class="hero" aria-labelledby="hero-title">
-  <div class="wrap hero__grid">
-    <div class="hero__intro">
-      <p class="eyebrow"><span aria-hidden="true">// </span>red teaming, research and tooling</p>
-      <h1 class="hero__title" id="hero-title">{{ site.Params.author.name }}</h1>
-      <div class="hero__lede">{{ .Content }}</div>
-      <p class="hero__cta">
-        <a class="btn btn--primary" href="{{ $postsPage.RelPermalink }}">Read the blog{{ partial "icon.html" "arrow-right" }}</a>
-        <a class="btn" href="{{ (site.GetPage "/about").RelPermalink }}">About me</a>
-      </p>
-      {{- partial "social.html" "social--hero" }}
-    </div>
-    {{- /* first 1 (not index 0): the build must not fail when every post is a draft. */}}
-    {{- partial "shell-intro.html" (dict "latest" (first 1 $posts)) }}
-  </div>
-</section>
+{{- $company := site.Params.company }}
+{{- $email := "" }}
+{{- range where site.Params.social "icon" "mail" }}{{ $email = strings.TrimPrefix "mailto:" .url }}{{ end }}
 
-<section class="section" aria-labelledby="latest-title">
-  <div class="wrap">
-    <header class="section-head">
-      <p class="section-head__cmd" aria-hidden="true"><span class="prompt">$</span> ls -lt ~/posts | head -5</p>
-      <h2 class="section-head__title" id="latest-title">Latest writing</h2>
-    </header>
-    {{- with first 5 $posts }}
-    {{- partial "post-list.html" . }}
-    <p class="section-foot"><a class="link-arrow" href="{{ $postsPage.RelPermalink }}">All {{ len $posts }} {{ cond (eq (len $posts) 1) "post" "posts" }}{{ partial "icon.html" "arrow-right" }}</a></p>
-    {{- else }}
-    <p class="section-empty">Nothing published yet.</p>
-    {{- end }}
-  </div>
-</section>
-
-{{- with hugo.Data.projects }}
-<section class="section" aria-labelledby="oss-title">
-  <div class="wrap">
-    <header class="section-head">
-      <p class="section-head__cmd" aria-hidden="true"><span class="prompt">$</span> gh repo list chvancooten --source</p>
-      <h2 class="section-head__title" id="oss-title">Open source</h2>
-    </header>
-    <ul class="cards" role="list">
-      {{- range .projects }}
-      {{- partial "project-card.html" . }}
-      {{- end }}
-    </ul>
-    <p class="section-foot section-foot--split">
-      {{- range first 1 (where site.Params.social "icon" "github") }}
-      <a class="link-arrow" href="{{ .url }}">More projects on GitHub{{ partial "icon.html" "arrow-right" }}</a>
-      {{- end }}
-      {{- with .talks }}
-      <span class="talks"><a class="link-arrow" href="{{ .url }}">Talks and conference material{{ partial "icon.html" "arrow-right" }}</a><span class="talks__desc">{{ .description }}</span></span>
-      {{- end }}
+<section class="hero" aria-labelledby="hero-name">
+  <div class="hero__copy">
+    <p class="hero__role">Red teamer<span class="hero__sep" aria-hidden="true">·</span><span class="sr-only">, </span>Co-founder of <a href="{{ $company.url }}">{{ $company.name }}</a></p>
+    <h1 class="hero__name" id="hero-name"><span>Cas van</span> <span>Cooten</span></h1>
+    <div class="hero__lede">{{ .Content }}</div>
+    <p class="hero__cta">
+      <a class="btn btn--primary" href="#contact">Get in touch</a>
+      <a class="link-quiet" href="{{ $company.url }}">Visit {{ $company.name }}{{ partial "icon.html" (dict "name" "arrow-up-right" "size" 16) }}</a>
     </p>
   </div>
+  {{- partial "field.html" "hero" }}
 </section>
+
+<section class="offensys" aria-labelledby="offensys-title">
+  <div class="offensys__head">
+    <h2 class="offensys__title" id="offensys-title">{{ $company.name }}</h2>
+    <p class="offensys__kicker">Continuous Purple Teaming</p>
+  </div>
+  <p class="triad"><span class="triad__line">Blocked<span class="triad__dot">.</span></span> <span class="triad__line">Detected<span class="triad__dot">.</span></span> <span class="triad__line">Missed<span class="triad__dot">.</span></span></p>
+  <div class="offensys__body">
+    <p>The {{ $company.name }} platform runs realistic, behavior-based attack simulations in your environment, so you can see what your controls block, what they detect, and what they miss.</p>
+    <a class="link-arrow" href="{{ $company.url }}">Visit offensys.com{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a>
+  </div>
+</section>
+
+<div id="work">
+{{- with hugo.Data.talks }}
+{{- partial "talks.html" (dict "talks" .talks "cap" (site.Params.homeTalks | default 6) "repo" hugo.Data.projects.talks) }}
 {{- end }}
 
-<section class="section" aria-labelledby="offensys-title">
-  <div class="wrap">
-    <div class="offensys">
-      <p class="box__label"><span aria-hidden="true">// </span>currently building</p>
-      <h2 class="offensys__title" id="offensys-title">{{ site.Params.company.name }}</h2>
-      <p class="offensys__text">A Continuous Purple Teaming platform. It runs realistic, behavior-based attack simulations in your environment, so you can see what your controls block, what they detect, and what they miss.</p>
-      <p><a class="btn" href="{{ site.Params.company.url }}">Visit offensys.com{{ partial "icon.html" "arrow-right" }}</a></p>
-    </div>
+{{- with hugo.Data.projects }}
+<section class="sec oss" aria-labelledby="oss-title">
+  <div class="sec-head"><h2 class="sec-title" id="oss-title" data-reveal>Open source</h2></div>
+  <ul class="repos">
+    {{- range sort .projects "stars" "desc" }}
+    <li class="repo">
+      <p class="repo__stars"><span class="repo__n">{{ partial "func/stars.html" .stars }}</span><span class="repo__star" aria-hidden="true">&#9733;</span><span class="sr-only"> stars</span></p>
+      <h3 class="repo__name"><a href="{{ .url }}">{{ .name | htmlEscape | replaceRE `-` "-<wbr>" | replaceRE `([a-z])([A-Z])` "$1<wbr>$2" | safeHTML }}</a></h3>
+      <p class="repo__desc">{{ .description }}</p>
+      {{- with .language }}
+      <p class="repo__lang">{{ . }}</p>
+      {{- end }}
+    </li>
+    {{- end }}
+  </ul>
+  {{- range first 1 (where site.Params.social "icon" "github") }}
+  <p class="sec-foot"><a class="link-arrow" href="{{ .url }}">More on GitHub{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a></p>
+  {{- end }}
+</section>
+{{- end }}
+</div>
+
+<section class="writing" id="writing" aria-labelledby="writing-title">
+  <div class="writing__head">
+    <h2 class="sec-title" id="writing-title" data-reveal>Writing</h2>
+    {{- with $posts }}
+    <a class="link-arrow" href="{{ $postsPage.RelPermalink }}">All {{ len $posts }} {{ cond (eq (len $posts) 1) "post" "posts" }}{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a>
+    {{- end }}
+  </div>
+  {{- with first 3 $posts }}
+  <ul class="rows" role="list">
+    {{- range . }}{{ partial "post-row.html" (dict "page" . "compact" true) }}{{ end }}
+  </ul>
+  {{- else }}
+  <p class="section-empty">Nothing published yet.</p>
+  {{- end }}
+</section>
+
+<section class="contact" id="contact" aria-labelledby="contact-title">
+  <div class="contact__copy">
+    <h2 class="contact__title" id="contact-title" data-reveal>Contact</h2>
+    <p class="contact__mail">
+      <a href="mailto:{{ $email }}">{{ $email }}</a>
+      <button class="btn copy-btn" type="button" data-copy="{{ $email }}" data-copy-label="Copy the email address" hidden>Copy</button>
+    </p>
+    {{- partial "social-text.html" . }}
+  </div>
+  <div class="card-stage">
+    {{- partial "card.html" . }}
   </div>
 </section>
 {{ end }}

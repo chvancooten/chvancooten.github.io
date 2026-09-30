@@ -1,0 +1,40 @@
+{{- /* Speaking list for the home page. Repeat talks (same title) become one row that lists every event.
+       Pass dict: talks (newest first), cap (rows to show), repo (dict url, description: all material). */ -}}
+{{- $titles := slice }}
+{{- range .talks }}{{ if not (in $titles .title) }}{{ $titles = $titles | append .title }}{{ end }}{{ end }}
+{{- $rows := slice }}
+{{- range $titles }}
+  {{- $events := where $.talks "title" . }}
+  {{- $rows = $rows | append (dict "title" . "events" $events "year" (substr (index $events 0).date 0 4)) }}
+{{- end }}
+{{- $rows = first .cap $rows }}
+{{- $years := slice }}
+{{- range $rows }}{{ if not (in $years .year) }}{{ $years = $years | append .year }}{{ end }}{{ end }}
+<section class="sec speaking" aria-labelledby="speaking-title">
+  <div class="sec-head"><h2 class="sec-title" id="speaking-title" data-reveal>Speaking</h2></div>
+  <ol class="years">
+    {{- range $years }}
+    {{- $y := . }}
+    <li class="year">
+      <h3 class="year__num">{{ $y }}</h3>
+      <ul class="talks">
+        {{- range where $rows "year" $y }}
+        {{- $multi := gt (len .events) 1 }}
+        <li class="talk">
+          <p class="talk__title"><a href="{{ (index .events 0).url }}">{{ .title }}</a></p>
+          <ul class="talk__events">
+            {{- range .events }}
+            {{- $when := (time.AsTime (printf "%s-01" .date)).Format "Jan 2006" }}
+            <li>{{ if $multi }}<a href="{{ .url }}">{{ .event }}</a>{{ else }}{{ .event }}{{ end }}<span class="talk__sep" aria-hidden="true"> · </span><span class="sr-only">, </span><time datetime="{{ .date }}">{{ $when }}</time></li>
+            {{- end }}
+          </ul>
+        </li>
+        {{- end }}
+      </ul>
+    </li>
+    {{- end }}
+  </ol>
+  {{- with .repo }}
+  <p class="sec-foot"><a class="link-arrow" href="{{ .url }}">All {{ len $.talks }} talks and their slides on GitHub{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a></p>
+  {{- end }}
+</section>
