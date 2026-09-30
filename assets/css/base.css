@@ -44,7 +44,11 @@ a:hover { color: var(--accent-hover); }
 img, svg, video { max-width: 100%; }
 img { height: auto; }
 
-code, kbd, pre, samp { font-family: var(--font-mono); }
+code, kbd, pre, samp {
+  font-family: var(--font-mono);
+  /* JetBrains Mono would draw != or >= as single glyphs; commands must show what you type. */
+  font-variant-ligatures: none;
+}
 
 kbd {
   font-size: 0.75rem;
