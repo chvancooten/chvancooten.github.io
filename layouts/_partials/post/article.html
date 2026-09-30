@@ -27,7 +27,8 @@
       {{- with .GitInfo }}
       <a href="{{ site.Params.commitURL }}{{ .Hash }}">{{ partial "icon.html" "commit" }}<span>View source <span class="mono">({{ .AbbreviatedHash }})</span></span></a>
       {{- end }}
-      <a href="#top">{{ partial "icon.html" "arrow-up" }}<span>Back to top</span></a>
+      {{- /* #main (tabindex=-1) moves focus as well as the scroll position. */}}
+      <a href="#main">{{ partial "icon.html" "arrow-up" }}<span>Back to top</span></a>
     </p>
   </footer>
 </article>
