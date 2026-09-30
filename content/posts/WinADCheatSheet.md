@@ -1,6 +1,7 @@
 +++
 title = "Windows & Active Directory Exploitation Cheat Sheet and Command Reference"
 date = "2020-11-04"
+lastmod = 2023-08-10T12:03:26+02:00
 toc = true
 draft = false
 type = ["posts","post"]

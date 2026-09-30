@@ -57,6 +57,9 @@ tags = [
 Optional: `description = "..."` sets the meta description. Without it, the start of the post is used (about 155
 characters). Adding it to an existing post changes that post's git-based "Updated" date.
 
+A front-matter `lastmod` pins the modified date (it wins over the git date), for example to keep a trivial fix from
+showing as an update. Remove or update it at the next real edit.
+
 The URL follows `/posts/:year/:month/:title/`, so the title and date decide the slug. Changing either on a published
 post breaks existing links.
 
