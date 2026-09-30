@@ -1,0 +1,19 @@
+{{- /* Static X/Twitter card from data/tweets.toml: no network access at build time, no third-party JS.
+       Usage: {{< x user="chvancooten" id="1374993077639733250" >}} */ -}}
+{{- $id := .Get "id" }}
+{{- $user := .Get "user" }}
+{{- with index hugo.Data.tweets $id }}
+<figure class="tweet">
+  <figcaption class="tweet__head">
+    <span class="tweet__name">{{ .name }}</span>
+    <span class="tweet__handle">@{{ .handle }}</span>
+    {{- partial "icon.html" (dict "name" "x" "size" 16) }}
+  </figcaption>
+  <blockquote class="tweet__body" cite="{{ .url }}">
+    <p>{{ .html | safeHTML }}</p>
+  </blockquote>
+  <p class="tweet__date"><a href="{{ .url }}" aria-label="View the post on X ({{ .date }})">{{ .date }}</a></p>
+</figure>
+{{- else }}
+<p class="tweet tweet--missing"><a href="https://x.com/{{ $user }}/status/{{ $id }}">View this post by @{{ $user }} on X</a></p>
+{{- end }}

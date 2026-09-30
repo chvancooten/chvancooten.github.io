@@ -1,0 +1,7 @@
+{{- /* Keeps Hugo's default ids. The permalink sits beside the heading (as on GitHub), so the
+       heading's accessible name stays just its text; the "##" glyph is decorative. */ -}}
+<div class="hx hx--{{ .Level }}">
+<h{{ .Level }} id="{{ .Anchor }}"{{ range $k, $v := .Attributes }}{{ if ne $k "id" }} {{ $k }}="{{ $v }}"{{ end }}{{ end }}>{{ .Text }}</h{{ .Level }}>
+<a class="hx__anchor" href="#{{ .Anchor }}" aria-label="Link to section: {{ .PlainText }}"><span aria-hidden="true">{{ strings.Repeat .Level "#" }}</span></a>
+</div>
+{{- /* newline */ -}}
