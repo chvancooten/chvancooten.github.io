@@ -23,7 +23,11 @@ copyright     = "CC BY-NC 4.0"
   home = ["html", "rss", "json"]
 
 # Prefer an explicit `lastmod` in front matter, then the git author date.
+# ":git" as the last date fallback gives the list pages' _index.md files a date, which the
+# embedded RSS template needs before it prints <lastBuildDate> (the newest item's lastmod).
+# Posts always set `date`, so their dates are unaffected.
 [frontmatter]
+  date    = ["date", "publishDate", "lastmod", ":git"]
   lastmod = ["lastmod", ":git", "date"]
 
 [markup]

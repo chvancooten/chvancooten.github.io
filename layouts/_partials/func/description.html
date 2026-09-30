@@ -4,6 +4,9 @@
   {{- $d = site.Params.description -}}
 {{- else if .Description -}}
   {{- $d = .Description -}}
+{{- else if and (eq .Kind "taxonomy") (eq .Data.Plural "blog") -}}
+  {{- /* /blog/ has no _index.md on purpose: without a git date its empty feed gets no lastBuildDate. */ -}}
+  {{- $d = "The full archive of Cas van Cooten's blog on offensive security, red teaming, tooling and security certifications." -}}
 {{- else if eq .Kind "term" -}}
   {{- if eq .Data.Plural "series" -}}
     {{- $d = printf "Every post in the %s series by Cas van Cooten, in reading order." .Title -}}
