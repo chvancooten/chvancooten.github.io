@@ -1,103 +1,181 @@
-/* Fonts: Inter (body) and JetBrains Mono (UI chrome, code). Latin subsets, SIL OFL (see static/fonts/). */
+/* Fonts, self-hosted, latin subsets, SIL OFL 1.1 (licences in static/fonts/).
+   Bricolage Grotesque is instanced to the axes the design uses: wght 700-800, wdth 75-100, opsz fixed at 60.
+   Instrument Sans is instanced to wdth 100 (wght 400-700). JetBrains Mono keeps wght 400-700 and drops its
+   ligature tables, since code never shows ligatures here. */
 @font-face {
-  font-family: "Inter";
+  font-family: "Bricolage Grotesque";
+  src: url("../fonts/bricolage-grotesque-latin-var.woff2") format("woff2");
+  font-weight: 700 800;
+  font-stretch: 75% 100%;
   font-style: normal;
-  font-weight: 100 900;
   font-display: swap;
-  src: url("../fonts/inter-latin-wght-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: "Inter";
-  font-style: italic;
-  font-weight: 100 900;
+  font-family: "Instrument Sans";
+  src: url("../fonts/instrument-sans-latin-var-normal.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
   font-display: swap;
-  src: url("../fonts/inter-latin-wght-italic.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("../fonts/instrument-sans-latin-var-italic.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: italic;
+  font-display: swap;
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
   font-family: "JetBrains Mono";
+  src: url("../fonts/jetbrains-mono-latin-var-normal.woff2") format("woff2");
+  font-weight: 400 700;
   font-style: normal;
-  font-weight: 100 800;
   font-display: swap;
-  src: url("../fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-/* Metric-matched fallbacks, so swapping in the web fonts does not shift the layout. */
+/* Metric-matched fallbacks (average advance and vertical metrics measured against Arial / Liberation),
+   so the swap to the web fonts does not move the layout. Bricolage is matched at the hero name's
+   instance (wdth 90, wght 800). */
 @font-face {
-  font-family: "Inter Fallback";
-  src: local("Arial"), local("Liberation Sans"), local("Helvetica");
-  size-adjust: 107.06%;
-  ascent-override: 90.49%;
-  descent-override: 22.56%;
+  font-family: "Bricolage Fallback";
+  src: local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"), local("LiberationSans-Bold"), local("Helvetica Bold");
+  font-weight: 700 800;
+  size-adjust: 87.86%;
+  ascent-override: 105.85%;
+  descent-override: 30.73%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Instrument Fallback";
+  src: local("Arial"), local("ArialMT"), local("Liberation Sans"), local("LiberationSans"), local("Helvetica");
+  font-weight: 400 500;
+  size-adjust: 102.27%;
+  ascent-override: 94.84%;
+  descent-override: 24.44%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Instrument Fallback";
+  src: local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"), local("LiberationSans-Bold"), local("Helvetica Bold");
+  font-weight: 600 700;
+  size-adjust: 102.27%;
+  ascent-override: 94.84%;
+  descent-override: 24.44%;
   line-gap-override: 0%;
 }
 @font-face {
   font-family: "JetBrains Mono Fallback";
-  src: local("Courier New"), local("Liberation Mono"), local("Courier");
-  size-adjust: 100.3%;
-  ascent-override: 101.7%;
-  descent-override: 29.9%;
+  src: local("Courier New"), local("CourierNewPSMT"), local("Liberation Mono"), local("LiberationMono");
+  size-adjust: 99.98%;
+  ascent-override: 102.02%;
+  descent-override: 30%;
   line-gap-override: 0%;
 }
 
-/* Theme tokens. Dark is the default; [data-theme] on <html> is set before first paint. */
+/* Colours: Rosé Pine (MIT, https://rosepinetheme.com). Main is the dark default, Dawn is light.
+   Values marked "adj." are the official colour with only its lightness moved, so every text pair
+   passes WCAG AA (4.5:1) on the surfaces it is used on. */
 :root {
   color-scheme: dark;
-  --bg: #0b0e14;
-  --bg-elevated: #131722;
-  --bg-inset: #0f131b;
-  --bg-header: rgb(11 14 20 / 0.86);
-  --text: #c9d1d9;
-  --text-strong: #e6edf3;
-  --muted: #8b949e;
-  --border: #1f2530;
-  --border-strong: #2b3240;
-  --border-interactive: #626b7a;
-  --accent: #58e6c1;
-  --accent-hover: #86f0d4;
-  --accent-ink: #03140f;
-  --accent-soft: rgb(88 230 193 / 0.09);
-  --amber: #ffb454;
-  --dot: rgb(139 148 158 / 0.16);
-  --shadow: 0 24px 60px -28px rgb(0 0 0 / 0.75);
+  --bg: #191724;          /* base */
+  --bg-2: #1f1d2e;        /* surface: code, cards, boxes */
+  --bg-3: #26233a;        /* overlay: hover fills, never behind muted text */
+  --text: #e0def4;        /* text, 13.4:1 */
+  --text-2: #908caa;      /* subtle, 5.5:1 on bg, 5.1:1 on bg-2 */
+  --muted: #8985a0;       /* adj. muted, 4.9:1 on bg, 4.6:1 on bg-2 */
+  --line: #6e6a86;        /* muted: borders and controls, 3.4:1 */
+  --hair: #2a2740;        /* decorative hairlines */
+  --accent: #eb6f92;      /* love, 6.1:1 */
+  --accent-ink: #191724;
+  --accent-2: #c4a7e7;    /* iris */
+  --foam: #9ccfd8;
+  --gold: #f6c177;
+  --focus: #c4a7e7;
+  --header-bg: rgb(25 23 36 / 0.93);
+  --sel: rgb(196 167 231 / 0.3);
+  --shadow: 0 40px 80px -40px rgb(0 0 0 / 0.75);
+  --card-bg: linear-gradient(150deg, #29253f 0%, #211f33 55%, #1c1a2b 100%);
+  --card-edge: #34304c;
 
-  --font-sans: "Inter", "Inter Fallback", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Hero field inks: two currents (love, foam) that mix into iris. Additive on dark. */
+  --field-love: #eb6f92;
+  --field-iris: #c4a7e7;
+  --field-foam: #9ccfd8;
+  --field-blend: lighter;
 
-  --fs-body: clamp(1.0625rem, 1.01rem + 0.22vw, 1.125rem);
+  /* Syntax roles (Chroma rose-pine), on --bg-2. adj. = lightened to 4.6:1. */
+  --syn-kw: #4e90ac;      /* adj. pine */
+  --syn-ns: #c4a7e7;      /* iris */
+  --syn-name: #ebbcba;    /* rose */
+  --syn-type: #9ccfd8;    /* foam */
+  --syn-str: #f6c177;     /* gold */
+  --syn-punct: #908caa;   /* subtle */
+  --syn-com: #8884a1;     /* adj. muted */
+  --syn-del: #eb6f92;     /* love */
+  --syn-hl: #302e39;
+
+  --f-display: "Bricolage Grotesque", "Bricolage Fallback", "Instrument Sans", system-ui, sans-serif;
+  --f-text: "Instrument Sans", "Instrument Fallback", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: "JetBrains Mono", "JetBrains Mono Fallback", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --fs-body: 1.0625rem;
+  --fs-prose: clamp(1.0625rem, 1rem + 0.25vw, 1.125rem);
   --fs-sm: 0.9375rem;
   --fs-xs: 0.8125rem;
   --fs-code: 0.875rem;
 
-  --wrap: 72rem;
-  --measure: 42rem;
-  --gutter: clamp(1rem, 4vw, 2rem);
-  --header-h: 3.75rem;
+  /* One content grid for header, hero, sections, posts and footer: 120px gutters at 1440, 20px at 390.
+     --gutter is only used as padding or offset on full-width blocks, where 100% is the page width. */
+  --maxw: 75rem;
+  --pad: clamp(1.25rem, 5vw, 4rem);
+  --gutter: max(var(--pad), calc((100% - var(--maxw)) / 2));
+  --measure: 34em;
+  --header-h: 4rem;
   --radius: 10px;
   --radius-sm: 6px;
 
-  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --dur: 160ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur: 180ms;
 }
 
 [data-theme="light"] {
   color-scheme: light;
-  --bg: #ffffff;
-  --bg-elevated: #f6f8fa;
-  --bg-inset: #f1f4f7;
-  --bg-header: rgb(255 255 255 / 0.88);
-  --text: #1b1f24;
-  --text-strong: #0d1117;
-  --muted: #57606a;
-  --border: #e3e7ec;
-  --border-strong: #d0d7de;
-  --border-interactive: #7d8794;
-  --accent: #006644;
-  --accent-hover: #004d33;
-  --accent-ink: #ffffff;
-  --accent-soft: rgb(0 102 68 / 0.07);
-  --amber: #8a5a00;
-  --dot: rgb(87 96 106 / 0.14);
-  --shadow: 0 24px 60px -30px rgb(15 23 42 / 0.35);
+  --bg: #faf4ed;          /* base */
+  --bg-2: #fffaf3;        /* surface */
+  --bg-3: #f2e9e1;        /* overlay */
+  --text: #464261;        /* adj. text (darker than Dawn #575279), 8.7:1 */
+  --text-2: #6d6986;      /* adj. subtle, 4.8:1 */
+  --muted: #726c86;       /* adj. muted, 4.6:1 on bg, 4.8:1 on bg-2 */
+  --line: #797593;        /* subtle: borders and controls, 4.0:1 */
+  --hair: #e4dbd2;
+  --accent: #ab526c;      /* adj. love, 4.6:1 */
+  --accent-ink: #ffffff;  /* 5.1:1 on accent */
+  --accent-2: #7b6298;    /* adj. iris, 4.8:1 */
+  --foam: #286983;        /* pine */
+  --gold: #a85f00;        /* adj. gold */
+  --focus: #7b6298;
+  --header-bg: rgb(250 244 237 / 0.94);
+  --sel: rgb(123 98 152 / 0.2);
+  --shadow: 0 36px 70px -40px rgb(70 66 97 / 0.45);
+  --card-bg: linear-gradient(150deg, #fffdf9 0%, #fff8f0 55%, #f6ede3 100%);
+  --card-edge: #eadfd3;
+
+  /* Dawn inks for the same two currents, multiplied like ink on paper. */
+  --field-love: #b4637a;
+  --field-iris: #907aa9;
+  --field-foam: #286983;
+  --field-blend: multiply;
+
+  /* Syntax roles (Chroma rose-pine-dawn), on --bg-2. adj. = darkened to 4.6:1. */
+  --syn-kw: #286983;      /* pine */
+  --syn-ns: #7e6896;      /* adj. iris */
+  --syn-name: #ab5a58;    /* adj. rose */
+  --syn-type: #3c7b85;    /* adj. foam */
+  --syn-str: #a85f00;     /* adj. gold */
+  --syn-punct: #736f8d;   /* adj. subtle */
+  --syn-com: #746f81;     /* adj. muted */
+  --syn-del: #a95a71;     /* adj. love */
+  --syn-hl: #e1dbd5;
 }

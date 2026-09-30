@@ -1,135 +1,20 @@
-/* Chroma token colours, generated with `hugo gen chromastyles` (github-dark / github),
-   scoped per theme. Backgrounds come from the theme tokens instead. Error tokens are
-   neutralised: lexers flag valid shell/PowerShell as errors, which should not look alarming. */
-[data-theme="dark"] .chroma .err{color:inherit;background:none}
-[data-theme="dark"] .chroma .k{color:#ff7b72}
-[data-theme="dark"] .chroma .kc{color:#79c0ff}
-[data-theme="dark"] .chroma .kd{color:#ff7b72}
-[data-theme="dark"] .chroma .kn{color:#ff7b72}
-[data-theme="dark"] .chroma .kp{color:#79c0ff}
-[data-theme="dark"] .chroma .kr{color:#ff7b72}
-[data-theme="dark"] .chroma .kt{color:#ff7b72}
-[data-theme="dark"] .chroma .nc{color:#f0883e;font-weight:bold}
-[data-theme="dark"] .chroma .no{color:#79c0ff;font-weight:bold}
-[data-theme="dark"] .chroma .nd{color:#d2a8ff;font-weight:bold}
-[data-theme="dark"] .chroma .ni{color:#ffa657}
-[data-theme="dark"] .chroma .ne{color:#f0883e;font-weight:bold}
-[data-theme="dark"] .chroma .nl{color:#79c0ff;font-weight:bold}
-[data-theme="dark"] .chroma .nn{color:#ff7b72}
-[data-theme="dark"] .chroma .nx{color:#e6edf3}
-[data-theme="dark"] .chroma .py{color:#79c0ff}
-[data-theme="dark"] .chroma .nt{color:#7ee787}
-[data-theme="dark"] .chroma .nv{color:#79c0ff}
-[data-theme="dark"] .chroma .vc{color:#79c0ff}
-[data-theme="dark"] .chroma .vg{color:#79c0ff}
-[data-theme="dark"] .chroma .vi{color:#79c0ff}
-[data-theme="dark"] .chroma .vm{color:#79c0ff}
-[data-theme="dark"] .chroma .nf{color:#d2a8ff;font-weight:bold}
-[data-theme="dark"] .chroma .fm{color:#d2a8ff;font-weight:bold}
-[data-theme="dark"] .chroma .l{color:#a5d6ff}
-[data-theme="dark"] .chroma .ld{color:#79c0ff}
-[data-theme="dark"] .chroma .s{color:#a5d6ff}
-[data-theme="dark"] .chroma .sa{color:#79c0ff}
-[data-theme="dark"] .chroma .sb{color:#a5d6ff}
-[data-theme="dark"] .chroma .sc{color:#a5d6ff}
-[data-theme="dark"] .chroma .dl{color:#79c0ff}
-[data-theme="dark"] .chroma .sd{color:#a5d6ff}
-[data-theme="dark"] .chroma .s2{color:#a5d6ff}
-[data-theme="dark"] .chroma .se{color:#79c0ff}
-[data-theme="dark"] .chroma .sh{color:#79c0ff}
-[data-theme="dark"] .chroma .si{color:#a5d6ff}
-[data-theme="dark"] .chroma .sx{color:#a5d6ff}
-[data-theme="dark"] .chroma .sr{color:#79c0ff}
-[data-theme="dark"] .chroma .s1{color:#a5d6ff}
-[data-theme="dark"] .chroma .ss{color:#a5d6ff}
-[data-theme="dark"] .chroma .m{color:#a5d6ff}
-[data-theme="dark"] .chroma .mb{color:#a5d6ff}
-[data-theme="dark"] .chroma .mf{color:#a5d6ff}
-[data-theme="dark"] .chroma .mh{color:#a5d6ff}
-[data-theme="dark"] .chroma .mi{color:#a5d6ff}
-[data-theme="dark"] .chroma .il{color:#a5d6ff}
-[data-theme="dark"] .chroma .mo{color:#a5d6ff}
-[data-theme="dark"] .chroma .o{color:#ff7b72;font-weight:bold}
-[data-theme="dark"] .chroma .ow{color:#ff7b72;font-weight:bold}
-[data-theme="dark"] .chroma .or{color:#ff7b72;font-weight:bold}
-[data-theme="dark"] .chroma .c{color:#8b949e;font-style:italic}
-[data-theme="dark"] .chroma .ch{color:#8b949e;font-style:italic}
-[data-theme="dark"] .chroma .cm{color:#8b949e;font-style:italic}
-[data-theme="dark"] .chroma .c1{color:#8b949e;font-style:italic}
-[data-theme="dark"] .chroma .cs{color:#8b949e;font-weight:bold;font-style:italic}
-[data-theme="dark"] .chroma .cp{color:#8b949e;font-weight:bold;font-style:italic}
-[data-theme="dark"] .chroma .cpf{color:#8b949e;font-weight:bold;font-style:italic}
-[data-theme="dark"] .chroma .gd{color:#ffa198;background-color:#490202}
-[data-theme="dark"] .chroma .ge{font-style:italic}
-[data-theme="dark"] .chroma .gr{color:#ffa198}
-[data-theme="dark"] .chroma .gh{color:#79c0ff;font-weight:bold}
-[data-theme="dark"] .chroma .gi{color:#56d364;background-color:#0f5323}
-[data-theme="dark"] .chroma .go{color:#8b949e}
-[data-theme="dark"] .chroma .gp{color:#8b949e}
-[data-theme="dark"] .chroma .gs{font-weight:bold}
-[data-theme="dark"] .chroma .gu{color:#79c0ff}
-[data-theme="dark"] .chroma .gt{color:#ff7b72}
-[data-theme="dark"] .chroma .gl{text-decoration:underline}
-[data-theme="light"] .chroma .err{color:inherit;background:none}
-[data-theme="light"] .chroma .k{color:#cf222e}
-[data-theme="light"] .chroma .kc{color:#cf222e}
-[data-theme="light"] .chroma .kd{color:#cf222e}
-[data-theme="light"] .chroma .kn{color:#cf222e}
-[data-theme="light"] .chroma .kp{color:#cf222e}
-[data-theme="light"] .chroma .kr{color:#cf222e}
-[data-theme="light"] .chroma .kt{color:#cf222e}
-[data-theme="light"] .chroma .na{color:#1f2328}
-[data-theme="light"] .chroma .nc{color:#1f2328}
-[data-theme="light"] .chroma .no{color:#0550ae}
-[data-theme="light"] .chroma .nd{color:#0550ae}
-[data-theme="light"] .chroma .ni{color:#6639ba}
-[data-theme="light"] .chroma .nl{color:#900;font-weight:bold}
-[data-theme="light"] .chroma .nn{color:#24292e}
-[data-theme="light"] .chroma .nx{color:#1f2328}
-[data-theme="light"] .chroma .nt{color:#0550ae}
-[data-theme="light"] .chroma .nb{color:#6639ba}
-[data-theme="light"] .chroma .bp{color:#6a737d}
-[data-theme="light"] .chroma .nv{color:#953800}
-[data-theme="light"] .chroma .vc{color:#953800}
-[data-theme="light"] .chroma .vg{color:#953800}
-[data-theme="light"] .chroma .vi{color:#953800}
-[data-theme="light"] .chroma .vm{color:#953800}
-[data-theme="light"] .chroma .nf{color:#6639ba}
-[data-theme="light"] .chroma .fm{color:#6639ba}
-[data-theme="light"] .chroma .s{color:#0a3069}
-[data-theme="light"] .chroma .sa{color:#0a3069}
-[data-theme="light"] .chroma .sb{color:#0a3069}
-[data-theme="light"] .chroma .sc{color:#0a3069}
-[data-theme="light"] .chroma .dl{color:#0a3069}
-[data-theme="light"] .chroma .sd{color:#0a3069}
-[data-theme="light"] .chroma .s2{color:#0a3069}
-[data-theme="light"] .chroma .se{color:#0a3069}
-[data-theme="light"] .chroma .sh{color:#0a3069}
-[data-theme="light"] .chroma .si{color:#0a3069}
-[data-theme="light"] .chroma .sx{color:#0a3069}
-[data-theme="light"] .chroma .sr{color:#0a3069}
-[data-theme="light"] .chroma .s1{color:#0a3069}
-[data-theme="light"] .chroma .ss{color:#032f62}
-[data-theme="light"] .chroma .m{color:#0550ae}
-[data-theme="light"] .chroma .mb{color:#0550ae}
-[data-theme="light"] .chroma .mf{color:#0550ae}
-[data-theme="light"] .chroma .mh{color:#0550ae}
-[data-theme="light"] .chroma .mi{color:#0550ae}
-[data-theme="light"] .chroma .il{color:#0550ae}
-[data-theme="light"] .chroma .mo{color:#0550ae}
-[data-theme="light"] .chroma .o{color:#0550ae}
-[data-theme="light"] .chroma .ow{color:#0550ae}
-[data-theme="light"] .chroma .or{color:#0550ae}
-[data-theme="light"] .chroma .p{color:#1f2328}
-[data-theme="light"] .chroma .c{color:#57606a}
-[data-theme="light"] .chroma .ch{color:#57606a}
-[data-theme="light"] .chroma .cm{color:#57606a}
-[data-theme="light"] .chroma .c1{color:#57606a}
-[data-theme="light"] .chroma .cs{color:#57606a}
-[data-theme="light"] .chroma .cp{color:#57606a}
-[data-theme="light"] .chroma .cpf{color:#57606a}
-[data-theme="light"] .chroma .gd{color:#82071e;background-color:#ffebe9}
-[data-theme="light"] .chroma .ge{color:#1f2328}
-[data-theme="light"] .chroma .gi{color:#116329;background-color:#dafbe1}
-[data-theme="light"] .chroma .go{color:#1f2328}
-[data-theme="light"] .chroma .gl{text-decoration:underline}
+/* Chroma token colours from `hugo gen chromastyles --style=rose-pine` and `--style=rose-pine-dawn`.
+   Both styles map token classes to the same palette roles, so the classes point at role variables and
+   tokens.css sets the role colours per theme (nudged in lightness to 4.5:1 or more on the code surface).
+   Error tokens are neutralised: lexers flag valid shell and PowerShell as errors. */
+.chroma .err { color: inherit; background: none; }
+.chroma .hl { background-color: var(--syn-hl); }
+.chroma .lnt, .chroma .ln { margin-right: 0.4em; padding: 0 0.4em; color: var(--muted); -webkit-user-select: none; user-select: none; white-space: pre; }
+.chroma .lntd { vertical-align: top; padding: 0; margin: 0; border: 0; }
+.chroma .lntable { border-spacing: 0; padding: 0; margin: 0; border: 0; }
+.chroma .lnlinks { outline: none; text-decoration: none; color: inherit; }
+.chroma :is(.k, .kc, .kd, .kp, .kr, .kt, .ne, .se) { color: var(--syn-kw); }
+.chroma :is(.kn, .gu) { color: var(--syn-ns); }
+.chroma :is(.n, .na, .ni, .nl, .nn, .py, .nt, .nb, .bp, .nv, .vc, .vg, .vi, .vm, .nf, .fm) { color: var(--syn-name); }
+.chroma :is(.nc, .gi) { color: var(--syn-type); }
+.chroma :is(.no, .l, .ld, .s, .sa, .sb, .sc, .dl, .sd, .s2, .sh, .si, .sx, .sr, .s1, .ss, .m, .mb, .mf, .mh, .mi, .il, .mo) { color: var(--syn-str); }
+.chroma :is(.nd, .o, .ow, .or, .p) { color: var(--syn-punct); }
+.chroma :is(.c, .ch, .cm, .c1, .cs, .cp, .cpf) { color: var(--syn-com); }
+.chroma .gd { color: var(--syn-del); }
+.chroma .ge { font-style: italic; }
+.chroma .gs { font-weight: 700; }
