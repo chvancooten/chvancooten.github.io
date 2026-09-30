@@ -126,3 +126,6 @@
 .site-footer__links a { display: inline-block; padding-block: 0.2rem; }
 .site-footer__credits { margin-top: 1rem !important; color: var(--muted); font-size: var(--fs-xs); }
 .site-footer__credits a { color: inherit; text-decoration: underline; text-decoration-color: var(--line); }
+/* Links inside a sentence need more than colour to stand out from it (WCAG 1.4.1). */
+.site-footer__row > p a { text-decoration: underline; text-decoration-color: var(--line); }
+.site-footer__row > p a:hover { text-decoration-color: currentColor; }
