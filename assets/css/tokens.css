@@ -1,0 +1,103 @@
+/* Fonts: Inter (body) and JetBrains Mono (UI chrome, code). Latin subsets, SIL OFL (see static/fonts/). */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/inter-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/inter-latin-wght-italic.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("../fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* Metric-matched fallbacks, so swapping in the web fonts does not shift the layout. */
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial"), local("Liberation Sans"), local("Helvetica");
+  size-adjust: 107.06%;
+  ascent-override: 90.49%;
+  descent-override: 22.56%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "JetBrains Mono Fallback";
+  src: local("Courier New"), local("Liberation Mono"), local("Courier");
+  size-adjust: 100.3%;
+  ascent-override: 101.7%;
+  descent-override: 29.9%;
+  line-gap-override: 0%;
+}
+
+/* Theme tokens. Dark is the default; [data-theme] on <html> is set before first paint. */
+:root {
+  color-scheme: dark;
+  --bg: #0b0e14;
+  --bg-elevated: #131722;
+  --bg-inset: #0f131b;
+  --bg-header: rgb(11 14 20 / 0.86);
+  --text: #c9d1d9;
+  --text-strong: #e6edf3;
+  --muted: #8b949e;
+  --border: #1f2530;
+  --border-strong: #2b3240;
+  --border-interactive: #626b7a;
+  --accent: #58e6c1;
+  --accent-hover: #86f0d4;
+  --accent-ink: #03140f;
+  --accent-soft: rgb(88 230 193 / 0.09);
+  --amber: #ffb454;
+  --dot: rgb(139 148 158 / 0.16);
+  --shadow: 0 24px 60px -28px rgb(0 0 0 / 0.75);
+
+  --font-sans: "Inter", "Inter Fallback", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --fs-body: clamp(1.0625rem, 1.01rem + 0.22vw, 1.125rem);
+  --fs-sm: 0.9375rem;
+  --fs-xs: 0.8125rem;
+  --fs-code: 0.875rem;
+
+  --wrap: 72rem;
+  --measure: 42rem;
+  --gutter: clamp(1rem, 4vw, 2rem);
+  --header-h: 3.75rem;
+  --radius: 10px;
+  --radius-sm: 6px;
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur: 160ms;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-elevated: #f6f8fa;
+  --bg-inset: #f1f4f7;
+  --bg-header: rgb(255 255 255 / 0.88);
+  --text: #1b1f24;
+  --text-strong: #0d1117;
+  --muted: #57606a;
+  --border: #e3e7ec;
+  --border-strong: #d0d7de;
+  --border-interactive: #7d8794;
+  --accent: #006644;
+  --accent-hover: #004d33;
+  --accent-ink: #ffffff;
+  --accent-soft: rgb(0 102 68 / 0.07);
+  --amber: #8a5a00;
+  --dot: rgb(87 96 106 / 0.14);
+  --shadow: 0 24px 60px -30px rgb(15 23 42 / 0.35);
+}
