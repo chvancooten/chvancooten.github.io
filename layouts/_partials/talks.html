@@ -35,6 +35,6 @@
     {{- end }}
   </ol>
   {{- with .repo }}
-  <p class="sec-foot"><a class="link-arrow" href="{{ .url }}">All {{ len $.talks }} talks and their slides on GitHub{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a></p>
+  <p class="sec-foot"><a class="link-arrow" href="{{ .url }}">All {{ len $titles }} talks and their slides on GitHub{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a></p>
   {{- end }}
 </section>
