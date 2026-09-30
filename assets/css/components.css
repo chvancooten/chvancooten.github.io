@@ -597,7 +597,7 @@
     justify-content: flex-end;
     padding-right: 0.6rem;
     opacity: 1;
-    color: color-mix(in srgb, var(--muted) 55%, transparent);
+    color: var(--muted); /* always visible here, so full muted contrast (>= 4.5:1) */
   }
   .hx--2 .hx__anchor { height: calc(clamp(1.45rem, 1.25rem + 0.8vw, 1.75rem) * 1.25); }
   .hx--3 .hx__anchor { height: calc(clamp(1.2rem, 1.1rem + 0.45vw, 1.375rem) * 1.25); }
