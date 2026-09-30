@@ -17,8 +17,9 @@
   {{- $d = "This page does not exist. Find your way back to the posts on offensive security, red teaming and tooling." -}}
 {{- else if .IsPage -}}
   {{- /* Drop headings (and their decorative "##" anchors) so the text starts with prose. */ -}}
-  {{- $d = .Summary | replaceRE `(?s)<div class="hx[^"]*">.*?</div>` " " | plainify | htmlUnescape | truncate 154 -}}
+  {{- $d = .Summary | replaceRE `(?s)<div class="hx[^"]*">.*?</div>` " " | plainify | htmlUnescape | replaceRE `\s+` " " | truncate 154 -}}
 {{- else -}}
   {{- $d = printf "%s on %s: %s" .Title site.Title site.Params.description -}}
 {{- end -}}
-{{- return (trim ($d | plainify | htmlUnescape) " \n") -}}
+{{- /* One line: raw newlines from the content would otherwise end up in the attribute. */ -}}
+{{- return (trim ($d | plainify | htmlUnescape | replaceRE `\s+` " ") " ") -}}
