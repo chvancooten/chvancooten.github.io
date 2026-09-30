@@ -1,3 +1,11 @@
-{{- /* Social card for a page: returns a dict with url, width, height, alt. */ -}}
-{{- $img := dict "url" (index site.Params.images 0 | absURL) "width" 1200 "height" 630 "alt" site.Params.imageAlt -}}
+{{- /* Social card for a page: returns a dict with url, width, height, alt.
+       Width and height are read from the file in static/, so a new image cannot go stale here. */ -}}
+{{- $path := index site.Params.images 0 -}}
+{{- $img := dict "url" ($path | absURL) "alt" site.Params.imageAlt -}}
+{{- $file := path.Join "static" $path -}}
+{{- if fileExists $file -}}
+  {{- with images.Config $file -}}
+    {{- $img = merge $img (dict "width" .Width "height" .Height) -}}
+  {{- end -}}
+{{- end -}}
 {{- return $img -}}
