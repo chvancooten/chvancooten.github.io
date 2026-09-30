@@ -1,8 +1,8 @@
 // Canvas 2D runtime for the flow field ([data-field] in the hero, and a quiet one on the 404 page).
 // - Trails are redrawn from a short position history on a cleared canvas every frame: additive ("lighter") inks on
 //   dark, multiplied inks on light, from CSS custom properties that are re-read when the theme changes.
-// - The fade at the field's edges is a mask inside the canvas (destination-in), and the canvas box itself sits
-//   beside or below the copy, so no motion ever reaches the text.
+// - The fade at the field's edges is a mask inside the canvas (an inverted mask, destination-out), and the canvas box
+//   itself sits beside or below the copy, so no motion ever reaches the text.
 // - It stops when offscreen or when the tab is hidden, caps the pixel ratio at 2, draws one still frame under
 //   reduced motion or when paused (the pause choice lasts for the session), and plays its intro gesture, a line
 //   unfurling into the two currents, at most once per session.
@@ -14,8 +14,21 @@ const PAUSE_KEY = "motion-paused";
 const INTRO_KEY = "field-intro";
 const INTRO_MS = 700;
 
-// [first point, last point, alpha, width]: the trail tapers from its head to its tail.
-const BANDS = [[0, 3, 0.5, 1.25], [3, 6, 0.32, 1], [6, 9, 0.17, 1], [9, K, 0.07, 1]];
+// Trail bands, head to tail: [first point, last point, point stride, alpha, width]; the trail tapers from its head to
+// its tail. Where 2D canvas is not GPU-accelerated, it is rastered on the main thread, so the drawing is kept cheap
+// for a software rasteriser:
+// - every band is 1 px wide, which Skia draws as a hairline rather than stroking an outline (the head band used to
+//   be 1.25 px at alpha 0.5, the same ink);
+// - the faint tail bands take every other history sample (as the stills do), and the wide, faint glow under the
+//   head (dark only) is one chord per particle; the trails curve so gently that neither shows.
+const BANDS = [[0, 3, 1, 0.625, 1], [3, 6, 1, 0.32, 1], [6, 9, 2, 0.17, 1], [9, K, 2, 0.07, 1]];
+const GLOW = [0, 3, 3, 0.06, 3.5];
+// Edge fades as gradient stops along x and y: "side" (beside the copy, a long ramp toward it) and "band" (below the
+// copy, short ramps on every side). The same ramps are baked into the stills (still.mjs).
+const FADES = {
+  side: { x: [[0, 0], [0.28, 1], [1, 1]], y: [[0, 0], [0.08, 1], [0.9, 1], [1, 0]] },
+  band: { x: [[0, 0], [0.12, 1], [0.88, 1], [1, 0]], y: [[0, 0], [0.22, 1], [0.8, 1], [1, 0]] },
+};
 const MODES = {
   hero: { density: 13, speed: 1, alpha: 1 },
   quiet: { density: 7, speed: 0.7, alpha: 0.6 },
@@ -58,12 +71,14 @@ function mount(host) {
   const button = scope.querySelector("[data-motion-toggle]");
 
   let f = null, w = 0, h = 0, dpr = 1, band = false;
-  let mask = null, raf = 0, last = 0, onScreen = true, live = false;
+  let mask = null, maskRects = [], raf = 0, last = 0, onScreen = true, live = false;
   let introStart = -1;
   const inks = { rgb: new Array(BUCKETS).fill("0,0,0"), blend: "lighter", dark: true };
+  let styles = []; // stroke styles at full strength, [bucket][band], the glow last; rebuilt with the inks
 
   // Pointer wake: a critically damped follower of the pointer; its velocity drives the wake.
   const ptr = { has: false, tx: 0, ty: 0, x: { x: 0, v: 0 }, y: { x: 0, v: 0 }, r: 140 };
+  const wake = { x: 0, y: 0, vx: 0, vy: 0, r: ptr.r };
 
   function readInks() {
     const cs = getComputedStyle(host);
@@ -79,29 +94,45 @@ function mount(host) {
     }
     inks.blend = cs.getPropertyValue("--field-blend").trim() === "multiply" ? "multiply" : "lighter";
     inks.dark = inks.blend === "lighter";
+    styles = strokeStyles(1);
   }
 
-  // The edge fade, drawn once per size: a long ramp on the side facing the copy, short ones elsewhere.
+  function strokeStyles(fade) {
+    const a = fade * mode.alpha * (inks.dark ? 1.3 : 1.75);
+    return inks.rgb.map((rgb) => [...BANDS, GLOW].map((band) => `rgba(${rgb},${(band[3] * a).toFixed(3)})`));
+  }
+
+  // The edge fade, drawn once per size: a long ramp on the side facing the copy, short ones elsewhere. It is kept
+  // inverted (alpha = how much to remove) and applied with destination-out, which only touches the pixels it is
+  // drawn over, so only the strips where the fade is below 1 are composited: well under half of the canvas.
   function buildMask() {
     mask = document.createElement("canvas");
     mask.width = canvas.width;
     mask.height = canvas.height;
     const m = mask.getContext("2d");
     const W = mask.width, H = mask.height;
-    const ramp = (x0, y0, x1, y1, stops) => {
-      const g = m.createLinearGradient(x0, y0, x1, y1);
+    const fade = band ? FADES.band : FADES.side;
+    const ramp = (x1, y1, stops) => {
+      const g = m.createLinearGradient(0, 0, x1, y1);
       for (const [o, a] of stops) g.addColorStop(o, `rgba(0,0,0,${a})`);
       return g;
     };
-    m.fillStyle = band
-      ? ramp(0, 0, W, 0, [[0, 0], [0.12, 1], [0.88, 1], [1, 0]])
-      : ramp(0, 0, W, 0, [[0, 0], [0.28, 1], [1, 1]]);
+    m.fillStyle = ramp(W, 0, fade.x);
     m.fillRect(0, 0, W, H);
     m.globalCompositeOperation = "destination-in";
-    m.fillStyle = band
-      ? ramp(0, 0, 0, H, [[0, 0], [0.22, 1], [0.8, 1], [1, 0]])
-      : ramp(0, 0, 0, H, [[0, 0], [0.08, 1], [0.9, 1], [1, 0]]);
+    m.fillStyle = ramp(0, H, fade.y);
     m.fillRect(0, 0, W, H);
+    m.globalCompositeOperation = "xor"; // with opaque black over it: alpha becomes 1 - fade
+    m.fillStyle = "#000";
+    m.fillRect(0, 0, W, H);
+    // The fully opaque middle of each axis, in whole device pixels (rounded inwards, so the strips cover every
+    // pixel the fade touches).
+    const inner = (stops, size) => {
+      const full = stops.filter(([, a]) => a === 1).map(([o]) => o);
+      return [Math.ceil(full[0] * size), Math.floor(full.at(-1) * size)];
+    };
+    const [x0, x1] = inner(fade.x, W), [y0, y1] = inner(fade.y, H);
+    maskRects = [[0, 0, x0, H], [x1, 0, W - x1, H], [x0, 0, x1 - x0, y0], [x0, y1, x1 - x0, H - y1]].filter(([, , rw, rh]) => rw > 0 && rh > 0);
   }
 
   function layout() {
@@ -122,28 +153,38 @@ function mount(host) {
 
   // Particles sorted by colour bucket (counting sort into preallocated arrays), so each ink is one path per band.
   let order = null;
-  const counts = new Int32Array(BUCKETS + 1);
+  const counts = new Int32Array(BUCKETS + 1), next = new Int32Array(BUCKETS);
   function sortByBucket() {
     const { n, B } = f;
     if (!order || order.length !== n) order = new Int32Array(n);
     counts.fill(0);
     for (let i = 0; i < n; i++) counts[B[i] + 1]++;
-    for (let b = 0; b < BUCKETS; b++) counts[b + 1] += counts[b];
-    const next = counts.slice(0, BUCKETS);
+    for (let b = 0; b < BUCKETS; b++) { counts[b + 1] += counts[b]; next[b] = counts[b]; }
     for (let i = 0; i < n; i++) order[next[B[i]]++] = i;
   }
 
-  // Trail segment [s0, s1] of particle i as a sub-path; point 0 is the head, 1..K walk back through history.
-  function segment(i, s0, s1) {
-    const { RX, RY, HX, HY, ring } = f;
+  // Trail points s0..s1 of particle i, every stride-th one (s1 always included), as a sub-path. Point 0 is the head,
+  // 1..K walk back through the history ring.
+  function segment(i, s0, s1, stride) {
+    const { HX, HY, ring } = f;
     const base = i * K;
     let j = s0;
-    if (j === 0) { ctx.moveTo(RX[i], RY[i]); j = 1; }
-    else { const o = base + ((ring - j + 1 + K) % K); ctx.moveTo(HX[o], HY[o]); j++; }
-    for (; j <= s1; j++) {
+    if (j === 0) ctx.moveTo(f.RX[i], f.RY[i]);
+    else { const o = base + ((ring - j + 1 + K) % K); ctx.moveTo(HX[o], HY[o]); }
+    do {
+      j = Math.min(s1, j + stride);
       const o = base + ((ring - j + 1 + K) % K);
       ctx.lineTo(HX[o], HY[o]);
-    }
+    } while (j < s1);
+  }
+
+  // One band of every trail in one colour bucket: a single path, a single stroke.
+  function stroke(style, band, from, to) {
+    ctx.strokeStyle = style;
+    ctx.lineWidth = band[4];
+    ctx.beginPath();
+    for (let k = from; k < to; k++) segment(order[k], band[0], band[1], band[2]);
+    ctx.stroke();
   }
 
   function draw(fade) {
@@ -154,31 +195,21 @@ function mount(host) {
     ctx.globalCompositeOperation = inks.blend;
     ctx.lineCap = "butt"; // a drained (zero-length) trail draws nothing
     ctx.lineJoin = "round";
-    const a = fade * mode.alpha * (inks.dark ? 1.3 : 1.75);
+    const st = fade === 1 ? styles : strokeStyles(fade); // the intro fades in; after it, no strings per frame
+    const glow = inks.dark && fade === 1; // a faint, wide pass under the newest segments gives the dark field depth
     sortByBucket();
     for (let b = 0; b < BUCKETS; b++) {
       const from = counts[b], to = counts[b + 1];
       if (from === to) continue;
-      const rgb = inks.rgb[b];
-      if (inks.dark && fade === 1) {
-        // A faint, wide pass under the newest segments gives the dark field some depth.
-        ctx.strokeStyle = `rgba(${rgb},${(0.06 * a).toFixed(3)})`;
-        ctx.lineWidth = 3.5;
-        ctx.beginPath();
-        for (let k = from; k < to; k++) segment(order[k], 0, 3);
-        ctx.stroke();
-      }
-      for (const [s0, s1, alpha, lw] of BANDS) {
-        ctx.strokeStyle = `rgba(${rgb},${(alpha * a).toFixed(3)})`;
-        ctx.lineWidth = lw;
-        ctx.beginPath();
-        for (let k = from; k < to; k++) segment(order[k], s0, s1);
-        ctx.stroke();
-      }
+      if (glow) stroke(st[b][BANDS.length], GLOW, from, to);
+      for (let k = 0; k < BANDS.length; k++) stroke(st[b][k], BANDS[k], from, to);
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.globalCompositeOperation = "destination-in";
-    ctx.drawImage(mask, 0, 0);
+    ctx.globalCompositeOperation = "destination-out";
+    for (let r = 0; r < maskRects.length; r++) {
+      const [x, y, rw, rh] = maskRects[r];
+      ctx.drawImage(mask, x, y, rw, rh, x, y, rw, rh);
+    }
     ctx.globalCompositeOperation = "source-over";
     if (!live) {
       live = true;
@@ -201,13 +232,14 @@ function mount(host) {
       fade = 0.3 + 0.7 * p;
       if (p >= 1) introStart = -1;
     }
-    let wake = null;
+    let pointer = null;
     if (ptr.has || Math.abs(ptr.x.v) + Math.abs(ptr.y.v) > 1) {
       spring(ptr.x, ptr.tx, 14, dt);
       spring(ptr.y, ptr.ty, 14, dt);
-      wake = { x: ptr.x.x, y: ptr.y.x, vx: ptr.x.v, vy: ptr.y.v, r: ptr.r };
+      wake.x = ptr.x.x; wake.y = ptr.y.x; wake.vx = ptr.x.v; wake.vy = ptr.y.v;
+      pointer = wake;
     }
-    step(f, dt, wake);
+    step(f, dt, pointer);
     draw(fade);
     if (allowed()) raf = requestAnimationFrame(tick);
     else last = 0;
