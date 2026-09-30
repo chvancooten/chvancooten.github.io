@@ -1,0 +1,48 @@
+# Open-source projects shown on the home page, in display order.
+# Generated from the GitHub API (repo description, primary language, stars); edit freely.
+
+[[projects]]
+name = "NimPlant"
+description = "A light-weight first-stage C2 implant written in Nim (and Rust)."
+language = "Rust"
+stars = 953
+url = "https://github.com/chvancooten/NimPlant"
+
+[[projects]]
+name = "maldev-for-dummies"
+description = "A workshop about Malware Development"
+language = "Nim"
+stars = 1824
+url = "https://github.com/chvancooten/maldev-for-dummies"
+
+[[projects]]
+name = "OSEP-Code-Snippets"
+description = "A repository with my notable code snippets for Offensive Security's PEN-300 (OSEP) course."
+language = "C#"
+stars = 1477
+url = "https://github.com/chvancooten/OSEP-Code-Snippets"
+
+[[projects]]
+name = "BugBountyScanner"
+description = "A Bash script and Docker image for Bug Bounty reconnaissance. Intended for headless use."
+language = "Shell"
+stars = 923
+url = "https://github.com/chvancooten/BugBountyScanner"
+
+[[projects]]
+name = "CloudLabsAD"
+description = "Terraform + Ansible deployment scripts for an Active Directory lab environment."
+language = "Shell"
+stars = 283
+url = "https://github.com/chvancooten/CloudLabsAD"
+
+[[projects]]
+name = "OSCP-MarkdownReportingTemplates"
+description = "Markdown reporting templates and Pandoc styling references to generate sleek reports for OSCP/PWK with little effort."
+language = ""
+stars = 207
+url = "https://github.com/chvancooten/OSCP-MarkdownReportingTemplates"
+
+[talks]
+description = "A collection of presentations and other contributions I have made to conferences."
+url = "https://github.com/chvancooten/conferences"
