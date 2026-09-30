@@ -1,7 +1,6 @@
 {{- range .GetTerms "series" }}
 {{- $pages := .Pages.ByDate }}
 <section class="box series" aria-labelledby="series-{{ substr (md5 .RelPermalink) 0 8 }}">
-  <p class="box__label" aria-hidden="true">// series</p>
   <h2 class="box__title" id="series-{{ substr (md5 .RelPermalink) 0 8 }}">Part of the <a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a> series</h2>
   <ol class="series__list">
     {{- range $pages }}

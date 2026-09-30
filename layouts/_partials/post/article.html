@@ -1,13 +1,12 @@
 {{- $toc := and .Params.toc (gt (len .Fragments.Headings) 0) }}
+{{- $posts := site.GetPage "/posts" }}
 <div class="progress" aria-hidden="true"></div>
 <article class="post{{ if $toc }} post--toc{{ end }}">
   <header class="post-head">
     <nav class="crumbs" aria-label="Breadcrumb">
       <ol>
-        <li><a href="{{ site.Home.RelPermalink }}"><span aria-hidden="true">~</span><span class="sr-only">Home</span></a></li>
-        <li><a href="{{ (site.GetPage "/posts").RelPermalink }}">posts</a></li>
-        <li><a href="{{ (site.GetPage "/posts").RelPermalink }}#y-{{ .Date.Format "2006" }}">{{ .Date.Format "2006" }}</a></li>
-        <li><span>{{ .Date.Format "01" }}</span></li>
+        <li><a href="{{ $posts.RelPermalink }}">Writing</a></li>
+        <li><a href="{{ $posts.RelPermalink }}#y-{{ .Date.Format "2006" }}">{{ .Date.Format "2006" }}</a></li>
       </ol>
     </nav>
     <h1 class="post-title" style="view-transition-name: {{ partial "func/vt-name.html" . }}">{{ .Title }}</h1>
@@ -25,7 +24,7 @@
     {{- partial "post/pager.html" . }}
     <p class="post-foot__links">
       {{- with .GitInfo }}
-      <a href="{{ site.Params.commitURL }}{{ .Hash }}">{{ partial "icon.html" "commit" }}<span>View source <span class="mono">({{ .AbbreviatedHash }})</span></span></a>
+      <a href="{{ site.Params.commitURL }}{{ .Hash }}">{{ partial "icon.html" "commit" }}<span>View the source of this post ({{ .AbbreviatedHash }})</span></a>
       {{- end }}
       {{- /* #main (tabindex=-1) moves focus as well as the scroll position. */}}
       <a href="#main">{{ partial "icon.html" "arrow-up" }}<span>Back to top</span></a>

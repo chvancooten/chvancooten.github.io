@@ -1,0 +1,8 @@
+{{- /* Social profiles as text links (the email address is shown on its own where it is needed). */ -}}
+<ul class="social-text">
+  {{- range site.Params.social }}
+  {{- if not (strings.HasPrefix .url "mailto:") }}
+  <li><a href="{{ .url }}" rel="me">{{ .name }}</a></li>
+  {{- end }}
+  {{- end }}
+</ul>

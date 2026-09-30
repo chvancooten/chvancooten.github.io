@@ -1,8 +1,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0b0e14">
-{{- /* Apply the stored theme before first paint (dark is the default) and keep theme-color in sync. */}}
-<script>(function(d){var t;try{t=localStorage.getItem("theme")}catch(e){}if(t==="light"||t==="dark")d.dataset.theme=t;d.classList.add("js");if(d.dataset.theme==="light")document.querySelector('meta[name="theme-color"]').content="#ffffff"})(document.documentElement)</script>
+<meta name="theme-color" content="#191724">
+{{- /* Before first paint: apply the stored theme (dark is the default), flag JS, and mark a first visit this
+       session so the hero can play its intro instead of showing the still. Storage errors skip the intro. */}}
+<script>(function(d){var t;try{t=localStorage.getItem("theme")}catch(e){}if(t==="light"||t==="dark")d.dataset.theme=t;d.classList.add("js");try{if(!sessionStorage.getItem("field-intro"))d.dataset.intro=""}catch(e){}if(d.dataset.theme==="light")document.querySelector('meta[name="theme-color"]').content="#faf4ed"})(document.documentElement)</script>
 <title>{{ partial "func/title.html" . }}</title>
 {{- partial "seo.html" . }}
 <link rel="icon" href="{{ "favicon.ico" | relURL }}" sizes="32x32">
@@ -17,12 +18,20 @@
 <link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ $.Title }} · {{ site.Title }}">
 {{- end }}
 {{- end }}
-<link rel="preload" href="{{ "fonts/inter-latin-wght-normal.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
+{{- /* The body face, and the display face that sets the name and every page title. */}}
+<link rel="preload" href="{{ "fonts/instrument-sans-latin-var-normal.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ "fonts/bricolage-grotesque-latin-var.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
 {{- $css := slice }}
-{{- range slice "tokens" "base" "layout" "components" "syntax" }}
+{{- range slice "tokens" "base" "layout" "components" "home" "syntax" }}
 {{- $css = $css | append (resources.Get (printf "css/%s.css" .)) }}
 {{- end }}
 {{- $css = $css | resources.Concat "css/main.css" | minify | fingerprint }}
 <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
-{{- $js := resources.Get "js/main.js" | js.Build (dict "format" "esm" "minify" true "target" "es2020") | fingerprint }}
+{{- $opts := dict "format" "esm" "minify" true "target" "es2020" }}
+{{- $js := resources.Get "js/main.js" | js.Build $opts | fingerprint }}
 <script type="module" src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
+{{- /* The flow field only ships to the pages that show it. */}}
+{{- if or .IsHome (eq .Kind "404") }}
+{{- $field := resources.Get "js/field/field.js" | js.Build (merge $opts (dict "targetPath" "js/field.js")) | fingerprint }}
+<script type="module" src="{{ $field.RelPermalink }}" integrity="{{ $field.Data.Integrity }}"></script>
+{{- end }}

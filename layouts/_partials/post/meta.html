@@ -1,8 +1,8 @@
 <div class="post-meta">
   <p class="post-meta__line">
-    <span>Published <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time></span>
+    <span><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 January 2006" }}</time></span>
     {{- if ne (.Lastmod.Format "2006-01-02") (.Date.Format "2006-01-02") }}
-    <span>Updated <time datetime="{{ .Lastmod.Format "2006-01-02" }}">{{ .Lastmod.Format "Jan 2, 2006" }}</time></span>
+    <span>Updated <time datetime="{{ .Lastmod.Format "2006-01-02" }}">{{ .Lastmod.Format "2 January 2006" }}</time></span>
     {{- end }}
     <span>{{ .ReadingTime }} min read</span>
   </p>

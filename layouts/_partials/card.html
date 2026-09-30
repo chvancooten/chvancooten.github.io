@@ -1,0 +1,11 @@
+{{- /* The business card: who, what, where, and a vCard to save (static/cas-van-cooten.vcf). */ -}}
+<div class="card" data-card>
+  <div class="card__glare" aria-hidden="true"></div>
+  <p class="card__site">casvancooten.com</p>
+  <p class="card__name">{{ site.Params.author.name }}</p>
+  <p class="card__role">Red teamer <span aria-hidden="true">·</span> Co-founder of <a href="{{ site.Params.company.url }}">{{ site.Params.company.name }}</a></p>
+  <div class="card__foot">
+    <span>The Netherlands</span>
+    <a class="btn btn--primary card__save" href="{{ "cas-van-cooten.vcf" | relURL }}" download="cas-van-cooten.vcf">Save contact</a>
+  </div>
+</div>

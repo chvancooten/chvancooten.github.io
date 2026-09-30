@@ -1,7 +1,8 @@
 // Theme toggle. The inline <head> script applies the stored theme before first paint;
-// this keeps the toggle label and theme-color in sync and persists the choice.
+// this keeps the toggle label and theme-color in sync, persists the choice, and tells
+// listeners (the hero field) through a "themechange" event on document.
 const KEY = "theme";
-const COLORS = { dark: "#0b0e14", light: "#ffffff" };
+const COLORS = { dark: "#191724", light: "#faf4ed" };
 
 export function initTheme() {
   const root = document.documentElement;
@@ -20,7 +21,9 @@ export function initTheme() {
   };
 
   const apply = (theme, persist) => {
+    const changed = root.dataset.theme !== theme;
     root.dataset.theme = theme;
+    if (changed) document.dispatchEvent(new CustomEvent("themechange", { detail: theme }));
     if (persist) {
       try {
         localStorage.setItem(KEY, theme);

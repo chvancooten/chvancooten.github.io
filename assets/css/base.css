@@ -7,17 +7,21 @@ html {
   scroll-padding-top: calc(var(--header-h) + 1rem);
   background: var(--bg);
 }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
 
 body {
   margin: 0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: clip;
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-sans);
+  font-family: var(--f-text);
   font-size: var(--fs-body);
-  line-height: 1.7;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -25,62 +29,61 @@ body {
 main { flex: 1; outline: none; }
 
 h1, h2, h3, h4, h5, h6 {
-  color: var(--text-strong);
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.015em;
-  text-wrap: balance;
   margin: 0;
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.2;
+  text-wrap: balance;
 }
 
-p { margin: 0 0 1.25rem; }
+p, ul, ol, figure, blockquote { margin: 0; }
 
 a {
   color: var(--accent);
   text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
 }
-a:hover { color: var(--accent-hover); }
+a:hover { color: var(--text); }
 
-img, svg, video { max-width: 100%; }
+img, svg, video, canvas { max-width: 100%; }
 img { height: auto; }
 
 code, kbd, pre, samp {
-  font-family: var(--font-mono);
-  /* JetBrains Mono would draw != or >= as single glyphs; commands must show what you type. */
+  font-family: var(--f-mono);
+  /* Commands must show what you type: no != or >= ligatures. */
   font-variant-ligatures: none;
 }
 
 kbd {
-  font-size: 0.75rem;
-  line-height: 1;
-  padding: 0.2rem 0.35rem;
-  border: 1px solid var(--border-strong);
-  border-bottom-width: 2px;
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 0.15em 0.4em;
+  border: 1px solid var(--line);
   border-radius: 4px;
-  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--text-2);
   background: var(--bg);
 }
 
 button { font: inherit; color: inherit; }
 
 hr {
-  border: 0;
-  border-top: 1px dashed var(--border-strong);
   margin: 3rem 0;
+  border: 0;
+  border-top: 1px solid var(--hair);
 }
 
-::selection {
-  background: color-mix(in srgb, var(--accent) 28%, transparent);
-  color: var(--text-strong);
-}
+::selection { background: var(--sel); color: var(--text); }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 2px;
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 3px;
 }
 
-.mono { font-family: var(--font-mono); }
+.num { font-variant-numeric: tabular-nums; }
 
 .sr-only {
   position: absolute !important;
@@ -95,22 +98,23 @@ hr {
 }
 
 .skip-link {
-  position: absolute;
+  position: fixed;
   left: 1rem;
   top: 0.75rem;
   z-index: 100;
   padding: 0.6rem 1rem;
   border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font: 600 var(--fs-sm) / 1 var(--font-mono);
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
   text-decoration: none;
   transform: translateY(-200%);
 }
-.skip-link:focus-visible,
-.skip-link:focus { transform: none; color: var(--accent-ink); }
+.skip-link:focus { transform: none; color: var(--bg); }
 
-/* Elements that only make sense with JS (search, theme toggle, copy). */
+[hidden] { display: none !important; }
+
+/* Controls that only work with JS (search, theme toggle, copy, motion). */
 html:not(.js) .js-only,
 html:not(.js) [data-search-open],
 html:not(.js) [data-theme-toggle] { display: none !important; }

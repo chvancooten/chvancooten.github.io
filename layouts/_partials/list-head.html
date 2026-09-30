@@ -1,6 +1,6 @@
-{{- /* Heading block for list pages. Pass dict: page, cmd (decorative prompt text), count. */ -}}
+{{- /* Heading block for list pages. Pass dict: page, count, and optionally kind (a small label above) and title. */ -}}
 <header class="list-head">
-  <p class="list-head__cmd" aria-hidden="true"><span class="prompt">$</span> {{ .cmd }}</p>
+  {{- with .kind }}<p class="list-head__kind">{{ . }}</p>{{ end }}
   <h1 class="list-head__title">{{ .title | default .page.Title }}</h1>
   {{- with .page.Content }}<div class="list-head__lede">{{ . }}</div>{{ end }}
   {{- with .count }}<p class="list-head__count">{{ . }}</p>{{ end }}

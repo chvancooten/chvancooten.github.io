@@ -3,10 +3,10 @@
 {{- if or $older $newer }}
 <nav class="pager" aria-label="More posts">
   {{- with $older }}
-  <a class="pager__link pager__link--older" href="{{ .RelPermalink }}"><span class="pager__dir">&lt; Older</span><span class="pager__title">{{ .Title }}</span></a>
+  <a class="pager__link pager__link--older" href="{{ .RelPermalink }}"><span class="pager__dir">Older post</span><span class="pager__title">{{ .Title }}</span></a>
   {{- end }}
   {{- with $newer }}
-  <a class="pager__link pager__link--newer" href="{{ .RelPermalink }}"><span class="pager__dir">Newer &gt;</span><span class="pager__title">{{ .Title }}</span></a>
+  <a class="pager__link pager__link--newer" href="{{ .RelPermalink }}"><span class="pager__dir">Newer post</span><span class="pager__title">{{ .Title }}</span></a>
   {{- end }}
 </nav>
 {{- end }}

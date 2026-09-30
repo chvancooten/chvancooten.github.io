@@ -1,11 +1,15 @@
-{{- /* One ls-style row: mono date, title, tags, reading time. */ -}}
+{{- /* One post row: date, title, reading time and tags. Pass the page, or dict "page" and "compact" (no tags). */ -}}
+{{- $compact := false }}
+{{- $p := . }}
+{{- if reflect.IsMap . }}{{ $compact = .compact }}{{ $p = .page }}{{ end }}
+{{- with $p }}
 <li class="row">
-  <time class="row__date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+  <time class="row__date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 Jan 2006" }}</time>
   <div class="row__main">
     <a class="row__title" href="{{ .RelPermalink }}" style="view-transition-name: {{ partial "func/vt-name.html" . }}">{{ .Title }}</a>
     <p class="row__meta">
-      <span class="row__time">{{ .ReadingTime }} min read</span>
-      {{- with .GetTerms "tags" }}
+      <span>{{ .ReadingTime }} min read</span>
+      {{- with and (not $compact) (.GetTerms "tags") }}
       <span class="row__tags">
         {{- range . }}<a class="tag" href="{{ .RelPermalink }}"><span aria-hidden="true">#</span>{{ .LinkTitle }}</a>{{ end -}}
       </span>
@@ -13,3 +17,4 @@
     </p>
   </div>
 </li>
+{{- end }}

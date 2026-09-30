@@ -2,19 +2,22 @@
 {{- if eq .Section "posts" }}
 {{- partial "post/article.html" . }}
 {{- else }}
-<div class="wrap wrap--narrow">
-  <article class="page{{ with .File }} page--{{ .ContentBaseName | urlize }}{{ end }}">
-    <header class="page-head">
-      <p class="list-head__cmd" aria-hidden="true"><span class="prompt">$</span> cat ~{{ .RelPermalink | strings.TrimSuffix "/" | replaceRE `^.*/` "/" }}.md</p>
-      <h1>{{ .Title }}</h1>
-    </header>
-    <div class="prose" data-post-body>
+{{- $about := eq .RelPermalink (site.GetPage "/about").RelPermalink }}
+<article class="page{{ with .File }} page--{{ .ContentBaseName | urlize }}{{ end }}">
+  <header class="page-head">
+    <h1>{{ .Title }}</h1>
+  </header>
+  <div class="page__grid{{ if $about }} page__grid--aside{{ end }}">
+    <div class="page__body prose" data-post-body>
       {{ .Content }}
     </div>
-    {{- if eq .RelPermalink (site.GetPage "/about").RelPermalink }}
-    {{- partial "social.html" "social--large" }}
+    {{- if $about }}
+    <aside class="page__aside" aria-label="Contact card">
+      <div class="card-stage">{{ partial "card.html" . }}</div>
+      {{- partial "social-text.html" . }}
+    </aside>
     {{- end }}
-  </article>
-</div>
+  </div>
+</article>
 {{- end }}
 {{ end }}

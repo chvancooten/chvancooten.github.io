@@ -1,14 +1,13 @@
 <footer class="site-footer">
-  <div class="wrap site-footer__inner">
-    <div class="site-footer__id">
-      <p class="site-footer__logo" aria-hidden="true"><span class="logo__prompt">&gt;</span> {{ site.Params.logoText }}</p>
-      <p>Co-founder of <a href="{{ site.Params.company.url }}">{{ site.Params.company.name }}</a></p>
-    </div>
-    {{- partial "social.html" "" }}
-    <p class="site-footer__meta">
-      <span>&copy; {{ site.Lastmod.Year }} {{ site.Params.author.name }}</span>
-      <span>Content licensed <a href="{{ site.Params.license }}" rel="license">{{ site.Copyright }}</a></span>
-      <span><a href="{{ site.Params.repoURL }}">Source on GitHub</a></span>
-    </p>
+  <div class="site-footer__row">
+    <p>&copy; {{ site.Lastmod.Year }} {{ site.Params.author.name }}, co-founder of <a href="{{ site.Params.company.url }}">{{ site.Params.company.name }}</a></p>
+    <ul class="site-footer__links">
+      {{- with site.Home.OutputFormats.Get "rss" }}
+      <li><a href="{{ .RelPermalink }}">RSS</a></li>
+      {{- end }}
+      <li><a href="{{ site.Params.repoURL }}">Source</a></li>
+      <li><a href="{{ site.Params.license }}" rel="license">Content: {{ site.Copyright }}</a></li>
+    </ul>
   </div>
+  <p class="site-footer__credits">Colours: <a href="https://rosepinetheme.com">Ros&eacute; Pine</a> (MIT). Type: Bricolage Grotesque, Instrument Sans and JetBrains Mono (SIL OFL).</p>
 </footer>

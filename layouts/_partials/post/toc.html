@@ -1,7 +1,7 @@
-{{- /* One TOC element: a sticky, open sidebar at >= 1200px (JS opens it), a collapsed <details> below. */ -}}
+{{- /* One TOC element: a sticky, open sidebar at >= 75em (JS opens it), a collapsed <details> below. */ -}}
 <aside class="toc" aria-label="Table of contents">
   <details class="toc__details" data-toc>
-    <summary class="toc__summary"><span class="prompt" aria-hidden="true">#</span> Contents</summary>
+    <summary class="toc__summary">On this page</summary>
     {{ .TableOfContents | replaceRE `<nav id="TableOfContents">` `<nav id="TableOfContents" aria-label="Contents">` | safeHTML }}
   </details>
 </aside>

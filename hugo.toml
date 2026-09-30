@@ -48,9 +48,10 @@ copyright     = "CC BY-NC 4.0"
 [params]
   description = "Cas van Cooten's blog on offensive security, red teaming and security tooling. Red teamer and co-founder of Offensys."
   homeTitle   = "Offensive security, red teaming and tooling"
-  logoText    = "Security Ramblings"
   images      = ["preview.png"]
-  imageAlt    = "Security Ramblings by Cas van Cooten"
+  imageAlt    = "Cas van Cooten, red teamer and co-founder of Offensys"
+  # Home page: how many talks (repeat talks grouped into one row) the Speaking list shows.
+  homeTalks   = 6
   repoURL     = "https://github.com/chvancooten/chvancooten.github.io"
   commitURL   = "https://github.com/chvancooten/chvancooten.github.io/commit/"
   license     = "https://creativecommons.org/licenses/by-nc/4.0/"
@@ -85,15 +86,18 @@ copyright     = "CC BY-NC 4.0"
     url   = "mailto:hello@casvancooten.com"
 
 [menus]
+  # "Work" is a section of the home page; the header adds the fragment.
   [[menus.main]]
-    identifier = "blog"
-    name       = "Blog"
-    pageRef    = "/posts"
+    identifier = "work"
+    name       = "Work"
+    pageRef    = "/"
     weight     = 10
+    [menus.main.params]
+      fragment = "work"
   [[menus.main]]
-    identifier = "tags"
-    name       = "Tags"
-    pageRef    = "/tags"
+    identifier = "writing"
+    name       = "Writing"
+    pageRef    = "/posts"
     weight     = 20
   [[menus.main]]
     identifier = "about"

@@ -1,0 +1,250 @@
+/* ---------- Hero: the business card first. Copy on the left of the grid, the field in its own box to the right
+   (or in its own band below the copy on narrow screens), so no motion ever sits behind the text. ---------- */
+.hero {
+  --hero-copy: 36rem;
+  position: relative;
+  display: grid;
+  min-height: calc(min(100svh, 64rem) - var(--header-h));
+  padding-inline: var(--gutter);
+  overflow: clip;
+}
+.hero__copy {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  width: min(100%, var(--hero-copy));
+  padding-block: clamp(2.5rem, 9vh, 6rem);
+}
+.hero__role { margin-bottom: 1.25rem; color: var(--text-2); font-size: clamp(1rem, 0.95rem + 0.2vw, 1.125rem); font-weight: 500; }
+.hero__role a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.hero__role a:hover { color: var(--accent); text-decoration: underline; }
+.hero__sep { margin-inline: 0.4em; color: var(--muted); }
+.hero__name {
+  margin-bottom: 1.75rem;
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-stretch: 90%;
+  font-size: clamp(2.875rem, 16vw, 7rem);
+  letter-spacing: -0.035em;
+  line-height: 0.92;
+  text-wrap: wrap;
+}
+.hero__name span { white-space: nowrap; }
+.hero__lede { max-width: 34em; font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.3125rem); line-height: 1.55; }
+.hero__lede p + p { margin-top: 0.75em; }
+.hero__lede a { color: inherit; text-decoration-color: var(--line); }
+.hero__lede a:hover { text-decoration-color: var(--accent); }
+.hero__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.75rem; margin-top: 2.25rem; }
+
+/* The field: canvas (JS) over a pre-rendered still of the same composition (no JS, and before JS boots). */
+.field { position: relative; z-index: 0; overflow: hidden; pointer-events: none; }
+.field > canvas, .field__still { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.field__still--band { display: none; }
+/* The canvas takes over from the still with a short crossfade (none for the intro, which fades itself in). */
+.field > canvas { opacity: 0; }
+.field.is-live > canvas { opacity: 1; }
+.field.is-live .field__still { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .field > canvas, .field__still { transition: opacity 0.4s var(--ease-out); }
+  .field.is-intro > canvas { transition: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* A first visit starts with the intro gesture (a line unfurling), so the still stays out of the way;
+     it comes back if the script never arrives. */
+  .js[data-intro] .field:not(.is-live) .field__still { opacity: 0; animation: still-late 0.4s 2.5s forwards; }
+}
+@keyframes still-late { to { opacity: 1; } }
+.field-ctrl { position: absolute; right: var(--gutter); bottom: 1.25rem; z-index: 2; }
+.motion-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2rem;
+  padding: 0 0.85rem 0 0.7rem;
+  border: 1px solid var(--hair);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 75%, transparent);
+  color: var(--text-2);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+}
+.motion-btn:hover { color: var(--text); border-color: var(--line); }
+.motion-btn .icon { width: 0.75rem; height: 0.75rem; }
+.motion-btn .icon--play, .motion-btn[data-paused] .icon--pause { display: none; }
+.motion-btn[data-paused] .icon--play { display: block; }
+@media (prefers-reduced-motion: reduce) { .motion-btn { display: none; } }
+
+@media (min-width: 60em) {
+  .hero__name { font-size: clamp(6rem, 12vw, 9.25rem); }
+  .field { position: absolute; inset: 0 0 0 auto; left: calc(var(--gutter) + var(--hero-copy) + 1.5rem); }
+}
+@media (max-width: 59.99em) {
+  .hero { grid-template-rows: auto minmax(11rem, 1fr); }
+  .hero__copy { align-self: end; padding-block: clamp(2rem, 6vh, 4rem) 0.5rem; }
+  .field { margin-inline: calc(-1 * var(--pad)); }
+  .field__still--wide { display: none; }
+  .field__still--band { display: block; }
+}
+
+/* ---------- Offensys: one typographic moment. The triad's full stops use the field's three inks. ---------- */
+.offensys {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 1.5rem;
+  padding: clamp(4.5rem, 9vw, 8rem) var(--gutter);
+  border-block: 1px solid var(--hair);
+  background: var(--bg-2);
+}
+.offensys__head { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1rem; margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
+.offensys__title { font-family: var(--f-display); font-weight: 700; font-stretch: 86%; font-size: clamp(1.625rem, 1.3rem + 1.2vw, 2.25rem); letter-spacing: -0.02em; line-height: 1; }
+.offensys__kicker { color: var(--accent-2); font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem); font-weight: 500; }
+.triad {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-stretch: 80%;
+  font-size: clamp(3.5rem, 12.5vw, 11rem);
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+}
+.triad__line { display: block; }
+.triad__line:nth-child(1) .triad__dot { color: var(--field-foam); }
+.triad__line:nth-child(2) .triad__dot { color: var(--field-iris); }
+.triad__line:nth-child(3) { color: var(--accent); }
+.offensys__body { grid-column: 1 / -1; margin-top: clamp(1.75rem, 4vw, 3rem); }
+.offensys__body p { max-width: 30em; margin-bottom: 1.25rem; font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem); line-height: 1.55; }
+@media (min-width: 60em) {
+  .triad { grid-column: 1 / span 8; grid-row: 2; }
+  .offensys__body { grid-column: 9 / -1; grid-row: 2; align-self: center; margin-top: 0; }
+}
+/* Scroll-linked reveal of each line, finished by the time the line is fully in view. Opacity and position only. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .triad__line { animation: triad-in linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
+  }
+}
+@keyframes triad-in { from { opacity: 0.1; transform: translateY(0.2em); } to { opacity: 1; transform: none; } }
+
+/* ---------- Work: Speaking and Open source ---------- */
+.sec { padding: clamp(4rem, 8vw, 7rem) var(--gutter) 0; }
+.sec-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 1rem 2rem; margin-bottom: clamp(1.75rem, 3vw, 2.75rem); }
+.sec-foot { margin-top: 2rem; }
+
+.years { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--hair); }
+.year { display: grid; grid-template-columns: minmax(8rem, 3fr) 9fr; column-gap: 1.5rem; padding-block: 1.5rem; border-bottom: 1px solid var(--hair); }
+.year__num {
+  position: sticky;
+  top: calc(var(--header-h) + 1.5rem);
+  align-self: start;
+  color: var(--muted);
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-stretch: 75%;
+  font-size: clamp(2.625rem, 5.6vw, 5rem);
+  letter-spacing: -0.04em;
+  line-height: 0.85;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.4s var(--ease-out);
+}
+.year:hover .year__num, .year:focus-within .year__num { color: var(--accent-2); }
+.talks { margin: 0; padding: 0; list-style: none; }
+.talk { padding-block: 0.7rem; }
+.talk:first-child { padding-top: 0.2rem; }
+.talk__title { font-size: clamp(1.125rem, 1rem + 0.4vw, 1.3125rem); font-weight: 600; line-height: 1.3; }
+.talk__title a { color: var(--text); text-decoration: none; }
+.talk__title a:hover { color: var(--accent); }
+.talk__events { display: flex; flex-wrap: wrap; gap: 0.1rem 0; margin: 0.3rem 0 0; padding: 0; list-style: none; color: var(--text-2); font-size: var(--fs-sm); }
+.talk__events li + li { margin-left: 0.85rem; padding-left: 0.85rem; border-left: 1px solid var(--hair); }
+.talk__sep { color: var(--muted); }
+.talk__events a { color: inherit; text-decoration: none; }
+.talk__events a:hover { color: var(--text); text-decoration: underline; }
+.talk__events time { color: var(--muted); }
+@media (max-width: 44.99em) {
+  .year { grid-template-columns: 1fr; row-gap: 0.75rem; }
+  .year__num { position: static; font-size: 2.5rem; }
+}
+
+.oss { padding-top: clamp(3rem, 6vw, 5rem); }
+.repos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(2rem, 5vw, 4.5rem); margin: 0; padding: 0; list-style: none; }
+.repo {
+  position: relative;
+  display: grid;
+  grid-template-columns: clamp(5.25rem, 9vw, 8rem) minmax(0, 1fr);
+  grid-template-areas: "stars name" "stars desc" "stars lang";
+  align-content: start;
+  gap: 0.35rem 1.25rem;
+  height: 100%;
+  padding-block: 1.6rem 1.8rem;
+  border-top: 1px solid var(--hair);
+}
+.repo__stars { grid-area: stars; display: flex; align-items: flex-start; gap: 0.2rem; }
+.repo__n {
+  color: var(--text-2);
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-stretch: 78%;
+  font-size: clamp(2.5rem, 4.2vw, 3.6rem);
+  letter-spacing: -0.03em;
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur) var(--ease-out);
+}
+.repo__star { margin-top: 0.15rem; color: var(--muted); font-size: 0.875rem; }
+.repo__name { grid-area: name; font-family: var(--f-display); font-weight: 700; font-stretch: 86%; font-size: clamp(1.3rem, 1.1rem + 0.7vw, 1.7rem); letter-spacing: -0.015em; line-height: 1.1; overflow-wrap: anywhere; }
+.repo__name a { color: var(--text); text-decoration: none; }
+.repo__name a::after { content: ""; position: absolute; inset: 0; }
+.repo__name a:focus-visible { outline: none; }
+.repo__name a:focus-visible::after { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
+.repo__desc { grid-area: desc; color: var(--text-2); font-size: var(--fs-sm); line-height: 1.5; }
+.repo__lang { grid-area: lang; margin-top: 0.25rem; color: var(--muted); font-size: var(--fs-xs); font-weight: 500; }
+.repo:hover .repo__n { color: var(--accent-2); }
+.repo:hover .repo__name a { color: var(--accent); }
+@media (max-width: 61.99em) { .repos { grid-template-columns: 1fr; } }
+@media (max-width: 44.99em) { .repo { grid-template-columns: 4.75rem minmax(0, 1fr); column-gap: 0.9rem; } }
+
+/* ---------- Writing: compact and secondary ---------- */
+.writing { display: grid; grid-template-columns: minmax(14rem, 4fr) 8fr; gap: 1.5rem; padding: clamp(4rem, 8vw, 7rem) var(--gutter); }
+.writing__head { display: flex; flex-direction: column; align-items: flex-start; gap: 1.25rem; }
+.writing .rows { border-top: 0; }
+.writing .row__meta { margin-top: 0.25rem; }
+.writing .row:first-child { padding-top: 0.2rem; }
+@media (max-width: 61.99em) {
+  .writing { grid-template-columns: 1fr; }
+  .writing__head { flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; }
+}
+
+/* ---------- Contact: one address, one button, and a card you can save ---------- */
+.contact {
+  display: grid;
+  grid-template-columns: 5fr 7fr;
+  align-items: center;
+  gap: 3rem clamp(2rem, 5vw, 5rem);
+  padding: clamp(5rem, 10vw, 8.5rem) var(--gutter);
+  border-top: 1px solid var(--hair);
+}
+.contact__title { margin-bottom: 1.5rem; font-family: var(--f-display); font-weight: 800; font-stretch: 84%; font-size: clamp(2.75rem, 1.8rem + 4vw, 4.75rem); letter-spacing: -0.035em; line-height: 0.95; }
+.contact__mail { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
+.contact__mail a { color: var(--text); font-size: clamp(1.25rem, 1rem + 1vw, 1.5rem); font-weight: 500; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 0.25em; overflow-wrap: anywhere; }
+.contact__mail a:hover { text-decoration-color: var(--accent); }
+.copy-btn { min-height: 2.25rem; padding: 0 0.85rem; font-size: 0.875rem; font-weight: 500; }
+.contact .social-text { margin-top: 2rem; }
+.contact .card-stage { display: flex; justify-content: flex-end; }
+.contact .card { width: min(40rem, 100%); }
+@media (max-width: 61.99em) {
+  .contact { grid-template-columns: 1fr; }
+  .contact .card-stage { justify-content: flex-start; }
+}
+
+/* ---------- 404: the quiet field ---------- */
+.notfound .field-ctrl { bottom: 1rem; }
+@media (min-width: 60em) {
+  .notfound .field { position: absolute; inset: 0 0 0 auto; left: calc(var(--gutter) + 34rem); }
+}
+@media (max-width: 59.99em) {
+  .notfound { align-content: start; }
+  .notfound .field { height: 13rem; margin: 2rem calc(-1 * var(--pad)) 0; }
+  .notfound .field-ctrl { bottom: 0.75rem; }
+}

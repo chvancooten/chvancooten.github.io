@@ -1,30 +1,28 @@
 <header class="site-header">
-  <div class="wrap site-header__inner">
-    <a class="logo" href="{{ site.Home.RelPermalink }}"{{ if .IsHome }} aria-current="page"{{ end }}>
-      <span class="logo__prompt" aria-hidden="true">&gt;</span>
-      <span class="logo__text">{{ site.Params.logoText }}</span>
-      <span class="logo__cursor" aria-hidden="true"></span>
-    </a>
+  <div class="site-header__inner">
+    <a class="brand" href="{{ site.Home.RelPermalink }}"{{ if .IsHome }} aria-current="page"{{ end }}>{{ site.Params.author.name }}</a>
     <nav class="site-nav" aria-label="Main">
       <ul>
         {{- $blogArchive := "blog/" | relURL }}
         {{- range site.Menus.main }}
         {{- $cur := "" }}
-        {{- if $.IsMenuCurrent "main" . }}{{ $cur = "page" }}
+        {{- if .Params.fragment }}
+        {{- /* An in-page section of the home page: never "current". */}}
+        {{- else if $.IsMenuCurrent "main" . }}{{ $cur = "page" }}
         {{- else if $.HasMenuCurrent "main" . }}{{ $cur = "true" }}
-        {{- else if and (eq .Identifier "blog") (eq $.RelPermalink $blogArchive) }}{{ $cur = "true" }}
+        {{- else if and (eq .Identifier "writing") (or (eq $.RelPermalink $blogArchive) (in (slice "taxonomy" "term") $.Kind)) }}{{ $cur = "true" }}
         {{- end }}
-        <li><a href="{{ .URL }}"{{ with $cur }} aria-current="{{ . }}"{{ end }}>{{ .Name }}</a></li>
+        <li><a href="{{ .URL }}{{ with .Params.fragment }}#{{ . }}{{ end }}"{{ with $cur }} aria-current="{{ . }}"{{ end }}>{{ .Name }}</a></li>
         {{- end }}
       </ul>
     </nav>
     <div class="site-tools">
       {{- with site.Home.OutputFormats.Get "json" }}
-      <button class="tool-btn search-btn" type="button" data-search-open data-index="{{ .RelPermalink }}" aria-keyshortcuts="/ Control+K Meta+K">
-        {{- partial "icon.html" "search" }}<span class="search-btn__label">Search</span><kbd aria-hidden="true">/</kbd>
+      <button class="icon-btn search-btn" type="button" data-search-open data-index="{{ .RelPermalink }}" aria-label="Search posts" aria-keyshortcuts="/ Control+K Meta+K">
+        {{- partial "icon.html" "search" }}<kbd aria-hidden="true">/</kbd>
       </button>
       {{- end }}
-      <button class="tool-btn theme-toggle" type="button" data-theme-toggle aria-label="Switch to light theme">
+      <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Switch to light theme">
         {{- partial "icon.html" "sun" }}{{ partial "icon.html" "moon" -}}
       </button>
     </div>

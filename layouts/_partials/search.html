@@ -1,10 +1,10 @@
-{{- /* Command palette (opened by JS only; a closed <dialog> is never rendered). */ -}}
+{{- /* Search palette (opened by JS only; a closed <dialog> is never rendered). */ -}}
 {{- with site.Home.OutputFormats.Get "json" }}
 <dialog class="palette" id="search" aria-label="Search posts" data-index="{{ .RelPermalink }}">
   <form class="palette__form" method="dialog" role="search">
-    <label class="palette__prompt" for="search-input"><span aria-hidden="true">$ grep -i</span><span class="sr-only">Search posts</span></label>
+    <label class="palette__prompt" for="search-input">{{ partial "icon.html" "search" }}<span class="sr-only">Search posts</span></label>
     <input class="palette__input" id="search-input" type="text" autocomplete="off" spellcheck="false"
-      placeholder="title, tag or topic" role="combobox" aria-expanded="true" aria-controls="search-results"
+      placeholder="Search by title, tag or topic" role="combobox" aria-expanded="true" aria-controls="search-results"
       aria-autocomplete="list" aria-describedby="search-help">
     <button class="palette__close" type="submit" value="close"><kbd class="palette__esc">Esc</kbd><span class="palette__x" aria-hidden="true">&times;</span><span class="sr-only">Close search</span></button>
   </form>
