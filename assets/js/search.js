@@ -49,6 +49,7 @@ export function initSearch() {
   const input = dialog.querySelector("input");
   const list = dialog.querySelector('[role="listbox"]');
   const status = dialog.querySelector('[role="status"]');
+  const note = dialog.querySelector("#search-message");
 
   let index = null;
   let loading = null;
@@ -81,17 +82,19 @@ export function initSearch() {
     }
   };
 
+  // Messages go next to the listbox, never inside it; the listbox is then left empty.
   const message = (text) => {
-    const p = document.createElement("p");
-    p.className = "palette__empty";
-    p.textContent = text;
-    return p;
+    list.replaceChildren();
+    options = [];
+    active = -1;
+    input.removeAttribute("aria-activedescendant");
+    note.textContent = text;
+    note.hidden = false;
   };
 
   const render = () => {
     if (!index) {
-      list.replaceChildren(message("Loading the index..."));
-      options = [];
+      message("Loading the index...");
       return;
     }
     const terms = input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
@@ -120,7 +123,12 @@ export function initSearch() {
       a.addEventListener("pointermove", () => active !== i && setActive(i));
       return a;
     });
-    list.replaceChildren(...(options.length ? options : [message(`No posts match "${input.value.trim()}".`)]));
+    if (options.length) {
+      note.hidden = true;
+      list.replaceChildren(...options);
+    } else {
+      message(`No posts match "${input.value.trim()}".`);
+    }
     active = -1;
     setActive(options.length ? 0 : -1);
     status.textContent = terms.length
@@ -138,7 +146,7 @@ export function initSearch() {
       .then(render)
       .catch(() => {
         loading = null;
-        list.replaceChildren(message("The search index could not be loaded."));
+        message("The search index could not be loaded.");
       });
   };
 
