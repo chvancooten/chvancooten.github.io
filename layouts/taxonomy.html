@@ -6,6 +6,7 @@
   {{- partial "list-head.html" (dict "page" . "cmd" "ls -lt ~/blog" "count" (printf "%d posts, newest first" $n)) }}
   {{- partial "archive.html" . }}
   {{- else }}
+  {{- /* Not rendered: paginating (one page, pagerSize 1000) keeps the live /<taxonomy>/page/1/ redirect alias. */}}
   {{- $pager := .Paginate .Pages }}
   {{- $terms := .Data.Terms.ByCount }}
   {{- partial "list-head.html" (dict "page" . "cmd" (printf "ls ~/%s | wc -l" .Data.Plural) "count" (printf "%d %s" (len $terms) (lower .Title))) }}
