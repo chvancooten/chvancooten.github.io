@@ -1,0 +1,15 @@
+{{- /* One ls-style row: mono date, title, tags, reading time. */ -}}
+<li class="row">
+  <time class="row__date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+  <div class="row__main">
+    <a class="row__title" href="{{ .RelPermalink }}" style="view-transition-name: {{ partial "func/vt-name.html" . }}">{{ .Title }}</a>
+    <p class="row__meta">
+      <span class="row__time">{{ .ReadingTime }} min read</span>
+      {{- with .GetTerms "tags" }}
+      <span class="row__tags">
+        {{- range . }}<a class="tag" href="{{ .RelPermalink }}"><span aria-hidden="true">#</span>{{ .LinkTitle }}</a>{{ end -}}
+      </span>
+      {{- end }}
+    </p>
+  </div>
+</li>

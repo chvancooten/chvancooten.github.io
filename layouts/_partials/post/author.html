@@ -1,0 +1,7 @@
+<section class="box author" aria-label="About the author">
+  <img class="author__photo" src="{{ site.Params.author.image | relURL }}" alt="" role="presentation" width="72" height="72" loading="lazy" decoding="async">
+  <div class="author__body">
+    <p class="author__text">I'm Cas, a red teamer and co-founder of <a href="{{ site.Params.company.url }}">{{ site.Params.company.name }}</a>, where we build a Continuous Purple Teaming platform for automated security validation.</p>
+    {{- partial "social.html" "social--small" }}
+  </div>
+</section>

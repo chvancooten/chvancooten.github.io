@@ -1,0 +1,33 @@
+{{- $toc := and .Params.toc (gt (len .Fragments.Headings) 0) }}
+<div class="progress" aria-hidden="true"></div>
+<article class="post{{ if $toc }} post--toc{{ end }}">
+  <header class="post-head">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="{{ site.Home.RelPermalink }}"><span aria-hidden="true">~</span><span class="sr-only">Home</span></a></li>
+        <li><a href="{{ (site.GetPage "/posts").RelPermalink }}">posts</a></li>
+        <li><a href="{{ (site.GetPage "/posts").RelPermalink }}#y-{{ .Date.Format "2006" }}">{{ .Date.Format "2006" }}</a></li>
+        <li><span>{{ .Date.Format "01" }}</span></li>
+      </ol>
+    </nav>
+    <h1 class="post-title" style="view-transition-name: {{ partial "func/vt-name.html" . }}">{{ .Title }}</h1>
+    {{- partial "post/meta.html" . }}
+  </header>
+  {{- if $toc }}
+  {{- partial "post/toc.html" . }}
+  {{- end }}
+  <div class="post-body prose" data-post-body>
+    {{ .Content }}
+  </div>
+  <footer class="post-foot">
+    {{- partial "post/series.html" . }}
+    {{- partial "post/author.html" . }}
+    {{- partial "post/pager.html" . }}
+    <p class="post-foot__links">
+      {{- with .GitInfo }}
+      <a href="{{ site.Params.commitURL }}{{ .Hash }}">{{ partial "icon.html" "commit" }}<span>View source <span class="mono">({{ .AbbreviatedHash }})</span></span></a>
+      {{- end }}
+      <a href="#top">{{ partial "icon.html" "arrow-up" }}<span>Back to top</span></a>
+    </p>
+  </footer>
+</article>

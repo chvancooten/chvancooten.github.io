@@ -1,0 +1,7 @@
+{{- /* Heading block for list pages. Pass dict: page, cmd (decorative prompt text), count. */ -}}
+<header class="list-head">
+  <p class="list-head__cmd" aria-hidden="true"><span class="prompt">$</span> {{ .cmd }}</p>
+  <h1 class="list-head__title">{{ .title | default .page.Title }}</h1>
+  {{- with .page.Content }}<div class="list-head__lede">{{ . }}</div>{{ end }}
+  {{- with .count }}<p class="list-head__count">{{ . }}</p>{{ end }}
+</header>

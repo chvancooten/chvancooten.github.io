@@ -1,0 +1,18 @@
+{{ define "main" }}
+<div class="wrap wrap--narrow notfound">
+  <div class="shell shell--static">
+    <div class="shell__bar"><span class="shell__dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="shell__title">bash</span></div>
+    <div class="shell__body">
+      <p class="shell__line"><span class="shell__ps1"><span class="u">cas@offensys</span>:<span class="p">~</span>$</span> cd <span data-404-path data-base="{{ site.Home.RelPermalink }}">this-page</span></p>
+      <p class="shell__out shell__out--err">bash: cd: <span data-404-path data-base="{{ site.Home.RelPermalink }}">this-page</span>: No such file or directory</p>
+    </div>
+  </div>
+  <h1 class="notfound__title">{{ .Title }}</h1>
+  <p class="notfound__text">The page you were looking for does not exist. It may have moved, or the link may be mistyped.</p>
+  <ul class="notfound__links" role="list">
+    <li><a href="{{ site.Home.RelPermalink }}"><span class="mono" aria-hidden="true">cd ~</span><span>Go to the home page</span></a></li>
+    <li><a href="{{ (site.GetPage "/posts").RelPermalink }}"><span class="mono" aria-hidden="true">ls ~/posts</span><span>Browse all posts</span></a></li>
+    <li class="js-only"><button type="button" data-search-open><span class="mono" aria-hidden="true">grep -ri</span><span>Search the blog</span></button></li>
+  </ul>
+</div>
+{{ end }}

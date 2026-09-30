@@ -1,0 +1,15 @@
+<div class="post-meta">
+  <p class="post-meta__line">
+    <span>Published <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time></span>
+    {{- if ne (.Lastmod.Format "2006-01-02") (.Date.Format "2006-01-02") }}
+    <span>Updated <time datetime="{{ .Lastmod.Format "2006-01-02" }}">{{ .Lastmod.Format "Jan 2, 2006" }}</time></span>
+    {{- end }}
+    <span>{{ .ReadingTime }} min read</span>
+  </p>
+  {{- with .GetTerms "tags" }}
+  <p class="post-meta__tags">
+    <span class="sr-only">Tags:</span>
+    {{- range . }}<a class="tag" href="{{ .RelPermalink }}"><span aria-hidden="true">#</span>{{ .LinkTitle }}</a>{{ end -}}
+  </p>
+  {{- end }}
+</div>

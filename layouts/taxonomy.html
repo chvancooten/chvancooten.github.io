@@ -1,0 +1,19 @@
+{{ define "main" }}
+<div class="wrap wrap--narrow">
+  {{- if eq .Data.Plural "blog" }}
+  {{- /* The legacy /blog/ taxonomy has no terms: show the full archive instead. */}}
+  {{- $n := len (where site.RegularPages "Section" "posts") }}
+  {{- partial "list-head.html" (dict "page" . "cmd" "ls -lt ~/blog" "count" (printf "%d posts, newest first" $n)) }}
+  {{- partial "archive.html" . }}
+  {{- else }}
+  {{- $pager := .Paginate .Pages }}
+  {{- $terms := .Data.Terms.ByCount }}
+  {{- partial "list-head.html" (dict "page" . "cmd" (printf "ls ~/%s | wc -l" .Data.Plural) "count" (printf "%d %s" (len $terms) (lower .Title))) }}
+  <ul class="terms" role="list">
+    {{- range $terms }}
+    <li><a class="term" href="{{ .Page.RelPermalink }}"><span class="term__name"><span aria-hidden="true">#</span>{{ .Page.LinkTitle }}</span> <span class="term__count">{{ .Count }}<span class="sr-only"> {{ cond (eq .Count 1) "post" "posts" }}</span></span></a></li>
+    {{- end }}
+  </ul>
+  {{- end }}
+</div>
+{{ end }}

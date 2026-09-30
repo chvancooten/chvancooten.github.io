@@ -1,0 +1,2 @@
+{{- /* Unique view-transition-name linking a list row title to the post h1. */ -}}
+{{- return printf "post-%s" (substr (md5 .RelPermalink) 0 12) -}}

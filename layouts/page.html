@@ -1,0 +1,20 @@
+{{ define "main" }}
+{{- if eq .Section "posts" }}
+{{- partial "post/article.html" . }}
+{{- else }}
+<div class="wrap wrap--narrow">
+  <article class="page{{ with .File }} page--{{ .ContentBaseName | urlize }}{{ end }}">
+    <header class="page-head">
+      <p class="list-head__cmd" aria-hidden="true"><span class="prompt">$</span> cat ~{{ .RelPermalink | strings.TrimSuffix "/" | replaceRE `^.*/` "/" }}.md</p>
+      <h1>{{ .Title }}</h1>
+    </header>
+    <div class="prose" data-post-body>
+      {{ .Content }}
+    </div>
+    {{- if eq .RelPermalink (site.GetPage "/about").RelPermalink }}
+    {{- partial "social.html" "social--large" }}
+    {{- end }}
+  </article>
+</div>
+{{- end }}
+{{ end }}

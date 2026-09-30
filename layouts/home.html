@@ -1,0 +1,65 @@
+{{ define "main" }}
+{{- $posts := where site.RegularPages "Section" "posts" }}
+{{- $postsPage := site.GetPage "/posts" }}
+<section class="hero" aria-labelledby="hero-title">
+  <div class="wrap hero__grid">
+    <div class="hero__intro">
+      <p class="eyebrow"><span aria-hidden="true">// </span>red teaming, research and tooling</p>
+      <h1 class="hero__title" id="hero-title">{{ site.Params.author.name }}</h1>
+      <div class="hero__lede">{{ .Content }}</div>
+      <p class="hero__cta">
+        <a class="btn btn--primary" href="{{ $postsPage.RelPermalink }}">Read the blog{{ partial "icon.html" "arrow-right" }}</a>
+        <a class="btn" href="{{ (site.GetPage "/about").RelPermalink }}">About me</a>
+      </p>
+      {{- partial "social.html" "social--hero" }}
+    </div>
+    {{- partial "shell-intro.html" (dict "latest" (index $posts 0)) }}
+  </div>
+</section>
+
+<section class="section" aria-labelledby="latest-title">
+  <div class="wrap">
+    <header class="section-head">
+      <p class="section-head__cmd" aria-hidden="true"><span class="prompt">$</span> ls -lt ~/posts | head -5</p>
+      <h2 class="section-head__title" id="latest-title">Latest writing</h2>
+    </header>
+    {{- partial "post-list.html" (first 5 $posts) }}
+    <p class="section-foot"><a class="link-arrow" href="{{ $postsPage.RelPermalink }}">All {{ len $posts }} posts{{ partial "icon.html" "arrow-right" }}</a></p>
+  </div>
+</section>
+
+{{- with hugo.Data.projects }}
+<section class="section" aria-labelledby="oss-title">
+  <div class="wrap">
+    <header class="section-head">
+      <p class="section-head__cmd" aria-hidden="true"><span class="prompt">$</span> gh repo list chvancooten --source</p>
+      <h2 class="section-head__title" id="oss-title">Open source</h2>
+    </header>
+    <ul class="cards" role="list">
+      {{- range .projects }}
+      {{- partial "project-card.html" . }}
+      {{- end }}
+    </ul>
+    <p class="section-foot section-foot--split">
+      {{- range first 1 (where site.Params.social "icon" "github") }}
+      <a class="link-arrow" href="{{ .url }}">More projects on GitHub{{ partial "icon.html" "arrow-right" }}</a>
+      {{- end }}
+      {{- with .talks }}
+      <span class="talks"><a class="link-arrow" href="{{ .url }}">Talks and conference material{{ partial "icon.html" "arrow-right" }}</a><span class="talks__desc">{{ .description }}</span></span>
+      {{- end }}
+    </p>
+  </div>
+</section>
+{{- end }}
+
+<section class="section" aria-labelledby="offensys-title">
+  <div class="wrap">
+    <div class="offensys">
+      <p class="box__label"><span aria-hidden="true">// </span>currently building</p>
+      <h2 class="offensys__title" id="offensys-title">{{ site.Params.company.name }}</h2>
+      <p class="offensys__text">A Continuous Purple Teaming platform. It runs realistic, behavior-based attack simulations in your environment, so you can see what your controls block, what they detect, and what they miss.</p>
+      <p><a class="btn" href="{{ site.Params.company.url }}">Visit offensys.com{{ partial "icon.html" "arrow-right" }}</a></p>
+    </div>
+  </div>
+</section>
+{{ end }}
