@@ -1,15 +1,27 @@
 {
   "name": "Cas van Cooten",
   "short_name": "Cas van Cooten",
-  "description": "Cas van Cooten's blog on offensive security, red teaming and security tooling.",
+  "description": "Cas van Cooten: red teamer and co-founder of Offensys. Talks, open-source tooling and writing on offensive security.",
   "start_url": "./",
   "scope": "./",
   "icons": [
-    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" },
-    { "src": "android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ],
-  "theme_color": "#0b0e14",
-  "background_color": "#0b0e14",
+  "theme_color": "#191724",
+  "background_color": "#191724",
   "display": "standalone"
 }
