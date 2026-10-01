@@ -439,6 +439,7 @@ pre:not(.chroma) code { color: var(--text); }
 .author { display: flex; gap: 1.25rem; align-items: flex-start; }
 .author__photo { flex: none; width: 4.5rem; height: 4.5rem; border-radius: 50%; }
 .author__text { margin-bottom: 0.4rem !important; line-height: 1.6; }
+.author__more { margin-bottom: 0.4rem !important; }
 .author .social { margin-left: -0.5rem; }
 
 .pager { display: grid; gap: 1rem; margin-block: 2rem; font-size: 1rem; }

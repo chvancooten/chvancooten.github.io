@@ -2,6 +2,9 @@
   <div class="site-footer__row">
     <p>&copy; {{ site.Lastmod.Year }} {{ site.Params.author.name }}, co-founder of <a href="{{ site.Params.company.url }}">{{ site.Params.company.name }}</a></p>
     <ul class="site-footer__links">
+      {{- with site.GetPage "/about" }}
+      <li><a href="{{ .RelPermalink }}">About</a></li>
+      {{- end }}
       {{- with site.Home.OutputFormats.Get "rss" }}
       <li><a href="{{ .RelPermalink }}">RSS</a></li>
       {{- end }}
