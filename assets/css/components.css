@@ -610,6 +610,7 @@ html:not(.js) .card3d__slab { display: none; }
   border-radius: 50%;
 }
 .page--about .social-text { max-width: var(--measure); margin-top: 1rem; }
+.page--about .card-stage { align-items: flex-start; max-width: var(--measure); margin-top: clamp(2.75rem, 6vw, 4rem); }
 @media (min-width: 48em) {
   .page--about .page__body {
     display: grid;
@@ -619,7 +620,7 @@ html:not(.js) .card3d__slab { display: none; }
   }
   .page--about .prose > * { grid-column: 2; }
   .page--about .prose > .img-block:first-child { grid-column: 1; grid-row: 1 / span 40; width: 100%; margin: 0.35rem 0 0; }
-  .page--about .social-text { margin-left: calc(var(--portrait) + var(--portrait-gap)); }
+  .page--about :is(.social-text, .card-stage) { margin-left: calc(var(--portrait) + var(--portrait-gap)); }
 }
 .page--about .prose a[href^="https://github.com/sponsors/"] {
   display: inline-flex;
@@ -635,7 +636,7 @@ html:not(.js) .card3d__slab { display: none; }
 .page--about .prose a[href^="https://github.com/sponsors/"]::before { content: "\2665"; content: "\2665" / ""; margin-right: 0.5rem; color: var(--accent); }
 .page--about .prose a[href^="https://github.com/sponsors/"]:hover { border-color: var(--text); color: var(--text); }
 
-/* ---------- 404: a short message beside a calm still of the hero scene (home.css) ---------- */
+/* ---------- 404: a short, calm message with the ways back ---------- */
 .notfound {
   position: relative;
   display: grid;

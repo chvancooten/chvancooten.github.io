@@ -103,7 +103,7 @@ Writing notes:
 | `data/talks_overrides.toml` | Manual fields for the Speaking list (featured talks, title or event fixes) |
 | `data/projects.toml` | Open-source list on the home page |
 | `scripts/sync_talks.py` | Regenerates `data/talks.toml` from the conferences repository |
-| `static/scene/` | Stills of the hero scene at rest (the fallback without JavaScript or WebGL2, and the 404 page) |
+| `static/scene/` | Stills of the hero scene at rest (the fallback without JavaScript or WebGL2) |
 | `static/fonts/` | Bricolage Grotesque, Instrument Sans and JetBrains Mono (latin subsets; SIL OFL licences next to the files) |
 | `static/cas-van-cooten.vcf` | The vCard behind "Save contact" on the business card |
 | `static/images/card-portrait*.webp` | The card's portrait: the photo, and a soft luminance matte of its near-black studio background used as a CSS mask |
@@ -181,7 +181,6 @@ the main thread.
 - Software WebGL renderers (SwiftShader, llvmpipe and similar, as in VMs, remote desktops and headless browsers) get
   the designed still too, because there every frame stalls the main thread. For screenshots and measurements, setting
   `sessionStorage["scene-quality"] = "0"` before the page loads forces the live scene.
-- The 404 page shows the same still, without the script.
 
 The stills are browser captures of the reduced-motion frame (below) with the copy, scrims and header hidden: the
 `.stage` element at 1600x1000 (pixel ratio 1) for `wide` and 390x844 (pixel ratio 2) for `tall`, in each theme,
@@ -203,7 +202,7 @@ encoded as WebP at quality 0.8. Recapture them after changing the scene's look.
 - The business card is a small 3D object: dark in both themes, with real thickness, the portrait on the front and the
   profiles (GitHub, X, LinkedIn, email) and *Save contact* on the back. It tilts toward a mouse or pen, with a
   specular glare, and the *Turn over* button below it turns it (mouse, touch and keyboard); the face turned away is
-  inert. Without JavaScript both faces lie flat, one above the other. The portrait files come from the
+  inert. Without JavaScript both faces lie flat, one above the other. The same card closes the About page. The portrait files come from the
   owner's studio photo: cropped to head and shoulders, a soft luminance matte (the near-black background becomes
   transparent, so keying errors vanish into the card's own near-black surface), then exported as a 500x540 WebP
   without alpha (`card-portrait.webp`) and the matte as a separate WebP for `mask-image`

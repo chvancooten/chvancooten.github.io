@@ -421,30 +421,3 @@ html.no-gl[data-theme="light"] .stage { background-image: url("../scene/still-wi
   .contact { grid-template-columns: 1fr; }
   .contact .card-stage { align-items: flex-start; }
 }
-
-/* ---------- 404: a calm still of the scene beside the message ---------- */
-.notfound__still {
-  position: absolute;
-  inset: 0 0 0 calc(var(--gutter) + 26rem);
-  z-index: 0;
-  background: url("../scene/still-wide-dark.webp") 70% 50% / cover no-repeat;
-  opacity: 0.7;
-  pointer-events: none;
-  /* Faded on all sides but the right (the page edge): the still's paper is a shade off the page's. */
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 35%), linear-gradient(transparent, #000 18%, #000 72%, transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent, #000 35%), linear-gradient(transparent, #000 18%, #000 72%, transparent);
-  mask-composite: intersect;
-}
-[data-theme="light"] .notfound__still { background-image: url("../scene/still-wide-light.webp"); }
-@media (max-width: 59.99em) {
-  .notfound { align-content: start; }
-  .notfound__still {
-    position: relative;
-    inset: auto;
-    height: 13rem;
-    margin: 2rem calc(-1 * var(--pad)) 0;
-    -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent);
-    mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent);
-  }
-}

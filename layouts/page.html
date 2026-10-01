@@ -13,6 +13,10 @@
   </div>
   {{- if $about }}
   {{- partial "social-text.html" . }}
+  {{- /* The business card, the same one as on the home page (outside the article body). */}}
+  <div class="card-stage">
+    {{- partial "card.html" . }}
+  </div>
   {{- end }}
 </article>
 {{- end }}
