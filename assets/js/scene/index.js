@@ -1,6 +1,6 @@
 // The hero scene: a WebGL2 canvas inside a container, rendering V1 (the pass-through; see v1.js).
 //
-//   const scene = mount(container, { intro, paused, onFrame, onReady, onFail, onQuality });
+//   const scene = mount(container, { intro, paused, reduced, onFrame, onReady, onFail, onQuality });
 //   scene.setScroll(progress)  page scroll in viewport heights; the camera travels with it (never the other way)
 //   scene.setFocus(0..1)       1 sharp (default), 0 racked out of focus, e.g. behind content
 //   scene.setIntensity(0..1)   1 full (default), 0 dimmed to the background
@@ -18,6 +18,8 @@
 //   (it fast-forwards to the end in 0.42 s). Then the scene idles: the currents flow, the camera drifts slowly and
 //   follows the pointer or touch a little.
 // - Reduced motion: no intro, no loop and no parallax; one composed still frame, redrawn only when needed.
+//   opts.reduced (a MediaQueryList-like source: .matches and "change" events) replaces the browser's
+//   prefers-reduced-motion as the switch, e.g. a site-wide motion preference that a visitor can turn on or off.
 // - It renders only while the container is on screen and the tab is visible.
 // - Adaptive quality (kept for the session): 0 full (pixel ratio up to 2, at most MAX_PIXELS), 1 pixel ratio 1,
 //   2 half the particles with stronger inks, 3 a still frame. It steps down when frames are slow. A level already
@@ -76,7 +78,7 @@ export function mount(container, opts = {}) {
 
   const scene = createV1();
   const T = scene.T, SETTLED = T + 2.2; // the idle drift has faded in by SETTLED
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const reduced = opts.reduced || window.matchMedia("(prefers-reduced-motion: reduce)");
   let renderer = createRenderer(gl, scene);
   let ready = false, failed = false, destroyed = false, shown = false;
   let level = clamp(Math.round(+stored || 0), 0, 3);

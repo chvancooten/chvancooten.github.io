@@ -190,7 +190,14 @@ encoded as WebP at quality 0.8. Recapture them after changing the scene's look.
 **Motion and reduced motion.**
 
 - The scene stops when it is offscreen or the tab is hidden, and caps the pixel ratio at 2 (and the canvas at
-  2560x1600 pixels). A *Pause motion* button stops it for the rest of the browser session.
+  2560x1600 pixels).
+- One motion preference for the whole site (`assets/js/motion.js`): `localStorage["motion"]` is `"on"` or `"off"`,
+  kept across pages and visits and shared by open tabs, and it applies to every scene on a page. Without a stored
+  choice it follows the browser: off under `prefers-reduced-motion: reduce`, on otherwise. The *Pause motion* /
+  *Play motion* control on the landing sets it, so a visitor who asked for less motion can opt in. Only the control
+  changes it: scrolling, tab visibility or the end of the intro never resume a paused scene, and the label always
+  says what the button will do. Motion off is the composed still frame; the intro plays only with motion on and no
+  reduced-motion request from the browser.
 - Adaptive quality: when frames are slow the scene steps down, first to a pixel ratio of 1, then to half the
   particles (with stronger inks), then to a still frame. The level lasts for the session.
 - The business card is a small 3D object: dark in both themes, with real thickness, the portrait on the front and the
@@ -206,7 +213,7 @@ encoded as WebP at quality 0.8. Recapture them after changing the scene's look.
 - Pages cross-fade between each other where browsers support view transitions.
 
 With `prefers-reduced-motion: reduce`, the scene draws one composed still frame (no intro, drift, parallax or
-scroll-linked camera). The pause button, the card's tilt, the reveals and the view transitions are off (the card's
+scroll-linked camera) unless the visitor turns motion on. The card's tilt, the reveals and the view transitions are off (the card's
 turn is a short cross-fade), and smooth
 scrolling is disabled.
 

@@ -1,16 +1,18 @@
 // The home landing: mounts the scene behind the name once the page has painted, and ties it to the page.
 // - The name is painted from the first frame. On the first visit of a session it starts slightly lifted and
 //   enlarged (CSS, under [data-intro]; transform only, never hidden) and the scene's intro settles it.
-// - The pause control: shown while the scene can loop; the choice lasts for the session.
+// - Motion follows the site-wide preference (../motion.js): off by default under reduced motion, where the control
+//   lets the visitor opt in. The control is shown whenever the scene can loop, its label always says what it will
+//   do, and only the control changes the preference (kept across pages and visits).
 // - Scroll: the scene's camera travels with the native scroll position (read, never changed).
 // - The title bar: the name docks into it as the hero leaves (../dock.js), whether or not the scene runs.
 // - No WebGL2 (or a failure): html.no-gl, which shows the designed still instead of the canvas.
 import { mount } from "./index.js";
 import { smooth } from "./math.js";
 import { initDock } from "../dock.js";
+import { motionOn, setMotion, calm } from "../motion.js";
 
 const root = document.documentElement;
-const PAUSE_KEY = "motion-paused";
 const INTRO_KEY = "scene-intro";
 const store = (fn) => { try { return fn(sessionStorage); } catch { return null; } };
 const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -20,8 +22,6 @@ const stage = hero?.querySelector("[data-scene]");
 const names = [...(hero?.querySelectorAll(".hero__name .nm > span") || [])];
 const button = hero?.querySelector("[data-motion-toggle]");
 let scene = null, level = 0;
-
-const isPaused = () => store((s) => s.getItem(PAUSE_KEY)) === "1";
 
 // The name: the intro's lift and scale, then a little pointer parallax (the second line moves more).
 function nameFrame({ it, T, ptr }) {
@@ -38,10 +38,10 @@ function nameFrame({ it, T, ptr }) {
 
 function syncButton() {
   if (!button) return;
-  const p = isPaused();
-  button.hidden = !scene || scene.failed || reduced.matches || level >= 3;
-  button.toggleAttribute("data-paused", p);
-  button.querySelector("span").textContent = p ? "Play motion" : "Pause motion";
+  const off = !motionOn();
+  button.hidden = !scene || scene.failed || level >= 3;
+  button.toggleAttribute("data-paused", off);
+  button.querySelector("span").textContent = off ? "Play motion" : "Pause motion";
 }
 
 function noScene() {
@@ -53,10 +53,12 @@ function noScene() {
 
 function boot() {
   if (!stage || scene) return;
-  const intro = root.dataset.intro === "" && !reduced.matches && !isPaused();
+  // The intro needs both: motion on, and no reduced-motion request from the browser (an opt-in brings the scene to
+  // life, not the fly-through).
+  const intro = root.dataset.intro === "" && !reduced.matches && motionOn();
   scene = mount(stage, {
     intro,
-    paused: isPaused(),
+    reduced: calm, // motion off: one composed still frame, exactly as for reduced motion
     onFrame: nameFrame,
     onFail: noScene,
     onQuality: (l) => { level = l; syncButton(); },
@@ -81,13 +83,9 @@ if (hero) {
   try { initDock(); } catch (err) { console.warn(err); }
   window.addEventListener("scroll", () => { if (!scrollRaf) scrollRaf = requestAnimationFrame(onScroll); }, { passive: true });
   onScroll();
-  button?.addEventListener("click", () => {
-    const p = !isPaused();
-    store((s) => s.setItem(PAUSE_KEY, p ? "1" : "0"));
-    if (p) scene?.pause(); else scene?.resume();
-    syncButton();
-  });
-  reduced.addEventListener("change", syncButton);
+  // The scene follows the preference through `calm`; the control only records the choice.
+  button?.addEventListener("click", () => setMotion(!motionOn()));
+  document.addEventListener("motionchange", syncButton);
   document.addEventListener("themechange", () => scene?.restyle());
 
   // The WebGL context is created after the first contentful paint has been presented, in a task of its own.

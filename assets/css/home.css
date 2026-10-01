@@ -202,7 +202,6 @@
 .motion-btn .icon { width: 0.75rem; height: 0.75rem; }
 .motion-btn .icon--play, .motion-btn[data-paused] .icon--pause { display: none; }
 .motion-btn[data-paused] .icon--play { display: block; }
-@media (prefers-reduced-motion: reduce) { .motion-btn { display: none; } }
 
 @media (max-width: 59.99em) {
   /* Portrait: the name above the scene, the rest of the card below it. */
