@@ -12,7 +12,9 @@
 
 /* The title bar: wordmark at the left gutter; nav, search and theme toggle at the right. Pinned on every page; on
    the home page it arrives as the hero's name docks into the wordmark (home.css, js/dock.js). Its surface is a
-   pseudo-element, so the bar can fade and slide without its blur. */
+   pseudo-element and all but opaque (--header-bg): a backdrop blur cannot work here, since the bar is a backdrop
+   root (its view-transition name, and the dock's opacity on home), so a translucent bar would show the text
+   scrolling under it as crisp ghost text. */
 .site-header {
   position: sticky;
   top: 0;
@@ -26,8 +28,6 @@
   z-index: -1;
   border-bottom: 1px solid var(--hair);
   background: var(--header-bg);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
   pointer-events: none;
 }
 .site-header__inner {
