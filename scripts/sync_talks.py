@@ -17,8 +17,9 @@ Every top-level folder of the repository is one appearance, named "YYYY-MM - Tit
 A folder may hold a talk.toml with structured metadata, which is preferred over everything parsed: the optional
 keys title, subtitle, event, date ("YYYY-MM"), video, slides (a file name in that folder; written out as its
 https://github.com/ URL) and featured. Unknown keys are ignored with a warning; a value that breaks the rules
-(ASCII date, an https YouTube link, no control or bidirectional formatting characters, length caps of 160
-characters for a title, 120 for a subtitle and 100 for an event) is an error.
+(ASCII date, an https YouTube link, no control or bidirectional formatting characters, a visible letter in a
+title or subtitle, length caps of 160 characters for a title, 120 for a subtitle and 100 for an event) is an error,
+as is a talk.toml nested too deeply to parse.
 
 Without a talk.toml, the subtitle is guessed, and only taken when it cleanly extends the title: the README's first
 heading, or else a slide PDF's file name (in name order), with the file extension, a leading date and event or year
@@ -168,6 +169,16 @@ def bad_char(text):
     return next((c for c in text if unicodedata.category(c) in BAD_CATEGORIES), None)
 
 
+# Letters that render as nothing: the Hangul fillers.
+INVISIBLE_LETTERS = {"\u115f", "\u1160", "\u3164", "\uffa0"}
+
+
+def has_letter(text):
+    """Whether text has at least one visible letter (a title or subtitle of only digits, marks, symbols or fillers
+    such as U+3164 is rejected)."""
+    return any(unicodedata.category(c).startswith("L") and c not in INVISIBLE_LETTERS for c in text)
+
+
 def parse_folder(name):
     c = bad_char(name)
     if c is not None:
@@ -181,6 +192,8 @@ def parse_folder(name):
     title, event = title.strip(), normalize_event(event)
     if not title or not event:
         raise SyncError(f"folder {json.dumps(name)} has an empty title or event")
+    if not has_letter(title):
+        raise SyncError(f"folder {json.dumps(name)}: the title must contain a letter")
     talk = {"date": f"{year}-{month}", "title": title, "event": event}
     if "livestream" in event.lower():
         talk["livestream"] = True
@@ -259,6 +272,8 @@ def check_fields(fields, allowed, where, unknown="error"):
             value = " ".join(value.split())
             if not value and key != "subtitle":
                 raise SyncError(f"{where}: {key} must not be empty")
+            if value and key in ("title", "subtitle") and not has_letter(value):
+                raise SyncError(f"{where}: {key} must contain a letter")
             if len(value) > TEXT_MAX[key]:
                 raise SyncError(f"{where}: {key} is over {TEXT_MAX[key]} characters")
         if key == "video" and value:
@@ -281,6 +296,8 @@ def load_overrides(path):
     try:
         with open(path, "rb") as fh:
             data = tomllib.load(fh)
+    except RecursionError:
+        raise SyncError(f"{path}: nested too deeply to parse") from None
     except tomllib.TOMLDecodeError as err:
         raise SyncError(f"{path}: {err}") from None
     out = {}
@@ -297,6 +314,8 @@ def load_talk_toml(text, folder):
         data = tomllib.loads(text)
     except tomllib.TOMLDecodeError as err:
         raise SyncError(f"{where}: {err}") from None
+    except RecursionError:  # nesting deep enough to exhaust the parser's recursion (e.g. a = [[[[...]]]])
+        raise SyncError(f"{where}: nested too deeply to parse") from None
     return check_fields(data, TALK_TOML_FIELDS, where, unknown="warn")
 
 
@@ -367,7 +386,7 @@ def subtitle_of(candidate, titles, event):
         if sep is None:
             continue
         sub = rest[len(sep):].strip().rstrip(",;")
-        if (2 < len(sub) <= TEXT_MAX["subtitle"] and re.search(r"[^\W\d_]", sub) and bad_char(sub) is None
+        if (2 < len(sub) <= TEXT_MAX["subtitle"] and has_letter(sub) and bad_char(sub) is None
                 and sub.lower() not in (event.lower(), title.lower()) and " @ " not in sub):
             return sub
     return None
