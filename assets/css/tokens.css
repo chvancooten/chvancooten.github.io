@@ -116,7 +116,8 @@
   --accent-ink: #191724;
   --accent-2: #c4a7e7;    /* iris */
   --foam: #9ccfd8;
-  --gold: #f6c177;
+  --gold: #f6c177;        /* gold: star counts, 10.8:1 */
+  --gold-sm: #f6c177;     /* gold for small text */
   --focus: #c4a7e7;
   --header-bg: rgb(25 23 36 / 0.93);
   --sel: rgb(196 167 231 / 0.3);
@@ -185,7 +186,8 @@
   --accent-ink: #ffffff;  /* 5.1:1 on accent */
   --accent-2: #7b6298;    /* adj. iris, 4.8:1 */
   --foam: #286983;        /* pine */
-  --gold: #a85f00;        /* adj. gold */
+  --gold: #a5811d;        /* adj. gold, still a yellow: 3.3:1, large numerals only */
+  --gold-sm: #8a6a17;     /* adj. gold for small text, 4.6:1 */
   --focus: #7b6298;
   --header-bg: rgb(250 244 237 / 0.94);
   --sel: rgb(123 98 152 / 0.2);

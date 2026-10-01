@@ -320,6 +320,7 @@ html.no-gl[data-theme="light"] .stage { background-image: url("../scene/still-wi
 }
 
 .oss { padding-top: clamp(3rem, 6vw, 5rem); }
+.sec-intro { max-width: 36em; margin: calc(-1 * clamp(0.5rem, 1vw, 1rem)) 0 clamp(2rem, 4vw, 3rem); color: var(--text-2); font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem); line-height: 1.6; }
 .repos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(2rem, 5vw, 4.5rem); margin: 0; padding: 0; list-style: none; }
 .repo {
   position: relative;
@@ -334,7 +335,7 @@ html.no-gl[data-theme="light"] .stage { background-image: url("../scene/still-wi
 }
 .repo__stars { grid-area: stars; display: flex; align-items: flex-start; gap: 0.2rem; }
 .repo__n {
-  color: var(--text-2);
+  color: var(--gold);
   font-family: var(--f-display);
   font-weight: 700;
   font-stretch: 78%;
@@ -344,7 +345,7 @@ html.no-gl[data-theme="light"] .stage { background-image: url("../scene/still-wi
   font-variant-numeric: tabular-nums;
   transition: color var(--dur) var(--ease-out);
 }
-.repo__star { margin-top: 0.15rem; color: var(--muted); font-size: 0.875rem; }
+.repo__star { margin-top: 0.15rem; color: var(--gold-sm); font-size: 0.875rem; }
 .repo__name { grid-area: name; font-family: var(--f-display); font-weight: 700; font-stretch: 86%; font-size: clamp(1.3rem, 1.1rem + 0.7vw, 1.7rem); letter-spacing: -0.015em; line-height: 1.1; overflow-wrap: anywhere; }
 .repo__name a { color: var(--text); text-decoration: none; }
 .repo__name a::after { content: ""; position: absolute; inset: 0; }
@@ -352,7 +353,6 @@ html.no-gl[data-theme="light"] .stage { background-image: url("../scene/still-wi
 .repo__name a:focus-visible::after { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
 .repo__desc { grid-area: desc; color: var(--text-2); font-size: var(--fs-sm); line-height: 1.5; }
 .repo__lang { grid-area: lang; margin-top: 0.25rem; color: var(--muted); font-size: var(--fs-xs); font-weight: 500; }
-.repo:hover .repo__n { color: var(--accent-2); }
 .repo:hover .repo__name a { color: var(--accent); }
 @media (max-width: 61.99em) { .repos { grid-template-columns: 1fr; } }
 @media (max-width: 44.99em) { .repo { grid-template-columns: 4.75rem minmax(0, 1fr); column-gap: 0.9rem; } }

@@ -43,6 +43,7 @@
 {{- with hugo.Data.projects }}
 <section class="sec oss" aria-labelledby="oss-title">
   <div class="sec-head"><h2 class="sec-title" id="oss-title" data-reveal>Open source</h2></div>
+  <p class="sec-intro">I publish my tools as open source, responsibly. The premise is simple: transparency strengthens security. When tools are built in the open, attackers and defenders can both level up their game.</p>
   <ul class="repos">
     {{- range sort .projects "stars" "desc" }}
     <li class="repo">
