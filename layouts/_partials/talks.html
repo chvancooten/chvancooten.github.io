@@ -1,5 +1,6 @@
 {{- /* Speaking list for the home page. A talk given at several events in one year is one row that lists those
-       events; the same talk in another year is a row of its own, under that year.
+       events; the same talk in another year is a row of its own, under that year. An appearance with a recording
+       (video) gets a link to it.
        Pass dict: talks (newest first, from data/talks.toml), cap (rows to show), repo (dict url, description: all
        material). The rows shown: every featured one, then the newest conference talks, then livestreams if there
        is still room, in date order under their years. */ -}}
@@ -31,8 +32,6 @@
 {{- $shown := where $rows "key" "in" $pick }}
 {{- $years := slice }}
 {{- range $shown }}{{ if not (in $years .year) }}{{ $years = $years | append .year }}{{ end }}{{ end }}
-{{- $titles := slice }}
-{{- range .talks }}{{ if not (in $titles .title) }}{{ $titles = $titles | append .title }}{{ end }}{{ end }}
 <section class="sec speaking" aria-labelledby="speaking-title">
   <div class="sec-head"><h2 class="sec-title" id="speaking-title" data-reveal>Speaking</h2></div>
   <ol class="years">
@@ -46,10 +45,13 @@
         <li class="talk">
           <p class="talk__title"><a href="{{ (index .events 0).url }}">{{ .title }}</a></p>
           <ul class="talk__events">
+            {{- $title := .title }}
             {{- range .events }}
             {{- /* The year heads the group, so the date shows the month only. */}}
             {{- $when := (time.AsTime (printf "%s-01" .date)).Format "January" }}
-            <li>{{ if $multi }}<a href="{{ .url }}">{{ .event }}</a>{{ else }}{{ .event }}{{ end }}<span class="talk__sep" aria-hidden="true"> · </span><span class="sr-only">, </span><time datetime="{{ .date }}">{{ $when }}</time></li>
+            {{- $event := .event }}
+            <li>{{ if $multi }}<a href="{{ .url }}">{{ .event }}</a>{{ else }}{{ .event }}{{ end }}<span class="talk__sep" aria-hidden="true"> · </span><span class="sr-only">, </span><time datetime="{{ .date }}">{{ $when }}</time>
+              {{- with .video }}<a class="talk__video" href="{{ . }}" aria-label="Watch the recording: {{ $title }}, {{ $event }}" title="Watch the recording">{{ partial "icon.html" (dict "name" "youtube" "size" 20) }}</a>{{ end }}</li>
             {{- end }}
           </ul>
         </li>
@@ -59,6 +61,6 @@
     {{- end }}
   </ol>
   {{- with .repo }}
-  <p class="sec-foot"><a class="link-arrow" href="{{ .url }}">All {{ len $titles }} talks and their slides on GitHub{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a></p>
+  <p class="sec-foot"><a class="link-arrow" href="{{ .url }}">All talks and slides on GitHub{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a></p>
   {{- end }}
 </section>
