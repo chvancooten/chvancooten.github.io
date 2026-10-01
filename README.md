@@ -87,11 +87,11 @@ Writing notes:
 
 | Path | What it holds |
 | --- | --- |
-| `hugo.toml` | Site config, menus, social links, taxonomies (`blog`, `tags`, `series`), `homeTalks` (Speaking rows on the home page) |
+| `hugo.toml` | Site config, menus (Work and About are sections of the home page; Writing is `/posts/`), social links, taxonomies (`blog`, `tags`, `series`), `homeTalks` (Speaking rows on the home page) |
 | `layouts/baseof.html`, `home.html`, `page.html`, `section.html`, `taxonomy.html`, `term.html`, `404.html` | Page templates |
 | `layouts/home.json` | Search index used by the search palette |
 | `layouts/alias.html` | Redirect pages (noindex, canonical, meta refresh) |
-| `layouts/_partials/` | Header, footer, SEO (`seo.html`, `jsonld.html`), post parts (`post/`), helpers (`func/`), the home sections (`talks.html`, `card.html`) |
+| `layouts/_partials/` | Header and its navigation (`nav.html`, shared by the title bar and the landing), footer, SEO (`seo.html`, `jsonld.html`), post parts (`post/`), helpers (`func/`), the home sections (`talks.html`, `card.html`) |
 | `layouts/_markup/` | Render hooks for headings, code blocks, images and links |
 | `layouts/_shortcodes/x.html` | Static X post cards |
 | `assets/css/` | `tokens.css` (fonts, colour tokens for both themes), `base.css`, `layout.css`, `components.css`, `home.css`, `syntax.css` |

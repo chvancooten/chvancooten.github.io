@@ -1,21 +1,7 @@
 <header class="site-header">
   <div class="site-header__inner">
     <a class="brand" href="{{ site.Home.RelPermalink }}"{{ if .IsHome }} aria-current="page"{{ end }}>{{ site.Params.author.name }}</a>
-    <nav class="site-nav" aria-label="Main">
-      <ul>
-        {{- $blogArchive := "blog/" | relURL }}
-        {{- range site.Menus.main }}
-        {{- $cur := "" }}
-        {{- if .Params.fragment }}
-        {{- /* An in-page section of the home page: never "current". */}}
-        {{- else if $.IsMenuCurrent "main" . }}{{ $cur = "page" }}
-        {{- else if $.HasMenuCurrent "main" . }}{{ $cur = "true" }}
-        {{- else if and (eq .Identifier "writing") (or (eq $.RelPermalink $blogArchive) (in (slice "taxonomy" "term") $.Kind)) }}{{ $cur = "true" }}
-        {{- end }}
-        <li><a href="{{ .URL }}{{ with .Params.fragment }}#{{ . }}{{ end }}"{{ with $cur }} aria-current="{{ . }}"{{ end }}>{{ .Name }}</a></li>
-        {{- end }}
-      </ul>
-    </nav>
+    {{- partial "nav.html" . }}
     <div class="site-tools">
       {{- with site.Home.OutputFormats.Get "json" }}
       <button class="icon-btn search-btn" type="button" data-search-open data-index="{{ .RelPermalink }}" aria-label="Search posts" aria-keyshortcuts="/ Control+K Meta+K">

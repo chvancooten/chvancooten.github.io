@@ -87,7 +87,9 @@ copyright     = "CC BY-NC 4.0"
     url   = "mailto:hello@casvancooten.com"
 
 [menus]
-  # "Work" is a section of the home page; the header adds the fragment.
+  # "Work" and "About" are sections of the home page (layouts/_partials/nav.html adds the fragment: "#work" on the
+  # home page, "/#work" elsewhere). "Writing" goes straight to the posts. The About entry also counts as current on
+  # the /about/ page, which the home page's About section links to.
   [[menus.main]]
     identifier = "work"
     name       = "Work"
@@ -103,5 +105,8 @@ copyright     = "CC BY-NC 4.0"
   [[menus.main]]
     identifier = "about"
     name       = "About"
-    pageRef    = "/about"
+    pageRef    = "/"
     weight     = 30
+    [menus.main.params]
+      fragment = "about"
+      current  = "/about"

@@ -79,14 +79,21 @@
   {{- end }}
 </section>
 
-<section class="contact" id="contact" aria-labelledby="contact-title">
+{{- /* About and contact: the menu's About entry and the hero's "Get in touch" (#contact) both land here. */}}
+<section class="contact" id="about" aria-labelledby="about-title">
   <div class="contact__copy">
-    <h2 class="contact__title" id="contact-title" data-reveal>Contact</h2>
-    <p class="contact__mail">
-      <a href="mailto:{{ $email }}">{{ $email }}</a>
-      <button class="btn copy-btn" type="button" data-copy="{{ $email }}" data-copy-label="Copy the email address" hidden>Copy</button>
-    </p>
-    {{- partial "social-text.html" . }}
+    <h2 class="contact__title" id="about-title" data-reveal>About</h2>
+    <p class="contact__intro">I'm Cas, an offensive security enthusiast and red teamer based in the Netherlands. These days most of my time goes into <a href="{{ $company.url }}">{{ $company.name }}</a>, the company I co-founded. I'm always up for a chat about offensive security and new programming languages.</p>
+    {{- with site.GetPage "/about" }}
+    <p class="contact__more"><a class="link-arrow" href="{{ .RelPermalink }}">More about me{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a></p>
+    {{- end }}
+    <div class="contact__reach" id="contact">
+      <p class="contact__mail">
+        <a href="mailto:{{ $email }}">{{ $email }}</a>
+        <button class="btn copy-btn" type="button" data-copy="{{ $email }}" data-copy-label="Copy the email address" hidden>Copy</button>
+      </p>
+      {{- partial "social-text.html" . }}
+    </div>
   </div>
   <div class="card-stage">
     {{- partial "card.html" . }}
