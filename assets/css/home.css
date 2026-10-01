@@ -92,6 +92,12 @@
 .hero__role a { color: var(--accent); font-weight: 600; text-decoration: none; }
 .hero__role a:hover { color: var(--accent); text-decoration: underline; }
 .hero__sep { margin-inline: 0.4em; color: var(--text-2); }
+/* Two clean lines on narrow screens: the role, then the company. */
+.hero__role2 { white-space: nowrap; }
+@media (max-width: 31em) {
+  .hero__role .hero__sep { display: none; }
+  .hero__role2 { display: block; margin-top: 0.15rem; }
+}
 .hero__name {
   margin-bottom: clamp(1.25rem, 2.8vh, 2.25rem);
   font-family: var(--f-display);
