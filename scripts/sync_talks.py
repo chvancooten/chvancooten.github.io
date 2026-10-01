@@ -8,10 +8,16 @@ Usage:
 Every top-level folder of the repository is one appearance, named "YYYY-MM - Title @ Event". For each folder:
 - date, title and event come from the name. The event drops a trailing year (the date gives it) and spells
   x33fcon one way; an event that mentions "livestream" is marked livestream = true;
-- video is the first YouTube link (youtube.com/watch?v= or youtu.be/) in the folder's README.md, if it has one;
+- video is the first YouTube link in the folder's README.md, if it has one: https on youtube.com/watch?v=<id>
+  (also www. and m.) or youtu.be/<id>, with a valid 11-character video id. It is written back in that form, without
+  other parameters; trailing punctuation or Markdown around the link is ignored, and http links are not taken;
 - url is the folder on GitHub;
 - fields in the overrides file, a table per folder name, replace or add to the above (featured = true, a title or
-  event fix, video = "" to drop a link, skip = true to leave the folder out).
+  event fix, video = "" to drop a link, skip = true to leave the folder out). A video or url override is held to the
+  same rules (url: https://github.com/...).
+
+Folders whose names start with "." (such as .github) are not talks and are ignored. A folder name with control or
+bidirectional formatting characters, or with an empty title or event, is an error.
 
 The output is deterministic: newest first (folders of the same month by name), a fixed key order and a header
 that marks the file as generated. The file is only rewritten when its content changes.
@@ -19,10 +25,12 @@ that marks the file as generated. The file is only rewritten when its content ch
 The GitHub API is read with GITHUB_TOKEN when it is set (60 requests an hour without it; a run takes three API
 requests, plus one raw download per README). Standard library only.
 
-Exit status: 0 when the file is unchanged or updated; 1 on a fetch or parse error, which leaves the file as it was.
+Responses over 1 MB are refused. Exit status: 0 when the file is unchanged or updated; 1 on a fetch or parse error,
+which leaves the file as it was.
 """
 
 import argparse
+import http.client
 import json
 import os
 import re
@@ -30,6 +38,7 @@ import sys
 import tempfile
 import time
 import tomllib
+import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -41,10 +50,17 @@ API = "https://api.github.com"
 RAW = "https://raw.githubusercontent.com"
 UA = "casvancooten.com sync_talks.py"
 TIMEOUT, ATTEMPTS = 20, 3
+MAX_BYTES = 1_000_000  # per response
 
-FOLDER = re.compile(r"(\d{4})-(0[1-9]|1[0-2]) - (.+?) @ (.+)")  # used with fullmatch
-YOUTUBE = re.compile(
-    r"https?://(?:(?:www\.|m\.)?youtube\.com/watch\?(?:[^\s)\]>\"'<]*&)?v=|youtu\.be/)[A-Za-z0-9_-]{6,}[^\s)\]>\"'<]*")
+# ASCII digits only ([0-9], not \d): Hugo has to parse the date.
+FOLDER = re.compile(r"([0-9]{4})-(0[1-9]|1[0-2]) - (.+?) @ (.+)")  # used with fullmatch
+DATE = re.compile(r"[0-9]{4}-(0[1-9]|1[0-2])")
+LINK = re.compile(r"https://\S+")  # candidates; each one is then checked by youtube_url()
+VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")
+WATCH_HOSTS = ("youtube.com", "www.youtube.com", "m.youtube.com")
+TRAIL = "*_~`'\")]}>.,;:!?"  # Markdown and punctuation that can follow a link
+# Characters a name must not contain: controls, bidirectional and other format characters, line separators.
+BAD_CATEGORIES = {"Cc", "Cf", "Zl", "Zp"}
 OVERRIDE_TYPES = {"date": str, "title": str, "event": str, "video": str, "url": str,
                   "featured": bool, "livestream": bool, "skip": bool}
 KEYS = ("date", "title", "event", "livestream", "featured", "url", "video")
@@ -64,17 +80,25 @@ class SyncError(Exception):
 
 
 def fetch(url, accept=None, token=None):
-    """GET url and return the body as text; retries network errors and 5xx responses."""
+    """GET url and return the body as text (invalid UTF-8 replaced); retries network errors and 5xx responses.
+    The token is never sent on to a redirect target, and a body over MAX_BYTES is an error."""
     headers = {"User-Agent": UA}
     if accept:
         headers["Accept"] = accept
     if token:
-        headers["Authorization"] = f"Bearer {token}"
         headers["X-GitHub-Api-Version"] = "2022-11-28"
     for attempt in range(1, ATTEMPTS + 1):
+        req = urllib.request.Request(url, headers=headers)
+        if token:
+            req.add_unredirected_header("Authorization", f"Bearer {token}")
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=TIMEOUT) as resp:
-                return resp.read().decode("utf-8")
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+                body = resp.read(MAX_BYTES + 1)
+                if len(body) <= MAX_BYTES and resp.length:  # fewer bytes than the Content-Length announced
+                    raise http.client.IncompleteRead(body, resp.length)
+            if len(body) > MAX_BYTES:
+                raise SyncError(f"GET {url}: the response is over {MAX_BYTES} bytes")
+            return body.decode("utf-8", errors="replace")
         except urllib.error.HTTPError as err:
             if err.code >= 500 and attempt < ATTEMPTS:
                 time.sleep(2 * attempt)
@@ -83,7 +107,7 @@ def fetch(url, accept=None, token=None):
             if err.code in (403, 429) and err.headers.get("X-RateLimit-Remaining") == "0":
                 hint = " (API rate limit reached; set GITHUB_TOKEN)"
             raise SyncError(f"GET {url}: HTTP {err.code}{hint}") from None
-        except (urllib.error.URLError, TimeoutError, OSError) as err:
+        except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException) as err:
             if attempt < ATTEMPTS:
                 time.sleep(2 * attempt)
                 continue
@@ -93,9 +117,12 @@ def fetch(url, accept=None, token=None):
 
 def api(path, token):
     try:
-        return json.loads(fetch(API + path, "application/vnd.github+json", token))
+        data = json.loads(fetch(API + path, "application/vnd.github+json", token))
     except json.JSONDecodeError as err:
         raise SyncError(f"GET {API}{path}: invalid JSON ({err})") from None
+    if not isinstance(data, dict):
+        raise SyncError(f"GET {API}{path}: expected a JSON object")
+    return data
 
 
 def shown(path):
@@ -106,26 +133,80 @@ def shown(path):
 
 
 def normalize_event(event):
-    event = re.sub(r"\s+(?:19|20)\d{2}$", "", event.strip())
+    event = re.sub(r"\s+(?:19|20)[0-9]{2}$", "", event.strip())
     return re.sub(r"(?i)\bx33fcon\b", "x33fcon", event)
 
 
+def printable(text):
+    """text for a log line: control, format and separator characters escaped, so a message stays one line (and a
+    name can never start a line with a CI workflow command)."""
+    return "".join(f"\\u{ord(c):04x}" if unicodedata.category(c) in BAD_CATEGORIES else c for c in str(text))
+
+
+def bad_char(text):
+    """The first control, bidirectional/format or line-separator character in text, or None."""
+    return next((c for c in text if unicodedata.category(c) in BAD_CATEGORIES), None)
+
+
 def parse_folder(name):
+    c = bad_char(name)
+    if c is not None:
+        raise SyncError(f"folder {json.dumps(name)} contains the character U+{ord(c):04X}, which a name may not contain "
+                        "(rename the folder, or add skip = true for it in the overrides file)")
     m = FOLDER.fullmatch(name)
     if not m:
         raise SyncError(f'folder {json.dumps(name)} does not match "YYYY-MM - Title @ Event" '
                         '(add skip = true for it in the overrides file to leave it out)')
     year, month, title, event = m.groups()
-    event = normalize_event(event)
-    talk = {"date": f"{year}-{month}", "title": title.strip(), "event": event}
+    title, event = title.strip(), normalize_event(event)
+    if not title or not event:
+        raise SyncError(f"folder {json.dumps(name)} has an empty title or event")
+    talk = {"date": f"{year}-{month}", "title": title, "event": event}
     if "livestream" in event.lower():
         talk["livestream"] = True
     return talk
 
 
+def youtube_url(link):
+    """The canonical https URL of a YouTube video link, or None if link is not one. Accepted: https on youtube.com,
+    www.youtube.com or m.youtube.com with /watch?v=<id>, or youtu.be/<id>, where <id> is a valid video id; Markdown
+    or punctuation after the id is ignored, and so are other parameters."""
+    try:
+        u = urllib.parse.urlsplit(link)
+    except ValueError:
+        return None
+    host = u.netloc.lower()  # the whole netloc: no user info, no port
+    if u.scheme != "https":
+        return None
+    if host == "youtu.be":
+        candidate = u.path[1:]
+    elif host in WATCH_HOSTS and u.path == "/watch":
+        values = urllib.parse.parse_qs(u.query).get("v")
+        candidate = values[0] if values else ""
+    else:
+        return None
+    vid, rest = candidate[:11], candidate[11:]
+    if not VIDEO_ID.fullmatch(vid) or rest.strip(TRAIL):
+        return None
+    return f"https://youtu.be/{vid}" if host == "youtu.be" else f"https://{host}/watch?v={vid}"
+
+
 def first_youtube_link(markdown):
-    m = YOUTUBE.search(markdown)
-    return m.group(0).rstrip(".,;:!?") if m else None
+    for m in LINK.finditer(markdown):
+        url = youtube_url(m.group(0))
+        if url:
+            return url
+    return None
+
+
+def github_url(url):
+    """True for an https://github.com/... URL without spaces, quotes, angle brackets or control characters."""
+    try:
+        u = urllib.parse.urlsplit(url)
+    except ValueError:
+        return False
+    return (u.scheme == "https" and u.netloc == "github.com" and u.path.startswith("/")
+            and not re.search(r"[\s\"'<>`\\]", url) and bad_char(url) is None)
 
 
 def load_overrides(path):
@@ -146,8 +227,20 @@ def load_overrides(path):
                                 f"(allowed: {', '.join(sorted(OVERRIDE_TYPES))})")
             if not isinstance(value, want):
                 raise SyncError(f'{path}: "{folder}": {key} must be a {want.__name__}')
-        if "date" in fields and not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", fields["date"]):
+        if "date" in fields and not DATE.fullmatch(fields["date"]):
             raise SyncError(f'{path}: "{folder}": date must be YYYY-MM')
+        for key in ("title", "event"):
+            if key in fields and (not fields[key].strip() or bad_char(fields[key]) is not None):
+                raise SyncError(f'{path}: "{folder}": {key} must not be empty or contain control or bidirectional '
+                                "formatting characters")
+        if fields.get("video"):
+            video = youtube_url(fields["video"])
+            if not video:
+                raise SyncError(f'{path}: "{folder}": video must be an https YouTube video link '
+                                "(youtube.com/watch?v=<id> or youtu.be/<id>), or \"\" for none")
+            fields["video"] = video
+        if "url" in fields and not github_url(fields["url"]):
+            raise SyncError(f'{path}: "{folder}": url must be an https://github.com/ URL')
     return data
 
 
@@ -165,14 +258,20 @@ def collect(repo, token):
     entries = tree.get("tree")
     if not isinstance(entries, list):
         raise SyncError(f"{repo}: no tree in the API response")
-    folders = sorted(e["path"] for e in entries if e.get("type") == "tree" and "/" not in e.get("path", "/"))
-    readmes = {}
+    folders, readmes = [], {}
     for e in entries:
-        path = e.get("path", "")
-        if e.get("type") == "blob" and path.count("/") == 1:
+        if not isinstance(e, dict) or not isinstance(e.get("path"), str) or not isinstance(e.get("type"), str):
+            raise SyncError(f"{repo}: unexpected entry in the tree listing")
+        path, kind = e["path"], e["type"]
+        if path.startswith("."):
+            continue  # .github and other dot folders are not talks
+        if kind == "tree" and "/" not in path:
+            folders.append(path)
+        elif kind == "blob" and path.count("/") == 1:
             folder, file = path.split("/")
             if file.lower() == "readme.md":
                 readmes[folder] = path
+    folders.sort()
     talks = []
     for folder in folders:
         talk = {"folder": folder}
@@ -205,10 +304,16 @@ def build(talks, overrides, overrides_path):
                 del talk[key]
         if talk.get("video") == "":
             del talk["video"]
+        # Backstops: every link that reaches the site is one of these two kinds.
+        if not github_url(talk.get("url", "")):
+            raise SyncError(f"folder {json.dumps(folder)}: url is not an https://github.com/ URL")
+        if "video" in talk and youtube_url(talk["video"]) != talk["video"]:
+            raise SyncError(f"folder {json.dumps(folder)}: video is not a canonical YouTube link")
         talk["_folder"] = folder
         out.append(talk)
     for folder in sorted(set(overrides) - seen):
-        print(f"sync_talks: warning: {overrides_path}: no folder {json.dumps(folder)} in the repository", file=sys.stderr)
+        print(printable(f"sync_talks: warning: {overrides_path}: no folder {json.dumps(folder)} in the repository"),
+              file=sys.stderr)
     out.sort(key=lambda t: t["_folder"])
     out.sort(key=lambda t: t["date"], reverse=True)
     return out
@@ -280,7 +385,10 @@ def main(argv=None):
         check_rendered(text, talks)
         changed = write_if_changed(args.out, text)
     except SyncError as err:
-        print(f"sync_talks: error: {err}", file=sys.stderr)
+        print(printable(f"sync_talks: error: {err}"), file=sys.stderr)
+        return 1
+    except (ValueError, KeyError, AttributeError, TypeError) as err:  # an API response of an unexpected shape
+        print(printable(f"sync_talks: error: unexpected data ({type(err).__name__}: {err})"), file=sys.stderr)
         return 1
     videos = sum(1 for t in talks if "video" in t)
     print(f"sync_talks: {len(talks)} talks, {videos} with a recording; "

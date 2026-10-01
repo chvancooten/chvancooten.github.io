@@ -223,8 +223,11 @@ jobs:
   deploy-production:
     name: Deploy production
     needs: build
+    # Only this repository deploys production: a fork with Actions enabled
+    # builds and checks, but never publishes.
     if: >-
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+      github.repository == 'chvancooten/chvancooten.github.io'
+      && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
       && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
