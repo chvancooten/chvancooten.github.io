@@ -101,27 +101,32 @@ function velocity(f, x, y, t, out) {
   out.u = u; out.v = v; out.e = e;
 }
 
-// Drawn position. During the intro (f.intro < 1) every particle starts squashed onto a thin band along the seam
-// and opens out to its place, the left end of the seam first, so the line unfurls across the field.
+// The intro (f.intro < 1): the field starts squashed onto a thin band along the seam and opens out to its place,
+// the left end of the seam first, so a line unfurls across the field. This maps a point to where it is drawn. It is
+// applied at draw time to the head and to every trail point alike, so trails keep the shape of the flow while they
+// open; the history itself always holds the true positions. (Recording the squashed positions instead drew the
+// opening itself, as vertical streaks that took a whole trail length to drain after the intro.)
 export const INTRO_FROM = 0.05;
+export function introY(f, x, y) {
+  if (f.intro >= 1) return y;
+  const u = Math.min(1, Math.max(0, (f.intro - 0.35 * Math.min(1, Math.max(0, x / f.w))) / 0.65));
+  const e = u * u * (3 - 2 * u); // smoothstep
+  const ys = seam(f, x);
+  return ys + (y - ys) * (INTRO_FROM + (1 - INTRO_FROM) * e);
+}
+
+// Drawn head position and colour bucket.
 function place(f, i) {
-  const x = f.X[i], y = f.Y[i];
-  f.RX[i] = x;
-  if (f.intro >= 1) f.RY[i] = y;
-  else {
-    const u = Math.min(1, Math.max(0, (f.intro - 0.35 * Math.min(1, Math.max(0, x / f.w))) / 0.65));
-    const e = u * u * (3 - 2 * u); // smoothstep
-    const ys = seam(f, x);
-    f.RY[i] = ys + (y - ys) * (INTRO_FROM + (1 - INTRO_FROM) * e);
-  }
+  f.RX[i] = f.X[i];
+  f.RY[i] = introY(f, f.X[i], f.Y[i]);
   const q = Math.round(f.M[i] * (LEVELS - 1));
   f.B[i] = f.T[i] === 0 ? q : BUCKETS - 1 - q;
 }
 
 export function resetTrail(f, i) {
   const o = i * K;
-  f.HX.fill(f.RX[i], o, o + K);
-  f.HY.fill(f.RY[i], o, o + K);
+  f.HX.fill(f.X[i], o, o + K);
+  f.HY.fill(f.Y[i], o, o + K);
 }
 
 // A fresh particle anywhere in the box, on the current of its side of the seam, pre-mixed near the seam.
@@ -170,9 +175,11 @@ export function step(f, dt, p = null) {
   const { A, L, D } = f;
   for (let i = 0; i < n; i++) {
     if (D[i] > 0) {
-      // Frozen: the trail drains into the head (butt caps draw nothing once it is gone), then a new particle.
+      // Frozen: the trail drains into the head (butt caps draw nothing once it is gone), then a new particle. The head
+      // is placed anyway, so it follows the intro like its trail does.
       D[i] -= dt;
       if (D[i] <= 0) reseed(f, i);
+      else place(f, i);
       continue;
     }
     if ((A[i] += dt) > L[i]) { D[i] = drain + 0.05; continue; }
@@ -206,20 +213,20 @@ export function step(f, dt, p = null) {
   if (f.clock >= SAMPLE) {
     f.clock %= SAMPLE;
     f.ring = (f.ring + 1) % K;
-    const { RX, RY, HX, HY, ring } = f;
+    const { HX, HY, ring } = f;
     for (let i = 0; i < n; i++) {
-      HX[i * K + ring] = RX[i];
-      HY[i * K + ring] = RY[i];
+      HX[i * K + ring] = X[i];
+      HY[i * K + ring] = Y[i];
     }
   }
 }
 
-// Point j of particle i's trail, newest first: j = 0 is the drawn position, j >= 1 walks back through history.
+// Point j of particle i's trail as drawn, newest first: j = 0 is the head, j >= 1 walks back through history.
 export function trailX(f, i, j) {
   return j === 0 ? f.RX[i] : f.HX[i * K + ((f.ring - (j - 1) + K) % K)];
 }
 export function trailY(f, i, j) {
-  return j === 0 ? f.RY[i] : f.HY[i * K + ((f.ring - (j - 1) + K) % K)];
+  return j === 0 ? f.RY[i] : introY(f, trailX(f, i, j), f.HY[i * K + ((f.ring - (j - 1) + K) % K)]);
 }
 
 // Run the field forward without drawing, one trail sample per step, until every trail is full.
@@ -228,11 +235,9 @@ export function warm(f, seconds = WARM, dt = SAMPLE) {
   for (let s = 0; s < steps; s++) step(f, dt);
 }
 
-// Set the intro progress (0 = everything on the seam, 1 = done) and redraw positions and trails to match.
-export function setIntro(f, progress, resetTrails = false) {
+// Set the intro progress (0 = everything on the seam, 1 = done) and place the heads to match (trail points are
+// squashed at draw time, see introY).
+export function setIntro(f, progress) {
   f.intro = progress;
-  for (let i = 0; i < f.n; i++) {
-    place(f, i);
-    if (resetTrails) resetTrail(f, i);
-  }
+  for (let i = 0; i < f.n; i++) place(f, i);
 }

@@ -6,7 +6,7 @@
 // - It stops when offscreen or when the tab is hidden, caps the pixel ratio at 2, draws one still frame under
 //   reduced motion or when paused (the pause choice lasts for the session), and plays its intro gesture, a line
 //   unfurling into the two currents, at most once per session.
-import { createField, step, warm, setIntro, BUCKETS, LEVELS, K } from "./sim.js";
+import { createField, step, warm, setIntro, introY, BUCKETS, LEVELS, K } from "./sim.js";
 
 const root = document.documentElement;
 const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -164,17 +164,19 @@ function mount(host) {
   }
 
   // Trail points s0..s1 of particle i, every stride-th one (s1 always included), as a sub-path. Point 0 is the head,
-  // 1..K walk back through the history ring.
+  // 1..K walk back through the history ring, which holds true positions: during the intro they are squashed like
+  // the heads (introY), so the whole trail opens with the field.
   function segment(i, s0, s1, stride) {
     const { HX, HY, ring } = f;
+    const sq = f.intro < 1;
     const base = i * K;
     let j = s0;
     if (j === 0) ctx.moveTo(f.RX[i], f.RY[i]);
-    else { const o = base + ((ring - j + 1 + K) % K); ctx.moveTo(HX[o], HY[o]); }
+    else { const o = base + ((ring - j + 1 + K) % K); ctx.moveTo(HX[o], sq ? introY(f, HX[o], HY[o]) : HY[o]); }
     do {
       j = Math.min(s1, j + stride);
       const o = base + ((ring - j + 1 + K) % K);
-      ctx.lineTo(HX[o], HY[o]);
+      ctx.lineTo(HX[o], sq ? introY(f, HX[o], HY[o]) : HY[o]);
     } while (j < s1);
   }
 
@@ -270,7 +272,7 @@ function mount(host) {
   let pendingIntro = false;
   if (running() && root.hasAttribute("data-intro") && storage((s) => s.getItem(INTRO_KEY)) !== "1") {
     storage((s) => s.setItem(INTRO_KEY, "1"));
-    setIntro(f, 0, true);
+    setIntro(f, 0);
     pendingIntro = true;
     host.classList.add("is-intro");
     const skip = () => { if (introStart >= 0) introStart -= INTRO_MS; };
