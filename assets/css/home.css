@@ -397,8 +397,11 @@ html.no-gl[data-theme="light"] .stage { background-image: url("../scene/still-wi
   background: url("../scene/still-wide-dark.webp") 70% 50% / cover no-repeat;
   opacity: 0.7;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 35%);
-  mask-image: linear-gradient(to right, transparent, #000 35%);
+  /* Faded on all sides but the right (the page edge): the still's paper is a shade off the page's. */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 35%), linear-gradient(transparent, #000 18%, #000 72%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 35%), linear-gradient(transparent, #000 18%, #000 72%, transparent);
+  mask-composite: intersect;
 }
 [data-theme="light"] .notfound__still { background-image: url("../scene/still-wide-light.webp"); }
 @media (max-width: 59.99em) {
