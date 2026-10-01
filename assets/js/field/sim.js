@@ -54,6 +54,7 @@ export function createField(w, h, { seed = 7, density = 13, speed = 1, min = 160
   f.X = new Float32Array(n); f.Y = new Float32Array(n); // positions
   f.RX = new Float32Array(n); f.RY = new Float32Array(n); // drawn positions (differ only during the intro)
   f.M = new Float32Array(n); // mix toward iris, 0..1
+  f.S = new Float32Array(n); // stir: a passing tint toward iris from the pointer wake, 0..1
   f.T = new Uint8Array(n); // current: 0 love, 1 foam
   f.A = new Float32Array(n); // age, s
   f.L = new Float32Array(n); // lifetime, s; after it the particle freezes while its trail drains, then reappears
@@ -125,7 +126,7 @@ export function introY(f, x, y) {
 function place(f, i) {
   f.RX[i] = f.X[i];
   f.RY[i] = introY(f, f.X[i], f.Y[i]);
-  const q = Math.round(f.M[i] * (LEVELS - 1));
+  const q = Math.round(Math.min(1, f.M[i] + f.S[i]) * (LEVELS - 1));
   f.B[i] = f.T[i] === 0 ? q : BUCKETS - 1 - q;
 }
 
@@ -156,7 +157,7 @@ function reseed(f, i, recycle = false) {
     }
   }
   const e = (y - seam(f, x)) / f.d;
-  f.X[i] = x; f.Y[i] = y; f.T[i] = e < 0 ? 0 : 1;
+  f.X[i] = x; f.Y[i] = y; f.T[i] = e < 0 ? 0 : 1; f.S[i] = 0;
   f.M[i] = Math.min(1, Math.exp(-1.2 * e * e) * (0.4 + 0.7 * f.rand()));
   f.A[i] = 0; f.L[i] = 7 + 8 * f.rand(); f.D[i] = 0;
   place(f, i);
@@ -171,12 +172,17 @@ function respawn(f, i) {
   const x = love ? f.w + 2 + f.rand() * 6 : -2 - f.rand() * 6;
   const ys = seam(f, Math.min(f.w, Math.max(0, x)));
   const y = love ? f.h * 0.02 + f.rand() * Math.max(1, ys - ENTRY * f.d - f.h * 0.02) : ys + ENTRY * f.d + f.rand() * Math.max(1, f.h * 0.98 - ys - ENTRY * f.d);
-  f.X[i] = x; f.Y[i] = y; f.M[i] = 0; f.A[i] = 0;
+  f.X[i] = x; f.Y[i] = y; f.M[i] = 0; f.S[i] = 0; f.A[i] = 0;
   place(f, i);
   resetTrail(f, i);
 }
 
 const k1 = { u: 0, v: 0, e: 0 }, k2 = { u: 0, v: 0, e: 0 };
+// The pointer wake bends the flow rather than dragging particles along: its pull never runs much faster than the
+// currents (WAKE_REACH times their speed), or the trails would draw the pointer's path as straight, hooked streaks.
+// Stirring tints the particles it touches toward iris, and the tint fades over a couple of seconds (STIR_HOLD is
+// its time constant), so stirring visibly mixes the two currents and then lets them go.
+const WAKE_REACH = 1.6, STIR_HOLD = 1.5, STIR_GAIN = 3;
 
 /**
  * Advance the field by dt seconds. p is the pointer wake, or null:
@@ -185,16 +191,20 @@ const k1 = { u: 0, v: 0, e: 0 }, k2 = { u: 0, v: 0, e: 0 };
 export function step(f, dt, p = null) {
   const { X, Y, M, n } = f;
   const t = f.t, half = dt * 0.5, mixRate = 0.35 * dt;
-  let wake = false, pr2 = 0, pvx = 0, pvy = 0, pspeed = 0;
+  let wake = false, pr2 = 0, pvx = 0, pvy = 0, push = 0, stir = 0;
   if (p) {
-    pspeed = Math.hypot(p.vx, p.vy);
+    const pspeed = Math.hypot(p.vx, p.vy);
     if (pspeed > 4) {
-      const cap = Math.min(1, 900 / pspeed); // a flick should not fling the whole field
-      pvx = p.vx * cap; pvy = p.vy * cap; pspeed *= cap;
+      const g = Math.min(0.55, (WAKE_REACH * f.U) / pspeed);
+      pvx = p.vx * g; pvy = p.vy * g;
+      push = 0.25 * pspeed * g;
+      stir = STIR_GAIN * Math.min(1, pspeed / 400);
       pr2 = p.r * p.r;
       wake = true;
     }
   }
+  const { S } = f;
+  const unstir = Math.exp(-dt / STIR_HOLD);
   const margin = 10, drain = K * SAMPLE;
   let live = 0, near = 0;
   const { A, L, D } = f;
@@ -217,17 +227,18 @@ export function step(f, dt, p = null) {
     live++;
     if (Math.abs(k2.e) < SEAM_BAND) near++;
     let m = M[i] + mixRate * Math.exp(-1.5 * k2.e * k2.e);
+    if (S[i] > 0) S[i] *= unstir;
     if (wake) {
-      // The wake: particles near the pointer are dragged along its path and pushed slightly aside.
+      // The wake: particles near the pointer are pulled along its path and pushed slightly aside, and tinted.
       // It scales with the pointer's (critically damped) velocity, so it fades out when the pointer rests.
       const dx = x - p.x, dy = y - p.y, d2 = dx * dx + dy * dy;
       if (d2 < pr2) {
         let w = 1 - d2 / pr2;
         w *= w;
         const d = Math.sqrt(d2) + 1e-3;
-        x += (0.55 * pvx + 0.06 * pspeed * (dx / d)) * w * dt;
-        y += (0.55 * pvy + 0.06 * pspeed * (dy / d)) * w * dt;
-        m += w * Math.min(1, pspeed / 600) * 1.5 * dt; // stirring mixes the currents
+        x += (pvx + push * (dx / d)) * w * dt;
+        y += (pvy + push * (dy / d)) * w * dt;
+        S[i] = Math.min(1, S[i] + w * stir * dt);
       }
     }
     X[i] = x; Y[i] = y; M[i] = m > 1 ? 1 : m;
