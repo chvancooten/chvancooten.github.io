@@ -147,7 +147,9 @@ the stills from the repository root with `node assets/js/field/still.mjs`.
 - The field stops when it is offscreen or the tab is hidden, and caps the pixel ratio at 2. A *Pause motion* button
   stops it for the rest of the browser session.
 - Where frames are slow (a canvas rastered in software, as in VMs and remote desktops), the field lowers its own
-  quality for the session: first a pixel ratio of 1, then half the particles and lighter trails, then the still.
+  quality within about a second: first a pixel ratio of 1, then half the particles (with stronger inks), then the
+  still. After five seconds of fast frames it steps back up, at most once per level, and the still tries the level
+  above it once, so a passing hiccup does not keep a capable machine low. The level lasts for the session.
 - On the first visit of a session the field starts as a line along the seam and unfurls into the two currents
   (0.7 s). Any key, click or scroll skips it. The name and the text are static and visible from the first paint.
 - The business card on the home page tilts slightly toward a mouse or pen, with a glare.

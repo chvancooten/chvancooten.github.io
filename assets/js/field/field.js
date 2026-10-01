@@ -14,6 +14,7 @@ const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
 const PAUSE_KEY = "motion-paused";
 const INTRO_KEY = "field-intro";
 const QUALITY_KEY = "field-quality";
+const RAISED_KEY = "field-quality-raised";
 const INTRO_MS = 700;
 
 // Trail bands, head to tail: [first point, last point, point stride, alpha, width]; the trail tapers from its head to
@@ -25,17 +26,24 @@ const INTRO_MS = 700;
 //   head (dark only) is one chord per particle; the trails curve so gently that neither shows.
 const BANDS = [[0, 3, 1, 0.625, 1], [3, 6, 1, 0.32, 1], [6, 9, 2, 0.17, 1], [9, K, 2, 0.07, 1]];
 const GLOW = [0, 3, 3, 0.06, 3.5];
-// The reduced set (quality level 2): one strided tail band for the two, the same overall taper.
+// The reduced set (quality level 2): one strided tail band for the two, the same overall taper. With half the
+// particles and no glow the field would look thin, so its inks are LOW_GAIN times stronger.
 const LOW_BANDS = [BANDS[0], BANDS[1], [6, K, 3, 0.12, 1]];
+const LOW_GAIN = 2;
 
 // QUALITY: where 2D canvas is rastered in software (VMs, remote desktops, blocklisted GPUs) a frame can take longer
-// than the display allows, and the main thread stays busy. Over each window of SAMPLES frames the field takes the
-// median interval between frames and the median time each frame keeps the main thread busy (the callback through
-// the rendering update, marked by a message posted from the callback). When both are slow, it steps down a level:
-// 1, a pixel ratio of 1; 2, half the particles, the lighter bands and no glow; 3, the still frame. Requiring the
-// busy time too keeps a browser that caps animations at 30 fps to save power from looking slow. The level lasts
-// for the session, so the next page starts where this one ended up.
-const SLOW_INTERVAL = 25, SLOW_BUSY = 20, SAMPLES = 30, SETTLE = 10;
+// than the display allows, and the main thread stays busy. Over each window of SAMPLES frames (a quarter of a second
+// at 60 fps) the field takes the median interval between frames and the median time each frame keeps the main thread
+// busy (the callback through the rendering update, marked by a message posted from the callback). When both are
+// slow, it steps down a level: 1, a pixel ratio of 1; 2, half the particles, the lighter bands and no glow; 3, the
+// still frame. Requiring the busy time too keeps a browser that caps animations at 30 fps to save power from
+// looking slow. When the busy time over the last FAST_FOR ms (the median of its windows, none of them slow) is
+// under FAST_BUSY, it steps back up one level, at most once per level per session, so a passing hiccup (a burst of screenshots, a long GC) does not pin
+// a capable machine low, and a machine on the edge cannot flip back and forth. The still has no frames to judge, so
+// FAST_FOR ms after it the field tries level 2 again, once: one window decides whether it stays there (and may then
+// step up as usual) or returns to the still for good. The level lasts for the session, so the next page starts
+// where this one ended up.
+const SLOW_INTERVAL = 25, SLOW_BUSY = 20, SAMPLES = 15, SETTLE = 3, FAST_BUSY = 8, FAST_FOR = 5000;
 // Edge fades as gradient stops along x and y: "side" (beside the copy, a long ramp toward it) and "band" (below the
 // copy, short ramps on every side). The same ramps are baked into the stills (still.mjs).
 const FADES = {
@@ -83,8 +91,9 @@ function mount(host) {
   const scope = host.closest("section") || document.body;
   const button = scope.querySelector("[data-motion-toggle]");
 
-  let f = null, w = 0, h = 0, dpr = 1, band = false;
+  let f = null, w = 0, h = 0, dpr = 1, band = false, density = 0;
   let level = Math.min(3, Math.max(0, +storage((s) => s.getItem(QUALITY_KEY)) || 0));
+  const raised = new Set((storage((s) => s.getItem(RAISED_KEY)) || "").split("")); // levels already stepped up from
   host.dataset.quality = level;
   let mask = null, maskRects = [], raf = 0, last = 0, onScreen = true, live = false;
   let introStart = -1;
@@ -114,7 +123,7 @@ function mount(host) {
 
   const bands = () => (level >= 2 ? LOW_BANDS : BANDS);
   function strokeStyles(fade) {
-    const a = fade * mode.alpha * (inks.dark ? 1.3 : 1.75);
+    const a = fade * mode.alpha * (inks.dark ? 1.3 : 1.75) * (level >= 2 ? LOW_GAIN : 1);
     return inks.rgb.map((rgb) => [...bands(), GLOW].map((band) => `rgba(${rgb},${(band[3] * a).toFixed(3)})`));
   }
 
@@ -151,17 +160,18 @@ function mount(host) {
     maskRects = [[0, 0, x0, H], [x1, 0, W - x1, H], [x0, 0, x1 - x0, y0], [x0, y1, x1 - x0, H - y1]].filter(([, , rw, rh]) => rw > 0 && rh > 0);
   }
 
-  function layout(force = false) {
+  function layout() {
     const r = host.getBoundingClientRect();
     const nw = Math.max(1, Math.round(r.width)), nh = Math.max(1, Math.round(r.height));
-    const ndpr = level >= 1 ? 1 : Math.min(2, window.devicePixelRatio || 1);
-    if (f && !force && nw === w && nh === h && ndpr === dpr) return false;
-    w = nw; h = nh; dpr = ndpr;
+    const ndpr = level >= 1 ? 1 : naturalDpr();
+    const nd = level >= 2 ? mode.density / 2 : mode.density;
+    if (f && nw === w && nh === h && ndpr === dpr && nd === density) return false;
+    w = nw; h = nh; dpr = ndpr; density = nd;
     // "band" (own band below the copy, fades on all sides) or "side" (beside the copy, long fade toward it).
     band = getComputedStyle(host).getPropertyValue("--field-layout").trim() === "band";
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
-    f = createField(w, h, { seed: 7, density: level >= 2 ? mode.density / 2 : mode.density, speed: mode.speed });
+    f = createField(w, h, { seed: 7, density, speed: mode.speed });
     warm(f);
     buildMask();
     return true;
@@ -242,7 +252,8 @@ function mount(host) {
 
   // Frame timing for QUALITY: intervals between frames and busy time per frame, a window at a time.
   const intervals = new Float32Array(SAMPLES), busy = new Float32Array(SAMPLES);
-  let sampled = 0, settle = SETTLE, frameStart = 0, busyAt = 0;
+  let sampled = 0, settle = SETTLE, frameStart = 0, busyAt = 0, fast = 0, fastN = 0;
+  const fastBusy = new Float32Array(64); // window medians since the last slow window (FAST_FOR ms fits in 64 windows)
   const done = new MessageChannel();
   done.port1.onmessage = () => { busy[busyAt] = performance.now() - frameStart; busyAt = (busyAt + 1) % SAMPLES; };
   const median = (a) => { a.sort(); return a[SAMPLES >> 1]; };
@@ -252,16 +263,50 @@ function mount(host) {
     intervals[sampled++] = interval;
     if (sampled < SAMPLES) return;
     sampled = 0;
-    if (median(intervals) > SLOW_INTERVAL && median(busy) > SLOW_BUSY) lower();
+    let span = 0;
+    for (let i = 0; i < SAMPLES; i++) span += intervals[i];
+    const slowFrames = median(intervals) > SLOW_INTERVAL, b = median(busy);
+    if (slowFrames && b > SLOW_BUSY) { setLevel(level === 0 && naturalDpr() <= 1 ? 2 : level + 1); return; }
+    if (level === 0) return;
+    fast += span;
+    if (fastN < fastBusy.length) fastBusy[fastN++] = b;
+    if (fast < FAST_FOR) return;
+    // Back to the full pixel ratio (1 to 0) means four times the pixels, so that step asks for half the busy time.
+    const all = fastBusy.subarray(0, fastN).sort();
+    const good = all[fastN >> 1] < (level === 1 ? FAST_BUSY / 2 : FAST_BUSY);
+    fast = 0; fastN = 0;
+    if (good) raise();
   }
-  function lower() {
-    level = level === 0 && Math.min(2, window.devicePixelRatio || 1) <= 1 ? 2 : level + 1;
+  const naturalDpr = () => Math.min(2, window.devicePixelRatio || 1);
+  function raise() {
+    if (level === 0 || raised.has(String(level))) return;
+    raised.add(String(level));
+    storage((s) => s.setItem(RAISED_KEY, [...raised].join("")));
+    setLevel(level === 2 && naturalDpr() <= 1 ? 0 : level - 1);
+  }
+  function setLevel(next) {
+    level = next;
     storage((s) => s.setItem(QUALITY_KEY, String(level)));
     host.dataset.quality = level;
     settle = SETTLE;
-    if (level >= 3) { stop(); syncButton(); still(); return; }
-    layout(true);
+    sampled = 0;
+    fast = 0;
+    fastN = 0;
+    if (level >= 3) { stop(); syncButton(); still(); probeLater(); return; }
+    layout(); // the still keeps the level 2 field, so 3 to 2 does not rebuild it
     styles = strokeStyles(1);
+    syncButton();
+  }
+  // From the still, one try at level 2 (see QUALITY).
+  function probeLater() {
+    if (raised.has("3")) return;
+    setTimeout(() => {
+      if (level !== 3 || raised.has("3") || reduced.matches || isPaused()) return;
+      raised.add("3");
+      storage((s) => s.setItem(RAISED_KEY, [...raised].join("")));
+      setLevel(2);
+      start();
+    }, FAST_FOR);
   }
 
   function tick(now) {
@@ -330,6 +375,7 @@ function mount(host) {
     if (pendingIntro) introStart = now;
     if (allowed()) tick(now);
     else still();
+    if (level === 3) probeLater(); // the session's earlier pages ended at the still
   }));
 
   new IntersectionObserver(([e]) => {
