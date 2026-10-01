@@ -1,7 +1,7 @@
 {
   "name": "Cas van Cooten",
   "short_name": "Cas van Cooten",
-  "description": "Cas van Cooten: red teamer and co-founder of Offensys. Talks, open-source tooling and writing on offensive security.",
+  "description": "Cas van Cooten: offensive security enthusiast and co-founder of Offensys. Talks, open-source tooling and writing on offensive security.",
   "start_url": "./",
   "scope": "./",
   "icons": [
@@ -21,7 +21,7 @@
       "type": "image/png"
     }
   ],
-  "theme_color": "#191724",
-  "background_color": "#191724",
+  "theme_color": "#100f0f",
+  "background_color": "#100f0f",
   "display": "standalone"
 }
