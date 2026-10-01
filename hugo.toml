@@ -46,7 +46,7 @@ copyright     = "CC BY-NC 4.0"
     ordered    = false
 
 [params]
-  description = "Cas van Cooten's blog on offensive security, red teaming and security tooling. Red teamer and co-founder of Offensys."
+  description = "Cas van Cooten's blog on offensive security, red teaming and security tooling. Offensive security enthusiast and co-founder of Offensys."
   homeTitle   = "Offensive security, red teaming and tooling"
   images      = ["preview.png"]
   imageAlt    = "Cas van Cooten, offensive security enthusiast and co-founder of Offensys, beside a 3D scene of a red and a blue current braiding into purple"
@@ -62,7 +62,7 @@ copyright     = "CC BY-NC 4.0"
   [params.author]
     name     = "Cas van Cooten"
     handle   = "chvancooten"
-    jobTitle = "Red Teamer and co-founder of Offensys"
+    jobTitle = "Offensive security enthusiast and co-founder of Offensys"
     image    = "images/me.png"
 
   [params.company]
