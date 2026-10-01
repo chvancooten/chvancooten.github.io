@@ -11,15 +11,22 @@
 }
 
 /* The title bar: wordmark at the left gutter; nav, search and theme toggle at the right. Pinned on every page; on
-   the home page it arrives as the hero's name docks into the wordmark (home.css, js/dock.js). Its surface is a
-   pseudo-element and all but opaque (--header-bg): a backdrop blur cannot work here, since the bar is a backdrop
-   root (its view-transition name, and the dock's opacity on home), so a translucent bar would show the text
-   scrolling under it as crisp ghost text. */
+   the home page it arrives as the hero's name docks into the wordmark (home.css, js/dock.js). Its surface is frosted
+   glass: the page colour, mostly opaque (--header-bg), over a blur of what scrolls under it. The surface and the
+   blur sit on the bar itself, which sees the page behind it (a pseudo-element's backdrop would end at the bar,
+   which is a backdrop root: it has a view-transition name, and on home the dock fades it). Where backdrop-filter
+   is not supported the surface is near-opaque instead. The hairline (::before) gives the bar its edge. */
 .site-header {
   position: sticky;
   top: 0;
   z-index: 20;
   view-transition-name: site-header;
+  background: var(--header-bg);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .site-header { background: var(--header-solid); }
 }
 .site-header::before {
   content: "";
@@ -27,7 +34,6 @@
   inset: 0;
   z-index: -1;
   border-bottom: 1px solid var(--hair);
-  background: var(--header-bg);
   pointer-events: none;
 }
 .site-header__inner {
