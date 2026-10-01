@@ -132,8 +132,9 @@ keeps kern, locl, mark, mkmk and ccmp only).
 **The hero.** Two currents meet in the hero: love (the red team) runs left above a seam and foam (the blue team)
 runs right below it. Where they meet, the shear rolls up into slow eddies and the two mix into iris, the purple of
 both. The field is a Canvas 2D particle system (`assets/js/field/`). The flow comes from stream functions, so it
-never drifts or bunches up, and it looks the same after a minute as after three seconds. The pointer (mouse or pen)
-leaves a wake that follows its velocity, stirs the currents toward iris and fades once the pointer rests. The canvas
+never drifts or bunches up, and particles are recycled so the seam keeps its share of them: it looks the same after
+a few minutes as after three seconds. The pointer (mouse or pen) leaves a wake that bends the currents along its
+path and fades once the pointer rests; the particles it stirs turn toward iris for a couple of seconds. The canvas
 sits beside the copy on wide screens and in its own band below it on narrow ones, and fades its edges inside the
 canvas, so nothing moves behind text. It only loads on the home page and the 404 page.
 
@@ -145,6 +146,8 @@ the stills from the repository root with `node assets/js/field/still.mjs`.
 
 - The field stops when it is offscreen or the tab is hidden, and caps the pixel ratio at 2. A *Pause motion* button
   stops it for the rest of the browser session.
+- Where frames are slow (a canvas rastered in software, as in VMs and remote desktops), the field lowers its own
+  quality for the session: first a pixel ratio of 1, then half the particles and lighter trails, then the still.
 - On the first visit of a session the field starts as a line along the seam and unfurls into the two currents
   (0.7 s). Any key, click or scroll skips it. The name and the text are static and visible from the first paint.
 - The business card on the home page tilts slightly toward a mouse or pen, with a glare.
