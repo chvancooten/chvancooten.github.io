@@ -124,11 +124,17 @@
   --card-bg: linear-gradient(150deg, #29253f 0%, #211f33 55%, #1c1a2b 100%);
   --card-edge: #34304c;
 
-  /* Hero field inks: two currents (love, foam) that mix into iris. Additive on dark. */
-  --field-love: #eb6f92;
-  --field-iris: #c4a7e7;
-  --field-foam: #9ccfd8;
-  --field-blend: lighter;
+  /* Hero scene (assets/js/scene): two currents, love/rose and foam/pine, that meet in iris. On dark the inks add
+     up like light. --scrim: the background as "r g b", for the soft clouds under text over the scene. */
+  --scene-bg: #191724;
+  --scene-love: #eb6f92;
+  --scene-rose: #ebbcba;
+  --scene-foam: #9ccfd8;
+  --scene-pine: #31748f;
+  --scene-iris: #c4a7e7;
+  --scene-subtle: #908caa;
+  --scene-ink: add;
+  --scrim: 25 23 36;
 
   /* Syntax roles (Chroma rose-pine), on --bg-2. adj. = lightened to 4.6:1. */
   --syn-kw: #4e90ac;      /* adj. pine */
@@ -187,11 +193,16 @@
   --card-bg: linear-gradient(150deg, #fffdf9 0%, #fff8f0 55%, #f6ede3 100%);
   --card-edge: #eadfd3;
 
-  /* Dawn inks for the same two currents, multiplied like ink on paper. */
-  --field-love: #b4637a;
-  --field-iris: #907aa9;
-  --field-foam: #286983;
-  --field-blend: multiply;
+  /* Dawn inks for the same two currents, taken away from the paper like ink. */
+  --scene-bg: #faf4ed;
+  --scene-love: #b4637a;
+  --scene-rose: #d7827e;
+  --scene-foam: #56949f;
+  --scene-pine: #286983;
+  --scene-iris: #907aa9;
+  --scene-subtle: #797593;
+  --scene-ink: ink;
+  --scrim: 250 244 237;
 
   /* Syntax roles (Chroma rose-pine-dawn), on --bg-2. adj. = darkened to 4.6:1. */
   --syn-kw: #286983;      /* pine */

@@ -1,58 +1,154 @@
-/* ---------- Hero: the business card first. Copy on the left of the grid, the field in its own box to the right
-   (or in its own band below the copy on narrow screens), so no motion ever sits behind the text. ---------- */
+/* ---------- The landing: a full-viewport composition where the scene and the name are the first impression.
+   The scene (a WebGL2 canvas from js/scene) sits behind the copy. The display name is left in the open over it;
+   the body text, links and cue each sit on a soft cloud (a pseudo-element with a wide shadow) whose core is opaque
+   enough that the text keeps 4.5:1 over the brightest pixel of the scene. ---------- */
+
+/* The header over the landing takes no space (the landing runs under it) and has no bar until the content nears
+   it (js/scene/hero.js adds .is-solid); its text gets the same soft clouds as the copy. */
+.kind-home .site-header { margin-bottom: calc(-1 * var(--header-h)); transition: background-color 0.3s var(--ease-out); }
+.js .kind-home .site-header:not(.is-solid) { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.js .kind-home .site-header:not(.is-solid) .site-nav a { color: var(--text); }
+.js .kind-home .site-header:not(.is-solid) :is(.brand, .site-nav, .site-tools) { position: relative; }
+.js .kind-home .site-header:not(.is-solid) :is(.brand, .site-nav, .site-tools)::before {
+  content: "";
+  position: absolute;
+  inset: 0.2rem -0.4rem;
+  z-index: -1;
+  border-radius: 1em;
+  background: rgb(var(--scrim) / 0.88);
+  box-shadow: 0 0 2.25rem 1.1rem rgb(var(--scrim) / 0.82);
+  pointer-events: none;
+}
+
 .hero {
-  --hero-copy: 36rem;
   position: relative;
   display: grid;
-  min-height: calc(min(100svh, 64rem) - var(--header-h));
-  padding-inline: var(--gutter);
+  grid-template-columns: minmax(0, 1fr);
+  align-content: end;
+  height: 100vh;
+  height: 100svh;
+  min-height: 34rem;
+  padding: calc(var(--header-h) + 1rem) var(--gutter) 0;
   overflow: clip;
+  isolation: isolate;
 }
+
+/* Layers inside the landing (its own stacking context): the stage, the scrims, the clouds, then all the text, so
+   no cloud ever covers text. */
+
+/* The stage. Before the scene boots, a soft composition of its colours; without JS or WebGL2, a still of the
+   scene at rest (static/scene/). The canvas fades in over either. */
+.stage {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(26% 20% at 70% 46%, rgb(196 167 231 / 0.2), transparent 70%),
+    radial-gradient(46% 26% at 90% 26%, rgb(235 111 146 / 0.1), transparent 72%),
+    radial-gradient(46% 26% at 86% 66%, rgb(156 207 216 / 0.08), transparent 72%),
+    var(--bg);
+}
+[data-theme="light"] .stage {
+  background:
+    radial-gradient(26% 20% at 70% 46%, rgb(144 122 169 / 0.14), transparent 70%),
+    radial-gradient(46% 26% at 90% 26%, rgb(180 99 122 / 0.08), transparent 72%),
+    radial-gradient(46% 26% at 86% 66%, rgb(40 105 131 / 0.07), transparent 72%),
+    var(--bg);
+}
+/* A first visit starts dark: the intro builds the scene up from almost nothing. */
+.js[data-intro=""] .stage { background: var(--bg); }
+.stage > canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; opacity: 0; }
+.stage.is-live > canvas { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .stage > canvas { transition: opacity 0.4s var(--ease-out); }
+}
+
+/* Scrims: a thin band under the header and a soft floor across the frame; the rest is per text. */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgb(var(--scrim) / 0.82), rgb(var(--scrim) / 0.4) var(--header-h), rgb(var(--scrim) / 0) calc(var(--header-h) + 4rem)),
+    linear-gradient(to top, rgb(var(--scrim) / 0.55), rgb(var(--scrim) / 0) 16%);
+}
+.hero :is(.hero__role, .hero__lede, .hero__cta, .cue)::before {
+  content: "";
+  position: absolute;
+  inset: -0.35em -0.6em;
+  z-index: -1;
+  border-radius: 1.5em;
+  background: rgb(var(--scrim) / 0.9);
+  box-shadow: 0 0 var(--cloud-blur, 4.5rem) var(--cloud-spread, 2rem) rgb(var(--scrim) / 0.86);
+  pointer-events: none;
+}
+[data-theme="light"] .hero :is(.hero__role, .hero__lede, .hero__cta, .cue)::before { background: rgb(var(--scrim) / 0.95); }
+
 .hero__copy {
   position: relative;
-  z-index: 1;
-  align-self: center;
-  width: min(100%, var(--hero-copy));
-  padding-block: clamp(2.5rem, 9vh, 6rem);
+  align-self: end;
+  width: min(100%, 47rem);
+  padding-block: 0 clamp(5.25rem, 12vh, 8rem);
 }
-.hero__role { margin-bottom: 1.25rem; color: var(--text-2); font-size: clamp(1rem, 0.95rem + 0.2vw, 1.125rem); font-weight: 500; }
+.hero :is(.hero__role, .hero__name, .hero__lede, .hero__cta) { position: relative; }
+.hero__role { width: fit-content; margin-bottom: 1rem; color: var(--text); font-size: clamp(1rem, 0.95rem + 0.2vw, 1.125rem); font-weight: 500; --cloud-spread: 1.25rem; --cloud-blur: 2.5rem; }
 .hero__role a { color: var(--accent); font-weight: 600; text-decoration: none; }
 .hero__role a:hover { color: var(--accent); text-decoration: underline; }
-.hero__sep { margin-inline: 0.4em; color: var(--muted); }
+[data-theme="light"] .hero__role a { color: #9c4762; } /* adj. love: 5.5:1 on paper, and on a cloud over the scene's darkest ink */
+.hero__sep { margin-inline: 0.4em; color: var(--text-2); }
 .hero__name {
-  margin-bottom: 1.75rem;
+  margin-bottom: clamp(1.25rem, 2.8vh, 2.25rem);
   font-family: var(--f-display);
   font-weight: 800;
   font-stretch: 90%;
-  font-size: clamp(2.875rem, 16vw, 7rem);
-  letter-spacing: -0.035em;
-  line-height: 0.92;
+  font-size: clamp(4.25rem, 12.4vw, 11.5rem);
+  letter-spacing: -0.042em;
+  line-height: 0.86;
   text-wrap: wrap;
 }
-.hero__name span { white-space: nowrap; }
-.hero__lede { max-width: 34em; font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.3125rem); line-height: 1.55; }
+.hero__name span { display: inline-block; white-space: nowrap; transform-origin: 0 100%; will-change: transform; }
+/* First paint of a first visit: the name already sits where the intro starts it (transform only, never hidden).
+   The scene's first frame takes over; if the script never runs, the name settles by itself. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-intro] .hero__name span { transform: translate3d(0, 0.05em, 0) scale(1.07); animation: name-settle 0.9s 2.6s var(--ease-out) forwards; }
+  [data-intro="settle"] .hero__name span { animation-delay: 0s; }
+}
+@keyframes name-settle { to { transform: none; } }
+.hero__lede { max-width: 31em; font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.3125rem); line-height: 1.55; }
 .hero__lede p + p { margin-top: 0.75em; }
 .hero__lede a { color: inherit; text-decoration-color: var(--line); }
 .hero__lede a:hover { text-decoration-color: var(--accent); }
-.hero__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.75rem; margin-top: 2.25rem; }
+.hero__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.75rem; width: fit-content; margin-top: 2rem; }
+.hero .link-quiet { color: var(--text); }
 
-/* The field: canvas (JS) over a pre-rendered still of the same composition (no JS, and before JS boots). */
-.field { --field-layout: side; position: relative; z-index: 0; overflow: hidden; pointer-events: none; }
-.field > canvas, .field__still { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
-.field__still--band { display: none; }
-/* The canvas takes over from the still with a short crossfade (none for the intro, which fades itself in). */
-.field > canvas { opacity: 0; }
-.field.is-live > canvas { opacity: 1; }
-.field.is-live .field__still { opacity: 0; }
-@media (prefers-reduced-motion: no-preference) {
-  .field > canvas, .field__still { transition: opacity 0.4s var(--ease-out); }
-  .field.is-intro > canvas { transition: none; }
-  /* A first visit starts with the intro gesture (a line unfurling), so the still stays out of the way;
-     it comes back if the script never arrives. */
-  .js[data-intro] .field:not(.is-live) .field__still { opacity: 0; animation: still-late 0.4s 2.5s forwards; }
+/* The cue into the content: quiet, centred at the foot of the landing. */
+.cue {
+  position: absolute;
+  left: 50%;
+  bottom: 1.3rem;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text-2);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transform: translateX(-50%);
+  --cloud-spread: 1rem;
+  --cloud-blur: 2rem;
 }
-@keyframes still-late { to { opacity: 1; } }
-.field-ctrl { position: absolute; right: var(--gutter); bottom: 1.25rem; z-index: 2; }
+.cue:hover { color: var(--text); }
+[data-theme="light"] .cue { color: var(--text); }
+.cue__line { display: block; order: 2; width: 1px; height: 2.25rem; background: linear-gradient(var(--line), transparent); }
+.cue__short { display: none; }
+
+.hero__ctrl { position: absolute; right: var(--gutter); bottom: 1.25rem; }
 .motion-btn {
   display: inline-flex;
   align-items: center;
@@ -61,7 +157,7 @@
   padding: 0 0.85rem 0 0.7rem;
   border: 1px solid var(--hair);
   border-radius: 999px;
-  background: var(--bg); /* opaque: the field never shows through the label */
+  background: var(--bg); /* opaque: the scene never shows through the label */
   color: var(--text-2);
   font-size: 0.8125rem;
   cursor: pointer;
@@ -73,16 +169,54 @@
 .motion-btn[data-paused] .icon--play { display: block; }
 @media (prefers-reduced-motion: reduce) { .motion-btn { display: none; } }
 
-@media (min-width: 60em) {
-  .hero__name { font-size: clamp(6rem, 12vw, 9.25rem); }
-  .field { position: absolute; inset: 0 0 0 auto; left: calc(var(--gutter) + var(--hero-copy) + 1.5rem); }
-}
 @media (max-width: 59.99em) {
-  .hero { grid-template-rows: auto minmax(11rem, 1fr); }
-  .hero__copy { align-self: end; padding-block: clamp(2rem, 6vh, 4rem) 0.5rem; }
-  .field { --field-layout: band; margin-inline: calc(-1 * var(--pad)); }
-  .field__still--wide { display: none; }
-  .field__still--band { display: block; }
+  /* Portrait: the name above the scene, the rest of the card below it. */
+  .hero {
+    grid-template-rows: auto auto minmax(4rem, 1fr) auto auto;
+    align-content: stretch;
+    padding-top: calc(var(--header-h) + clamp(1rem, 4.5vh, 2.5rem));
+    padding-bottom: 4.5rem;
+  }
+  .hero::before {
+    background:
+      linear-gradient(to bottom, rgb(var(--scrim) / 0.85) 0, rgb(var(--scrim) / 0.45) var(--header-h), rgb(var(--scrim) / 0) calc(var(--header-h) + 3rem)),
+      linear-gradient(to top, rgb(var(--scrim) / 0.6), rgb(var(--scrim) / 0) 14%);
+  }
+  .stage {
+    background:
+      radial-gradient(40% 16% at 52% 58%, rgb(196 167 231 / 0.2), transparent 70%),
+      radial-gradient(40% 18% at 18% 44%, rgb(235 111 146 / 0.1), transparent 72%),
+      radial-gradient(40% 18% at 84% 44%, rgb(156 207 216 / 0.08), transparent 72%),
+      var(--bg);
+  }
+  [data-theme="light"] .stage {
+    background:
+      radial-gradient(40% 16% at 52% 58%, rgb(144 122 169 / 0.14), transparent 70%),
+      radial-gradient(40% 18% at 18% 44%, rgb(180 99 122 / 0.08), transparent 72%),
+      radial-gradient(40% 18% at 84% 44%, rgb(40 105 131 / 0.07), transparent 72%),
+      var(--bg);
+  }
+  .hero__copy { display: contents; }
+  .hero__copy > * { position: relative; }
+  .hero__role { grid-row: 1; margin-bottom: 0.7rem; }
+  .hero__name { grid-row: 2; margin-bottom: 0; font-size: clamp(3.4rem, 17.4vw, 6.5rem); }
+  .hero__lede { grid-row: 4; font-size: 1.0625rem; line-height: 1.5; --cloud-spread: 1.5rem; --cloud-blur: 2.5rem; }
+  .hero__cta { grid-row: 5; margin-top: 1.25rem; }
+  .cue { left: var(--gutter); bottom: 1.45rem; flex-direction: row; transform: none; }
+  .cue__long { display: none; }
+  .cue__short { display: inline; }
+  .cue__line { order: 0; width: 1.75rem; height: 1px; background: linear-gradient(to right, var(--line), transparent); }
+}
+/* The designed still (no JS, no WebGL2): the scene at rest, framed for landscape or portrait. */
+html:not(.js) .stage, html.no-gl .stage { background: url("../scene/still-wide-dark.webp") 50% 50% / cover no-repeat var(--bg); }
+html.no-gl[data-theme="light"] .stage { background-image: url("../scene/still-wide-light.webp"); }
+@media (orientation: portrait) {
+  html:not(.js) .stage, html.no-gl .stage { background-image: url("../scene/still-tall-dark.webp"); }
+  html.no-gl[data-theme="light"] .stage { background-image: url("../scene/still-tall-light.webp"); }
+}
+@media (max-height: 40em) and (min-width: 60em) {
+  .hero__lede { font-size: 1.0625rem; }
+  .hero__name { font-size: clamp(4rem, 17vh, 9rem); }
 }
 
 /* ---------- Offensys: one typographic statement. Its scroll-linked reveal lights each line up from the muted ink
@@ -241,13 +375,26 @@
   .contact .card-stage { justify-content: flex-start; }
 }
 
-/* ---------- 404: the quiet field ---------- */
-.notfound .field-ctrl { bottom: 1rem; }
-@media (min-width: 60em) {
-  .notfound .field { position: absolute; inset: 0 0 0 auto; left: calc(var(--gutter) + 34rem); }
+/* ---------- 404: a calm still of the scene beside the message ---------- */
+.notfound__still {
+  position: absolute;
+  inset: 0 0 0 calc(var(--gutter) + 26rem);
+  z-index: 0;
+  background: url("../scene/still-wide-dark.webp") 70% 50% / cover no-repeat;
+  opacity: 0.7;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 35%);
+  mask-image: linear-gradient(to right, transparent, #000 35%);
 }
+[data-theme="light"] .notfound__still { background-image: url("../scene/still-wide-light.webp"); }
 @media (max-width: 59.99em) {
   .notfound { align-content: start; }
-  .notfound .field { --field-layout: band; height: 13rem; margin: 2rem calc(-1 * var(--pad)) 0; }
-  .notfound .field-ctrl { bottom: 0.75rem; }
+  .notfound__still {
+    position: relative;
+    inset: auto;
+    height: 13rem;
+    margin: 2rem calc(-1 * var(--pad)) 0;
+    -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent);
+    mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent);
+  }
 }

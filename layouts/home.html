@@ -6,6 +6,9 @@
 {{- range where site.Params.social "icon" "mail" }}{{ $email = strings.TrimPrefix "mailto:" .url }}{{ end }}
 
 <section class="hero" aria-labelledby="hero-name">
+  {{- /* The scene: a WebGL2 canvas (added by js/scene) over a designed still, which is what shows without JS or
+         WebGL2 and before the scene boots. */}}
+  <div class="stage" data-scene aria-hidden="true"></div>
   <div class="hero__copy">
     <p class="hero__role">Red teamer<span class="hero__sep" aria-hidden="true">·</span><span class="sr-only">, </span>Co-founder of <a href="{{ $company.url }}">{{ $company.name }}</a></p>
     <h1 class="hero__name" id="hero-name"><span>Cas van</span> <span>Cooten</span></h1>
@@ -15,7 +18,12 @@
       <a class="link-quiet" href="{{ $company.url }}">Visit {{ $company.name }}{{ partial "icon.html" (dict "name" "arrow-up-right" "size" 16) }}</a>
     </p>
   </div>
-  {{- partial "field.html" "hero" }}
+  <a class="cue" href="#offensys"><span class="cue__line" aria-hidden="true"></span><span class="cue__long">Offensys, talks and open source</span><span class="cue__short">More below</span></a>
+  <div class="hero__ctrl">
+    <button class="motion-btn" type="button" data-motion-toggle hidden>
+      {{- partial "icon.html" (dict "name" "pause" "size" 12) }}{{ partial "icon.html" (dict "name" "play" "size" 12) }}<span>Pause motion</span>
+    </button>
+  </div>
 </section>
 
 <section class="offensys" id="offensys" aria-labelledby="offensys-title">

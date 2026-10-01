@@ -2,8 +2,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#191724">
 {{- /* Before first paint: apply the stored theme (dark is the default), flag JS, and mark a first visit this
-       session so the hero can play its intro instead of showing the still. Storage errors skip the intro. */}}
-<script>(function(d){var t;try{t=localStorage.getItem("theme")}catch(e){}if(t==="light"||t==="dark")d.dataset.theme=t;d.classList.add("js");try{if(!sessionStorage.getItem("field-intro"))d.dataset.intro=""}catch(e){}if(d.dataset.theme==="light")document.querySelector('meta[name="theme-color"]').content="#faf4ed"})(document.documentElement)</script>
+       session so the home page can play its intro (the name starts where the intro starts it). Storage errors
+       skip the intro. */}}
+<script>(function(d){var t;try{t=localStorage.getItem("theme")}catch(e){}if(t==="light"||t==="dark")d.dataset.theme=t;d.classList.add("js");try{if(!sessionStorage.getItem("scene-intro"))d.dataset.intro=""}catch(e){}if(d.dataset.theme==="light")document.querySelector('meta[name="theme-color"]').content="#faf4ed"})(document.documentElement)</script>
 <title>{{ partial "func/title.html" . }}</title>
 {{- partial "seo.html" . }}
 <link rel="icon" href="{{ "favicon.ico" | relURL }}" sizes="32x32">
@@ -30,8 +31,8 @@
 {{- $opts := dict "format" "esm" "minify" true "target" "es2020" }}
 {{- $js := resources.Get "js/main.js" | js.Build $opts | fingerprint }}
 <script type="module" src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
-{{- /* The flow field only ships to the pages that show it. */}}
-{{- if or .IsHome (eq .Kind "404") }}
-{{- $field := resources.Get "js/field/field.js" | js.Build (merge $opts (dict "targetPath" "js/field.js")) | fingerprint }}
-<script type="module" src="{{ $field.RelPermalink }}" integrity="{{ $field.Data.Integrity }}"></script>
+{{- /* The hero scene ships to the home page only. */}}
+{{- if .IsHome }}
+{{- $scene := resources.Get "js/scene/hero.js" | js.Build (merge $opts (dict "targetPath" "js/scene.js")) | fingerprint }}
+<script type="module" src="{{ $scene.RelPermalink }}" integrity="{{ $scene.Data.Integrity }}"></script>
 {{- end }}

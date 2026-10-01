@@ -559,7 +559,7 @@ pre:not(.chroma) code { color: var(--text); }
 .page--about .prose a[href^="https://github.com/sponsors/"]::before { content: "\2665"; content: "\2665" / ""; margin-right: 0.5rem; color: var(--accent); }
 .page--about .prose a[href^="https://github.com/sponsors/"]:hover { border-color: var(--text); color: var(--text); }
 
-/* ---------- 404: a quiet field beside a short message ---------- */
+/* ---------- 404: a short message beside a calm still of the hero scene (home.css) ---------- */
 .notfound {
   position: relative;
   display: grid;
