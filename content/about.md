@@ -1,5 +1,7 @@
 +++
 title = "About Me"
+# The visible heading, in the site's sentence case (the title stays, for search results and links).
+heading = "About me"
 date = "2025-02-27"
 aliases = ["about-me"]
 [ author ]

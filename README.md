@@ -147,7 +147,7 @@ the stills from the repository root with `node assets/js/field/still.mjs`.
   stops it for the rest of the browser session.
 - On the first visit of a session the field starts as a line along the seam and unfurls into the two currents
   (0.7 s). Any key, click or scroll skips it. The name and the text are static and visible from the first paint.
-- The business card on the home and About pages tilts slightly toward a mouse or pen, with a glare.
+- The business card on the home page tilts slightly toward a mouse or pen, with a glare.
 - Section headings fade up once, over a fixed time, when they first come into view. The Offensys triad reveals
   line by line as it scrolls in.
 - Pages cross-fade between each other where browsers support view transitions.

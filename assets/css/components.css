@@ -519,19 +519,28 @@ pre:not(.chroma) code { color: var(--text); }
 /* ---------- Generic pages (About) ---------- */
 .page { padding-inline: var(--gutter); }
 .page-head { padding-block: clamp(2.5rem, 6vw, 4.5rem) 2rem; }
-.page__grid { display: grid; gap: 3rem clamp(2rem, 6vw, 5rem); align-items: start; }
 .page__body { max-width: var(--measure); font-size: var(--fs-prose); }
-.page__aside { display: grid; gap: 1.5rem; }
-@media (min-width: 64em) {
-  .page__grid--aside { grid-template-columns: minmax(0, var(--measure)) minmax(18rem, 1fr); }
-  .page__aside { position: sticky; top: calc(var(--header-h) + 2rem); }
-}
+/* About: the portrait (the first image of the page) above the text, and from 48em in a column of its own beside
+   it, so the text keeps its full measure from the first line. The social links follow the text. */
+.page--about { --portrait: 11rem; --portrait-gap: clamp(2rem, 4vw, 3.5rem); }
 .page--about .prose > .img-block:first-child {
-  float: right;
-  width: clamp(7rem, 28vw, 11rem);
-  margin: 0.35rem 0 1rem 1.5rem;
+  width: 7.5rem;
+  height: auto;
+  margin: 0 0 1.75rem;
   border: 0;
   border-radius: 50%;
+}
+.page--about .social-text { max-width: var(--measure); margin-top: 1rem; }
+@media (min-width: 48em) {
+  .page--about .page__body {
+    display: grid;
+    grid-template-columns: var(--portrait) minmax(0, var(--measure));
+    column-gap: var(--portrait-gap);
+    max-width: none;
+  }
+  .page--about .prose > * { grid-column: 2; }
+  .page--about .prose > .img-block:first-child { grid-column: 1; grid-row: 1 / span 40; width: 100%; margin: 0.35rem 0 0; }
+  .page--about .social-text { margin-left: calc(var(--portrait) + var(--portrait-gap)); }
 }
 .page--about .prose a[href^="https://github.com/sponsors/"] {
   display: inline-flex;

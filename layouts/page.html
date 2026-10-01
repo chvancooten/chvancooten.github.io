@@ -5,19 +5,15 @@
 {{- $about := eq .RelPermalink (site.GetPage "/about").RelPermalink }}
 <article class="page{{ with .File }} page--{{ .ContentBaseName | urlize }}{{ end }}">
   <header class="page-head">
-    <h1>{{ .Title }}</h1>
+    {{- /* front matter `heading` sets the visible heading where it differs from the title (sentence case). */}}
+    <h1>{{ .Params.heading | default .Title }}</h1>
   </header>
-  <div class="page__grid{{ if $about }} page__grid--aside{{ end }}">
-    <div class="page__body prose" data-post-body>
-      {{ .Content }}
-    </div>
-    {{- if $about }}
-    <aside class="page__aside" aria-label="Contact card">
-      <div class="card-stage">{{ partial "card.html" . }}</div>
-      {{- partial "social-text.html" . }}
-    </aside>
-    {{- end }}
+  <div class="page__body prose" data-post-body>
+    {{ .Content }}
   </div>
+  {{- if $about }}
+  {{- partial "social-text.html" . }}
+  {{- end }}
 </article>
 {{- end }}
 {{ end }}
