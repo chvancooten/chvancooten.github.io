@@ -1,16 +1,11 @@
+{{- /* The title bar. The wordmark's two words (.bw) are where the home page's name lines dock (js/dock.js). */ -}}
+{{- $words := split site.Params.author.name " " }}
+{{- $last := index $words (sub (len $words) 1) }}
+{{- $rest := delimit (first (sub (len $words) 1) $words) " " }}
 <header class="site-header">
   <div class="site-header__inner">
-    <a class="brand" href="{{ site.Home.RelPermalink }}"{{ if .IsHome }} aria-current="page"{{ end }}>{{ site.Params.author.name }}</a>
+    <a class="brand" href="{{ site.Home.RelPermalink }}"{{ if .IsHome }} aria-current="page"{{ end }}>{{ with $rest }}<span class="bw">{{ . }}</span> {{ end }}<span class="bw">{{ $last }}</span></a>
     {{- partial "nav.html" . }}
-    <div class="site-tools">
-      {{- with site.Home.OutputFormats.Get "json" }}
-      <button class="icon-btn search-btn" type="button" data-search-open data-index="{{ .RelPermalink }}" aria-label="Search posts" aria-keyshortcuts="/ Control+K Meta+K">
-        {{- partial "icon.html" "search" }}<kbd aria-hidden="true">/</kbd>
-      </button>
-      {{- end }}
-      <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Switch to light theme">
-        {{- partial "icon.html" "sun" }}{{ partial "icon.html" "moon" -}}
-      </button>
-    </div>
+    {{- partial "tools.html" . }}
   </div>
 </header>

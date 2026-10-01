@@ -9,9 +9,15 @@
   {{- /* The scene: a WebGL2 canvas (added by js/scene) over a designed still, which is what shows without JS or
          WebGL2 and before the scene boots. */}}
   <div class="stage" data-scene aria-hidden="true"></div>
+  {{- /* The landing's own quiet bar (with JS): the same nav and tools as the title bar, which takes over as the
+         name docks into its wordmark (js/dock.js). Only one of the two is ever exposed. */}}
+  <div class="hero-bar">
+    {{- partial "nav.html" . }}
+    {{- partial "tools.html" . }}
+  </div>
   <div class="hero__copy">
     <p class="hero__role">Offensive security enthusiast<span class="hero__sep" aria-hidden="true">·</span><span class="sr-only">, </span><span class="hero__role2">Co-founder of <a href="{{ $company.url }}">{{ $company.name }}</a></span></p>
-    <h1 class="hero__name" id="hero-name"><span>Cas van</span> <span>Cooten</span></h1>
+    <h1 class="hero__name" id="hero-name"><span class="nm"><span>Cas van</span></span> <span class="nm"><span>Cooten</span></span></h1>
     <div class="hero__lede">{{ .Content }}</div>
     <p class="hero__cta">
       <a class="btn btn--primary" href="#contact">Get in touch</a>

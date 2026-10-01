@@ -3,13 +3,39 @@
    the body text, links and cue each sit on a soft cloud (a pseudo-element with a wide shadow) whose core is opaque
    enough that the text keeps 4.5:1 over the brightest pixel of the scene. ---------- */
 
-/* The header over the landing takes no space (the landing runs under it) and has no bar until the content nears
-   it (js/scene/hero.js adds .is-solid); its text gets the same soft clouds as the copy. */
-.kind-home .site-header { margin-bottom: calc(-1 * var(--header-h)); transition: background-color 0.3s var(--ease-out); }
-.js .kind-home .site-header:not(.is-solid) { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
-.js .kind-home .site-header:not(.is-solid) .site-nav a { color: var(--text); }
-.js .kind-home .site-header:not(.is-solid) :is(.brand, .site-nav, .site-tools) { position: relative; }
-.js .kind-home .site-header:not(.is-solid) :is(.brand, .site-nav, .site-tools)::before {
+/* ---------- The title bar on the home page: none over the landing ----------
+   The title bar takes no space here (the landing runs under it). With JS, the landing carries its own quiet bar
+   (.hero-bar: the same nav and tools), which scrolls away with it, and the title bar is hidden (visibility: out of
+   the tab order and the accessibility tree) until the name docks into its wordmark: js/dock.js drives it with CSS
+   scroll timelines where they exist, else inline styles from a rAF loop. Without JS there is no landing bar and the
+   title bar is the usual pinned one. */
+.kind-home .site-header { margin-bottom: calc(-1 * var(--header-h)); }
+.js .kind-home .site-header { visibility: hidden; opacity: 0; transform: translateY(-100%); }
+.js .kind-home .site-header .brand { visibility: hidden; opacity: 0; }
+.dock-measure :is(.hero__name .nm, .site-header, .site-header .brand, .site-header .site-nav) { animation: none !important; transform: none !important; }
+.is-docked .site-header, .is-docked .site-header .brand { visibility: visible; opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  /* no morph: the name stays in the page and scrolls under the bar like everything else; the bar fades in */
+  .js .kind-home .site-header { transform: none; transition: opacity 0.25s ease, visibility 0.25s; }
+  .js .kind-home .site-header .brand { transition: opacity 0.25s ease, visibility 0.25s; }
+}
+
+.hero-bar { display: none; }
+.js .hero-bar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem clamp(0.75rem, 2vw, 1.75rem);
+  min-height: 4rem;
+  padding-inline: var(--gutter);
+}
+.hero-bar .site-nav a { color: var(--text); }
+/* the bar's links and tools sit on soft clouds of the page colour, like the copy, over the scene */
+.hero-bar :is(.site-nav, .site-tools) { position: relative; }
+.hero-bar :is(.site-nav, .site-tools)::before {
   content: "";
   position: absolute;
   inset: 0.2rem -0.4rem;
@@ -18,6 +44,12 @@
   background: rgb(var(--scrim) / 0.88);
   box-shadow: 0 0 2.25rem 1.1rem rgb(var(--scrim) / 0.82);
   pointer-events: none;
+}
+@media (max-width: 31.24em) {
+  /* one row on the landing: the links on the left, the tools on the right (the wordmark only exists docked) */
+  .js .hero-bar { justify-content: space-between; min-height: 3.5rem; }
+  .hero-bar .site-nav { margin-left: -0.35rem; }
+  .hero-bar .site-nav ul { gap: 0.75rem; }
 }
 
 .hero {
@@ -30,11 +62,11 @@
   min-height: 34rem;
   padding: calc(var(--header-h) + 1rem) var(--gutter) 0;
   overflow: clip;
-  isolation: isolate;
 }
 
-/* Layers inside the landing (its own stacking context): the stage, the scrims, the clouds, then all the text, so
-   no cloud ever covers text. */
+/* Layers inside the landing: the stage, the scrims, the clouds, then all the text, so no cloud ever covers text.
+   The landing is not a stacking context of its own (they are in the root's, above the page colour), so the docking
+   name (z-index 30) can rise above the title bar (20). */
 
 /* The stage. Before the scene boots, a soft composition of its colours; without JS or WebGL2, a still of the
    scene at rest (static/scene/). The canvas fades in over either. */
@@ -108,12 +140,17 @@
   line-height: 0.86;
   text-wrap: wrap;
 }
-.hero__name span { display: inline-block; white-space: nowrap; transform-origin: 0 100%; will-change: transform; }
+.hero__name { z-index: 30; }
+/* Each line (.nm) docks into its word of the wordmark (js/dock.js); inside it, the line itself (span) carries the
+   intro's lift and the pointer parallax (js/scene/hero.js). */
+.hero__name .nm { display: inline-block; white-space: nowrap; transform-origin: 50% 50%; will-change: transform, opacity; }
+.hero__name .nm > span { display: inline-block; transform-origin: 0 100%; will-change: transform; }
+@media (prefers-reduced-motion: reduce) { .hero__name { z-index: auto; } }
 /* First paint of a first visit: the name already sits where the intro starts it (transform only, never hidden).
    The scene's first frame takes over; if the script never runs, the name settles by itself. */
 @media (prefers-reduced-motion: no-preference) {
-  [data-intro] .hero__name span { transform: translate3d(0, 0.05em, 0) scale(1.07); animation: name-settle 0.9s 2.6s var(--ease-out) forwards; }
-  [data-intro="settle"] .hero__name span { animation-delay: 0s; }
+  [data-intro] .hero__name .nm > span { transform: translate3d(0, 0.05em, 0) scale(1.07); animation: name-settle 0.9s 2.6s var(--ease-out) forwards; }
+  [data-intro="settle"] .hero__name .nm > span { animation-delay: 0s; }
 }
 @keyframes name-settle { to { transform: none; } }
 .hero__lede { max-width: 31em; font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.3125rem); line-height: 1.55; }

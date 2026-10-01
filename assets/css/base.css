@@ -17,7 +17,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow-x: clip;
-  background: var(--bg);
+  /* No background of its own: html paints the page colour, so the home hero's layers (negative z-index, in the
+     root stacking context so the docking name can rise above the title bar) stay above it. */
   color: var(--text);
   font-family: var(--f-text);
   font-size: var(--fs-body);

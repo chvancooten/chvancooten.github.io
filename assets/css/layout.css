@@ -10,15 +10,25 @@
   text-align: center;
 }
 
-/* Header: wordmark at the left gutter; nav, search and theme toggle at the right. */
+/* The title bar: wordmark at the left gutter; nav, search and theme toggle at the right. Pinned on every page; on
+   the home page it arrives as the hero's name docks into the wordmark (home.css, js/dock.js). Its surface is a
+   pseudo-element, so the bar can fade and slide without its blur. */
 .site-header {
   position: sticky;
   top: 0;
   z-index: 20;
+  view-transition-name: site-header;
+}
+.site-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-bottom: 1px solid var(--hair);
   background: var(--header-bg);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
-  view-transition-name: site-header;
+  pointer-events: none;
 }
 .site-header__inner {
   display: flex;
@@ -31,15 +41,16 @@
   margin-right: auto;
   padding-block: 0.5rem;
   font-family: var(--f-display);
-  font-weight: 700;
-  font-stretch: 96%;
+  font-weight: 800;
+  font-stretch: 90%;
   font-size: 1.125rem;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.042em; /* the name's own setting: the docking name cross-fades into this */
   line-height: 1;
   white-space: nowrap;
   color: var(--text);
   text-decoration: none;
 }
+.brand .bw { display: inline-block; }
 .brand:hover { color: var(--text); }
 
 .site-nav ul {

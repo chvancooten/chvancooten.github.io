@@ -2,11 +2,12 @@
 // - The name is painted from the first frame. On the first visit of a session it starts slightly lifted and
 //   enlarged (CSS, under [data-intro]; transform only, never hidden) and the scene's intro settles it.
 // - The pause control: shown while the scene can loop; the choice lasts for the session.
-// - Scroll: the scene's camera travels with the native scroll position (read, never changed), and the header,
-//   transparent over the landing, turns solid before the content reaches it.
+// - Scroll: the scene's camera travels with the native scroll position (read, never changed).
+// - The title bar: the name docks into it as the hero leaves (../dock.js), whether or not the scene runs.
 // - No WebGL2 (or a failure): html.no-gl, which shows the designed still instead of the canvas.
 import { mount } from "./index.js";
 import { smooth } from "./math.js";
+import { initDock } from "../dock.js";
 
 const root = document.documentElement;
 const PAUSE_KEY = "motion-paused";
@@ -16,8 +17,7 @@ const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const hero = document.querySelector(".hero");
 const stage = hero?.querySelector("[data-scene]");
-const header = document.querySelector(".site-header");
-const names = [...(hero?.querySelectorAll(".hero__name > span") || [])];
+const names = [...(hero?.querySelectorAll(".hero__name .nm > span") || [])];
 const button = hero?.querySelector("[data-motion-toggle]");
 let scene = null, level = 0;
 
@@ -74,12 +74,11 @@ function boot() {
 let scrollRaf = 0;
 function onScroll() {
   scrollRaf = 0;
-  const y = window.scrollY, h = window.innerHeight;
-  scene?.setScroll(y / h);
-  if (header && hero) header.classList.toggle("is-solid", y > hero.offsetHeight - header.offsetHeight * 1.5);
+  scene?.setScroll(window.scrollY / window.innerHeight);
 }
 
 if (hero) {
+  try { initDock(); } catch (err) { console.warn(err); }
   window.addEventListener("scroll", () => { if (!scrollRaf) scrollRaf = requestAnimationFrame(onScroll); }, { passive: true });
   onScroll();
   button?.addEventListener("click", () => {
