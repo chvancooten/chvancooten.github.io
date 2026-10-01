@@ -6,10 +6,15 @@
 # - Same-repo, non-draft PRs not opened by Dependabot: preview at
 #   https://casvancooten.com/pr-preview/pr-<N>/ plus one sticky PR comment.
 # - PR closed (merged or not): pr-preview/pr-<N>/ is removed.
-# - Push to main, or a manual run on main: production deploy to the branch root.
-#   Existing pr-preview/ directories are kept. The deploy is skipped when main
-#   has moved past the commit this run built (for example a re-run of an old
-#   run). Afterwards, previews of PRs that are no longer open are pruned.
+# - Push to main, a manual run on main, or the weekly schedule (which GitHub
+#   runs on main): production deploy to the branch root. Existing pr-preview/
+#   directories are kept. The deploy is skipped when main has moved past the
+#   commit this run built (for example a re-run of an old run). Afterwards,
+#   previews of PRs that are no longer open are pruned.
+# - Every build first refreshes data/talks.toml from the public
+#   chvancooten/conferences repository (scripts/sync_talks.py, read-only
+#   token). A failed sync only warns: the build then uses the committed file.
+#   The weekly run picks up new talks and recordings without a commit here.
 #
 # All writes to gh-pages go through scripts/deploy-gh-pages.sh.
 name: github pages
@@ -26,13 +31,16 @@ on:
       - ready_for_review
       - closed
   workflow_dispatch:
+  schedule:
+    - cron: "23 5 * * 1" # Mondays 05:23 UTC: rebuild and redeploy production with fresh talks
 
 permissions: {}
 
 # One group per PR: a new push cancels the PR's older in-progress run, but a
 # "closed" run never cancels anything, so a deploy in flight finishes before
 # its cleanup. Production has its own group that never cancels a run in
-# progress. Manual runs on other branches get a group per ref.
+# progress (scheduled runs are on main, so they queue there too). Manual runs on
+# other branches get a group per ref.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || (github.ref == 'refs/heads/main' && 'production' || github.ref) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action != 'closed' }}
@@ -84,6 +92,40 @@ jobs:
 
       - name: Configure git for Hugo GitInfo
         run: git config core.quotepath false
+
+      # Speaking: refresh data/talks.toml from chvancooten/conferences. This
+      # step never fails the build: when the sync fails, it warns and the build
+      # uses the committed file. The job summary says whether the synced data
+      # differs from the committed file.
+      - name: Sync talks
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          status=0
+          timeout 180 python3 scripts/sync_talks.py > "$RUNNER_TEMP/sync-talks.out" || status=$?
+          cat "$RUNNER_TEMP/sync-talks.out"
+          if [[ "$status" -ne 0 ]]; then
+            git checkout -- data/talks.toml
+            rm -f data/.talks-*.toml
+            echo "::warning title=Talks sync failed::scripts/sync_talks.py exited with status ${status}. This build uses the committed data/talks.toml."
+            result="The sync failed (exit status ${status}), so this build uses the committed \`data/talks.toml\`."
+          elif git diff --quiet -- data/talks.toml; then
+            result="The synced data is the same as the committed \`data/talks.toml\`."
+          else
+            git --no-pager diff --stat -- data/talks.toml
+            git --no-pager diff -- data/talks.toml
+            read -r added removed _ < <(git diff --numstat -- data/talks.toml) || true
+            result="The synced data differs from the committed \`data/talks.toml\` (+${added} -${removed} lines), and this build uses it. Run \`python3 scripts/sync_talks.py\` and commit the file to keep the repository in step."
+          fi
+          {
+            echo "### Talks sync"
+            echo
+            echo "$result"
+            if [[ "$status" -eq 0 ]]; then
+              echo
+              tail -n 1 "$RUNNER_TEMP/sync-talks.out"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build (production)
         if: github.event_name != 'pull_request'
@@ -181,7 +223,9 @@ jobs:
   deploy-production:
     name: Deploy production
     needs: build
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    if: >-
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+      && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -194,8 +238,9 @@ jobs:
           sparse-checkout: scripts
           persist-credentials: false
 
-      # Re-running an old run (or a manual run after main moved on) must not
-      # publish an older commit over a newer one.
+      # Re-running an old run (or a manual or scheduled run after main moved
+      # on) must not publish an older commit over a newer one. A scheduled run
+      # builds the tip of main when it starts, so the same check holds for it.
       - name: Check that this run built the tip of main
         id: tip
         run: |
