@@ -203,8 +203,39 @@ python3 scripts/sync_talks.py            # set GITHUB_TOKEN to lift the API limi
 It exits 0 when the file is unchanged or updated, and 1 on a fetch or parse error, which leaves the file as it was.
 A folder name with control or bidirectional formatting characters, or with an empty title or event, is a parse
 error. The token is never sent on to a redirect target, and responses over 1 MB are refused.
-Do not edit `data/talks.toml` by hand: the next sync overwrites it. Manual fields go in `data/talks_overrides.toml`,
-one table per folder name:
+Do not edit `data/talks.toml` by hand: the next sync overwrites it.
+
+**Metadata in the conferences repository (`talk.toml`).** A talk folder may hold a `talk.toml`. When it is there,
+its values replace the parsed ones, and the script guesses nothing for that folder. Every key is optional:
+
+```toml
+# <conferences>/2026-06 - The Best Defense Is A Good Offense @ OrangeCon 2026/talk.toml
+title = "The Best Defense Is A Good Offense"
+subtitle = "A Pragmatic Path to Continuous Purple Teaming"
+event = "OrangeCon"                          # without the year
+date = "2026-06"                             # YYYY-MM, ASCII digits
+video = "https://youtu.be/<11-character id>" # https YouTube link, or "" for no recording
+slides = "slides.pdf"                        # a file in this folder, or "" for none
+featured = true                              # always listed on the home page
+```
+
+The rules are the same as for the overrides file: an ASCII date, an https YouTube link (written back in canonical
+form), no control or bidirectional formatting characters, and at most 160 characters for `title`, 120 for `subtitle`
+and 100 for `event`. `subtitle = ""` means no subtitle. `slides` is written to `data/talks.toml` as the file's
+`https://github.com/` URL; the home page does not show it yet. A broken value, or a file that is not valid TOML,
+fails the sync, so CI warns and keeps the committed data. An unknown key is ignored with a warning. With a
+`talk.toml` that gives `date`, `title` and `event`, the folder name does not need to follow the pattern.
+
+**Subtitles without `talk.toml`.** The script looks at the README's first heading, then at the names of the slide
+PDFs (in name order). It removes the `.pdf` extension, a leading date and any event or year suffix
+(` @ Event`, `(Event 2026)`, ` - Event`, ` 2026`). It only takes a subtitle when what is left reads
+`<title><separator><subtitle>`, with the folder's title and a separator of `: `, ` - `, ` | ` or a spaced en or em
+dash. A guess over 120 characters, or one that only repeats the event, is dropped. Without a clean match there is no
+subtitle; nothing is made up. A file name that runs on after the title without a separator (common for PDFs,
+since `:` cannot appear in file names) gives no subtitle; add a `talk.toml` for that talk instead.
+
+**Overrides.** Manual fields go in `data/talks_overrides.toml`, one table per folder name. They win over both the
+folder name and `talk.toml`:
 
 ```toml
 ["2022-08 - Nimbly Navigating a Nimiety of Nimplants @ DC30 Adversary Village"]
@@ -212,11 +243,15 @@ event = "DEF CON 30 Adversary Village"   # replaces the parsed event
 featured = true                          # always listed on the home page
 ```
 
-The fields are `featured`, `title`, `event`, `date` (`"YYYY-MM"`), `url` (an `https://github.com/` URL),
-`livestream`, `video` (a YouTube link as above, or `""` to drop the README's link) and `skip = true` (leaves the
-folder out). A folder whose name does not parse fails the sync until it gets `skip = true`, or `date`, `title` and
-`event` overrides. On the home page, `homeTalks` in `hugo.toml` sets how many rows show; each appearance with a
-recording gets a YouTube link.
+The fields are `featured`, `title`, `subtitle` (`""` drops a found one), `event`, `date` (`"YYYY-MM"`), `url` (an
+`https://github.com/` URL), `livestream`, `video` (a YouTube link as above, or `""` to drop the README's link),
+`slides` (a file in the folder) and `skip = true` (leaves the folder out). A folder whose name does not parse fails
+the sync until it gets `skip = true`, or `date`, `title` and `event` (from `talk.toml` or the overrides).
+
+The script's summary line counts the talks, the recordings and the subtitles by source (`talk.toml`, README, PDF,
+overrides). On the home page, `homeTalks` in `hugo.toml` sets how many rows show. A row shows its subtitle under the
+title (for a talk given at several events in one year, the newest one that has a subtitle), and each appearance with
+a recording gets a YouTube link.
 
 ## Checks
 

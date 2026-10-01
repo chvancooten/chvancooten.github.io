@@ -1,6 +1,6 @@
 {{- /* Speaking list for the home page. A talk given at several events in one year is one row that lists those
-       events; the same talk in another year is a row of its own, under that year. An appearance with a recording
-       (video) gets a link to it.
+       events; the same talk in another year is a row of its own, under that year. A row shows the subtitle of its
+       newest appearance that has one, under the title. An appearance with a recording (video) gets a link to it.
        Pass dict: talks (newest first, from data/talks.toml), cap (rows to show), repo (dict url, description: all
        material). The rows shown: every featured one, then the newest conference talks, then livestreams if there
        is still room, in date order under their years. */ -}}
@@ -15,15 +15,17 @@
   {{- $events := slice }}
   {{- $live := true }}
   {{- $featured := false }}
+  {{- $subtitle := "" }}
   {{- range $.talks }}
     {{- if eq (printf "%s|%s" (substr .date 0 4) .title) $k }}
       {{- $events = $events | append . }}
       {{- if not .livestream }}{{ $live = false }}{{ end }}
       {{- if .featured }}{{ $featured = true }}{{ end }}
+      {{- if and (not $subtitle) .subtitle }}{{ $subtitle = .subtitle }}{{ end }}
     {{- end }}
   {{- end }}
   {{- $first := index $events 0 }}
-  {{- $rows = $rows | append (dict "key" $k "title" $first.title "events" $events "year" (substr $first.date 0 4) "live" $live "featured" $featured) }}
+  {{- $rows = $rows | append (dict "key" $k "title" $first.title "subtitle" $subtitle "events" $events "year" (substr $first.date 0 4) "live" $live "featured" $featured) }}
 {{- end }}
 {{- $pick := slice }}
 {{- range where $rows "featured" true }}{{ $pick = $pick | append .key }}{{ end }}
@@ -44,6 +46,9 @@
         {{- $multi := gt (len .events) 1 }}
         <li class="talk">
           <p class="talk__title"><a href="{{ (index .events 0).url }}">{{ .title }}</a></p>
+          {{- with .subtitle }}
+          <p class="talk__subtitle">{{ . }}</p>
+          {{- end }}
           <ul class="talk__events">
             {{- $title := .title }}
             {{- range .events }}
