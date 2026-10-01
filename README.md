@@ -166,7 +166,9 @@ The particles are accumulated as ink and coverage and composited once (`assets/j
 coverage-weighted mean of the inks, so a dense red region stays red and a dense blue one blue, and two inks only mix
 where they overlap. On dark the result is added to the page, capped a little above each ink's own brightness, so blue
 never washes out to white. On light it is laid over the paper like ink (a mix in OKLab), never subtracted, so nothing
-looks inverted.
+looks inverted. The composite always runs at the canvas's full resolution, also when the particles are drawn at a lower
+render scale (it filters their premultiplied sums up), so the browser never upscales a finished frame, which would mix
+the inks with the paper in sRGB and turn faint red edges peach on light.
 
 The landing's copy stays legible in two ways: the scene darkens itself under the copy (a column on wide screens,
 bands above and below it on narrow ones), and the body text, links and the cue each sit on a soft cloud of the page

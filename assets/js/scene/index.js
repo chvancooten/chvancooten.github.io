@@ -121,7 +121,9 @@ export function mount(container, opts = {}) {
   let ready = false, failed = false, destroyed = false, appended = false;
   let level = clamp(Math.round(+stored || 0), 0, STILL);
   let paused = false;
-  let W = 1, H = 1, dpr = 1, cssW = 1, cssH = 1, aspect = 1;
+  // OW x OH: the canvas (device px); W x H: the render size for the particle passes (the canvas at the level's
+  // render scale), dpr: render px per CSS px
+  let OW = 1, OH = 1, W = 1, H = 1, dpr = 1, cssW = 1, cssH = 1, aspect = 1;
   let raf = 0, last = 0, seeking = false, emptyShown = false;
   let flowT = FLOW_START;
   let introT = opts.intro && !reduced.matches ? 0 : SETTLED;
@@ -131,7 +133,7 @@ export function mount(container, opts = {}) {
   const focus = { x: 1, v: 0, t: 1 };
   const intensity = { x: 1, v: 0, t: 1 };
   const f = {
-    W, H, dpr, light: 0, n: 0, vignette: 0.5, seed: 0, comp: [1, 0],
+    W, H, OW, OH, dpr, light: 0, n: 0, vignette: 0.5, seed: 0, comp: [1, 0],
     bg: new Float32Array(3), inks: new Float32Array(18), glows: new Float32Array(GLOW_SLOTS * 4),
     glowInks: new Float32Array(GLOW_SLOTS * 3), bgMask: newMask(), views: [],
   };
@@ -160,16 +162,18 @@ export function mount(container, opts = {}) {
   function resize() {
     const r = container.getBoundingClientRect();
     const native = window.devicePixelRatio || 1;
-    let nd = (level >= 1 ? Math.min(1, native) : Math.min(2, native)) * SCALE[Math.min(level, STILL - 1)];
+    let nd = level >= 1 ? Math.min(1, native) : Math.min(2, native);
     nd = Math.min(nd, Math.sqrt(MAX_PIXELS / Math.max(1, r.width * r.height)));
-    const w = Math.max(1, Math.round(r.width * nd)), h = Math.max(1, Math.round(r.height * nd));
+    const ow = Math.max(1, Math.round(r.width * nd)), oh = Math.max(1, Math.round(r.height * nd));
+    const sc = SCALE[Math.min(level, STILL - 1)];
+    const w = Math.max(1, Math.round(ow * sc)), h = Math.max(1, Math.round(oh * sc));
     cssW = Math.max(1, r.width);
     cssH = Math.max(1, r.height);
     aspect = cssW / cssH;
-    if (w === W && h === H) return false;
-    W = w; H = h; dpr = W / cssW;
-    canvas.width = W;
-    canvas.height = H;
+    if (w === W && h === H && ow === OW && oh === OH) return false;
+    OW = ow; OH = oh; W = w; H = h; dpr = W / cssW;
+    canvas.width = OW;
+    canvas.height = OH;
     world.layout(1 - smooth(0.62, 1.25, aspect));
     return true;
   }
@@ -181,7 +185,7 @@ export function mount(container, opts = {}) {
     const list = opts.views ? opts.views(env) : [{ id: "hero" }];
     const df = 1 - focus.x, dim = clamp(intensity.x, 0, 1);
     const n = count();
-    f.W = W; f.H = H; f.dpr = dpr; f.n = n;
+    f.W = W; f.H = H; f.OW = OW; f.OH = OH; f.dpr = dpr; f.n = n;
     f.vignette = opts.vignette ? opts.vignette(theme, cssH) : world.vignette[theme];
     f.comp = world.composite[theme];
     f.seed = (ft * 60) % 97;

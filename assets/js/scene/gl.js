@@ -10,7 +10,9 @@
 //    streak is the true screen motion). Depth of field, a sub-pixel fade and depth fog come from the projected depth.
 //    Each view is masked to its own rectangle (feathered inside) and to its composition veils. The particles are
 //    accumulated as premultiplied ink and coverage (the sums of c*a and a), not blended onto the page.
-// 3. Composite: the colour is the coverage-weighted mean of the inks, so a dense red region stays red and a dense
+// 3. Composite, at the canvas's full resolution (the passes above may run at a lower render scale; their premultiplied
+//    sums are filtered up, which keeps the colour mean exact, so the browser never upscales a finished frame and mixes
+//    the inks with the paper in sRGB): the colour is the coverage-weighted mean of the inks, so a dense red region stays red and a dense
 //    blue one stays blue (never orange, never white), and two inks only mix where they overlap. The strength is
 //    1 - exp(-g * coverage). Dark: added to the page, at most (1 + overdrive) times the ink's own brightness, a cap
 //    that keeps blue from washing out to white. Light: laid over the paper like ink (a mix in OKLab), never
@@ -208,6 +210,7 @@ precision highp float;
 uniform sampler2D uAcc;
 uniform sampler2D uBgT;
 uniform vec2 uRes;
+uniform vec2 uOut;
 uniform float uLight;
 uniform float uSeed;
 uniform vec3 uComp;
@@ -221,9 +224,9 @@ vec3 fromLab(vec3 L){
   vec3 m=vec3(L.x+.3963377774*L.y+.2158037573*L.z,L.x-.1055613458*L.y-.0638541728*L.z,L.x-.0894841775*L.y-1.291485548*L.z);m=m*m*m;
   return gam(vec3(dot(m,vec3(4.0767416621,-3.3077115913,.2309699292)),dot(m,vec3(-1.2684380046,2.6097574011,-.3413193965)),dot(m,vec3(-.0041960863,-.7034186147,1.707614701))));}
 void main(){
-  vec2 p=gl_FragCoord.xy;
-  vec3 bg=texture(uBgT,p/uRes).rgb+(fract(sin(dot(p+uSeed,vec2(12.9898,78.233)))*43758.5453)-.5)/170.;
-  vec4 s=texelFetch(uAcc,ivec2(p),0)*uComp.z;
+  vec2 p=gl_FragCoord.xy,u=p/uOut;
+  vec3 bg=texture(uBgT,u).rgb+(fract(sin(dot(p+uSeed,vec2(12.9898,78.233)))*43758.5453)-.5)/170.;
+  vec4 s=texture(uAcc,u)*uComp.z;
   vec3 col=bg;
   if(s.a>1e-4){
     vec3 ink=s.rgb/s.a;
@@ -306,7 +309,8 @@ export function createRenderer(gl, world) {
     return state;
   }
 
-  // The two render targets: the background (a quarter of the size, filtered) and the accumulation buffer.
+  // The two render targets, at the render size: the background (a quarter of it) and the accumulation buffer, both
+  // filtered (half-float textures are filterable in WebGL2).
   function target(i, w, h, internal, type, filter) {
     if (!tex[i]) { tex[i] = gl.createTexture(); fbs[i] = gl.createFramebuffer(); }
     gl.bindTexture(gl.TEXTURE_2D, tex[i]);
@@ -322,7 +326,7 @@ export function createRenderer(gl, world) {
     if (W === aw && H === ah) return;
     aw = W; ah = H;
     target(0, Math.ceil(W / BGS), Math.ceil(H / BGS), gl.RGBA8, gl.UNSIGNED_BYTE, gl.LINEAR);
-    target(1, W, H, floatOK ? gl.RGBA16F : gl.RGBA8, floatOK ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE, gl.NEAREST);
+    target(1, W, H, floatOK ? gl.RGBA16F : gl.RGBA8, floatOK ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE, gl.LINEAR);
   }
 
   // m: { only, n, rects (Float32Array 32), feather (Float32Array 8), veil (4), veil2 (4) }, in device pixels.
@@ -388,7 +392,7 @@ export function createRenderer(gl, world) {
     }
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.viewport(0, 0, f.W, f.H);
+    gl.viewport(0, 0, f.OW, f.OH);
     gl.disable(gl.BLEND);
     const C = P.comp;
     gl.useProgram(C.p);
@@ -399,7 +403,7 @@ export function createRenderer(gl, world) {
     gl.bindTexture(gl.TEXTURE_2D, tex[0]);
     gl.uniform1i(C.u.uBgT, 1);
     gl.activeTexture(gl.TEXTURE0);
-    gl.uniform2f(C.u.uRes, f.W, f.H);
+    gl.uniform2f(C.u.uOut, f.OW, f.OH);
     gl.uniform1f(C.u.uLight, f.light);
     gl.uniform1f(C.u.uSeed, f.seed);
     gl.uniform3f(C.u.uComp, f.comp[0], f.comp[1], 1 / accS);
