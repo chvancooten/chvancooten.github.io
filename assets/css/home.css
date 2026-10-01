@@ -13,7 +13,7 @@
 .js .kind-home .site-header { visibility: hidden; opacity: 0; transform: translateY(-100%); }
 .js .kind-home .site-header .brand { visibility: hidden; opacity: 0; }
 .dock-measure :is(.hero__name .nm, .site-header, .site-header .brand, .site-header .site-nav) { animation: none !important; transform: none !important; }
-.is-docked .site-header, .is-docked .site-header .brand { visibility: visible; opacity: 1; transform: none; }
+html.js.is-docked .kind-home :is(.site-header, .site-header .brand) { visibility: visible; opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   /* no morph: the name stays in the page and scrolls under the bar like everything else; the bar fades in */
   .js .kind-home .site-header { transform: none; transition: opacity 0.25s ease, visibility 0.25s; }

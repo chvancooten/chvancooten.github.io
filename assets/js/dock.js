@@ -41,15 +41,18 @@ export function initDock() {
     root.classList.add("dock-measure");
     const sy = window.scrollY;
     const hr = hero.getBoundingClientRect();
-    const box = (el, page) => {
+    // the name's lines in page coordinates; the wordmark's words where the bar sits once it is pinned (top: 0),
+    // whatever is above it now (the preview banner, at the top of the page)
+    const pin = header.getBoundingClientRect().top - (parseFloat(getComputedStyle(header).top) || 0);
+    const box = (el, dy) => {
       const r = el.getBoundingClientRect();
-      return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 + (page ? sy : 0), fs: parseFloat(getComputedStyle(el).fontSize) };
+      return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 + dy, fs: parseFloat(getComputedStyle(el).fontSize) };
     };
     G = {
       heroTop: hr.top + sy,
       heroH: Math.max(1, hr.height),
-      src: lines.map((el) => box(el, true)),
-      dst: words.map((el) => box(el, false)),
+      src: lines.map((el) => box(el, sy)),
+      dst: words.map((el) => box(el, -pin)),
       narrow: window.innerWidth < 960,
     };
     const br = brand.getBoundingClientRect(), nr = barNav ? barNav.getBoundingClientRect() : null;
