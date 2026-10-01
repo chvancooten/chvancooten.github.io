@@ -158,6 +158,18 @@ export function initSearch() {
   dialog.addEventListener("click", (e) => {
     if (e.target === dialog) dialog.close();
   });
+  // A modal <dialog> makes the page inert, but Tab past its last control still leaves for the browser's toolbar.
+  // Wrap between the first and the last control instead (the result options are not tab stops).
+  dialog.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab" || e.altKey || e.ctrlKey || e.metaKey) return;
+    const stops = [...dialog.querySelectorAll("input, button, a[href], [tabindex]")].filter((el) => el.tabIndex >= 0 && !el.disabled);
+    if (!stops.length) return;
+    const first = stops[0], last = stops[stops.length - 1], at = document.activeElement;
+    if (e.shiftKey ? at === first || !dialog.contains(at) : at === last) {
+      e.preventDefault();
+      (e.shiftKey ? last : first).focus();
+    }
+  });
   input.addEventListener("input", render);
   input.addEventListener("keydown", (e) => {
     const n = options.length;
