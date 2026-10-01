@@ -459,16 +459,17 @@ pre:not(.chroma) code { color: var(--text); }
   .pager__link--newer { grid-column: 2; text-align: right; }
 }
 
-/* ---------- Business card (home contact, About): a card you can save ---------- */
+/* ---------- Business card (home contact): a card you can save ---------- */
+/* Business-card proportions (3.5 x 2 in). The card does not clip, so on a narrow screen it grows taller rather than
+   cut its content off; the glare clips itself to the rounded corners. */
 .card-stage { perspective: 1200px; }
 .card {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: min(36rem, 100%);
-  aspect-ratio: 1.62 / 1;
-  padding: clamp(1.25rem, 3vw, 2.25rem);
-  overflow: hidden;
+  width: min(28rem, 100%);
+  aspect-ratio: 1.75 / 1;
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
   border: 1px solid var(--card-edge);
   border-radius: 18px;
   background: var(--card-bg);
@@ -479,6 +480,7 @@ pre:not(.chroma) code { color: var(--text); }
   position: absolute;
   inset: 0;
   z-index: 2;
+  border-radius: inherit;
   opacity: var(--glare, 0);
   background: radial-gradient(340px circle at var(--gx, 50%) var(--gy, 30%), rgb(255 255 255 / 0.12), transparent 60%);
   mix-blend-mode: screen;
@@ -492,7 +494,7 @@ pre:not(.chroma) code { color: var(--text); }
   font-family: var(--f-display);
   font-weight: 800;
   font-stretch: 86%;
-  font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.9rem);
+  font-size: clamp(1.625rem, 1.2rem + 1.4vw, 2.25rem);
   letter-spacing: -0.03em;
   line-height: 1;
   color: var(--text);
@@ -513,9 +515,6 @@ pre:not(.chroma) code { color: var(--text); }
   font-size: var(--fs-sm);
 }
 .card__save { min-height: 2.5rem; padding-inline: 1rem; font-size: 0.9375rem; }
-@media (max-width: 25em) {
-  .card { aspect-ratio: auto; min-height: 13rem; }
-}
 
 /* ---------- Generic pages (About) ---------- */
 .page { padding-inline: var(--gutter); }

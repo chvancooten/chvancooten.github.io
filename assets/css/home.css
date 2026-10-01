@@ -232,7 +232,6 @@
 .copy-btn { min-height: 2.25rem; padding: 0 0.85rem; font-size: 0.875rem; font-weight: 500; }
 .contact .social-text { margin-top: 2rem; }
 .contact .card-stage { display: flex; justify-content: flex-end; }
-.contact .card { width: min(40rem, 100%); }
 @media (max-width: 61.99em) {
   .contact { grid-template-columns: 1fr; }
   .contact .card-stage { justify-content: flex-start; }
