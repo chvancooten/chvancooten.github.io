@@ -1,58 +1,63 @@
 # Conference talks and workshops, newest first.
 # Generated from the directory names in https://github.com/chvancooten/conferences; edit freely.
+# event: the event without its year (the date gives it). livestream = true: listed on the home page only when there
+# is room. featured = true: always listed on the home page.
 
 [[talks]]
 date = "2026-06"
 title = "The Best Defense Is A Good Offense"
-event = "OrangeCon 2026"
+event = "OrangeCon"
 url = "https://github.com/chvancooten/conferences/tree/main/2026-06%20-%20The%20Best%20Defense%20Is%20A%20Good%20Offense%20%40%20OrangeCon%202026"
 
 [[talks]]
 date = "2026-06"
 title = "The Best Defense Is A Good Offense"
-event = "X33fcon 2026"
+event = "x33fcon"
 url = "https://github.com/chvancooten/conferences/tree/main/2026-06%20-%20The%20Best%20Defense%20Is%20A%20Good%20Offense%20%40%20X33fcon%202026"
 
 [[talks]]
 date = "2024-09"
 title = "Offensive Development in Modern Languages"
-event = "OrangeCon 2024"
+event = "OrangeCon"
 url = "https://github.com/chvancooten/conferences/tree/main/2024-09%20-%20Offensive%20Development%20in%20Modern%20Languages%20%40%20OrangeCon%202024"
 
 [[talks]]
 date = "2024-08"
 title = "Nimplant"
-event = "Black Hat Arsenal 2024"
+event = "Black Hat Arsenal"
 url = "https://github.com/chvancooten/conferences/tree/main/2024-08%20-%20Nimplant%20%40%20Black%20Hat%20Arsenal%202024"
 
 [[talks]]
 date = "2023-05"
 title = "MalDev for Dummies"
-event = "X33fcon"
+event = "x33fcon"
 url = "https://github.com/chvancooten/conferences/tree/main/2023-05%20-%20MalDev%20for%20Dummies%20%40%20X33fcon"
 
 [[talks]]
 date = "2023-03"
 title = "Malware Development with Nim"
 event = "Prelude livestream"
+livestream = true
 url = "https://github.com/chvancooten/conferences/tree/main/2023-03%20-%20Malware%20Development%20with%20Nim%20%40%20Prelude%20livestream"
 
 [[talks]]
 date = "2023-03"
 title = "Nim for Adversarial Operations"
 event = "Adversary Village #adversaryguru livestream"
+livestream = true
 url = "https://github.com/chvancooten/conferences/tree/main/2023-03%20-%20Nim%20for%20Adversarial%20Operations%20%40%20Adversary%20Village%20%23adversaryguru%20livestream"
 
 [[talks]]
 date = "2022-08"
 title = "Nimbly Navigating a Nimiety of Nimplants"
-event = "DC30 Adversary Village"
+event = "DEF CON 30 Adversary Village"
+featured = true
 url = "https://github.com/chvancooten/conferences/tree/main/2022-08%20-%20Nimbly%20Navigating%20a%20Nimiety%20of%20Nimplants%20%40%20DC30%20Adversary%20Village"
 
 [[talks]]
 date = "2022-07"
 title = "BYOT Build Your Own Tools for Fun & Profit"
-event = "X33fcon"
+event = "x33fcon"
 url = "https://github.com/chvancooten/conferences/tree/main/2022-07%20-%20BYOT%20Build%20Your%20Own%20Tools%20for%20Fun%20%26%20Profit%20%40%20X33fcon"
 
 [[talks]]

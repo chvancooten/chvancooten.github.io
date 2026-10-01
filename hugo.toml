@@ -50,7 +50,8 @@ copyright     = "CC BY-NC 4.0"
   homeTitle   = "Offensive security, red teaming and tooling"
   images      = ["preview.png"]
   imageAlt    = "Cas van Cooten, red teamer and co-founder of Offensys, beside a flow field of red and blue currents swirling into purple"
-  # Home page: how many talks (repeat talks grouped into one row) the Speaking list shows.
+  # Home page: how many rows the Speaking list shows (a talk given at several events in one year is one row;
+  # featured talks always show, livestreams only when there is room; see data/talks.toml).
   homeTalks   = 6
   repoURL     = "https://github.com/chvancooten/chvancooten.github.io"
   commitURL   = "https://github.com/chvancooten/chvancooten.github.io/commit/"

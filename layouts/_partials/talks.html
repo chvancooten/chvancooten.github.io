@@ -1,15 +1,38 @@
-{{- /* Speaking list for the home page. Repeat talks (same title) become one row that lists every event.
-       Pass dict: talks (newest first), cap (rows to show), repo (dict url, description: all material). */ -}}
+{{- /* Speaking list for the home page. A talk given at several events in one year is one row that lists those
+       events; the same talk in another year is a row of its own, under that year.
+       Pass dict: talks (newest first, from data/talks.toml), cap (rows to show), repo (dict url, description: all
+       material). The rows shown: every featured one, then the newest conference talks, then livestreams if there
+       is still room, in date order under their years. */ -}}
+{{- $keys := slice }}
+{{- range .talks }}
+  {{- $k := printf "%s|%s" (substr .date 0 4) .title }}
+  {{- if not (in $keys $k) }}{{ $keys = $keys | append $k }}{{ end }}
+{{- end }}
+{{- $rows := slice }}
+{{- range $keys }}
+  {{- $k := . }}
+  {{- $events := slice }}
+  {{- $live := true }}
+  {{- $featured := false }}
+  {{- range $.talks }}
+    {{- if eq (printf "%s|%s" (substr .date 0 4) .title) $k }}
+      {{- $events = $events | append . }}
+      {{- if not .livestream }}{{ $live = false }}{{ end }}
+      {{- if .featured }}{{ $featured = true }}{{ end }}
+    {{- end }}
+  {{- end }}
+  {{- $first := index $events 0 }}
+  {{- $rows = $rows | append (dict "key" $k "title" $first.title "events" $events "year" (substr $first.date 0 4) "live" $live "featured" $featured) }}
+{{- end }}
+{{- $pick := slice }}
+{{- range where $rows "featured" true }}{{ $pick = $pick | append .key }}{{ end }}
+{{- range where (where $rows "featured" false) "live" false }}{{ if lt (len $pick) $.cap }}{{ $pick = $pick | append .key }}{{ end }}{{ end }}
+{{- range where (where $rows "featured" false) "live" true }}{{ if lt (len $pick) $.cap }}{{ $pick = $pick | append .key }}{{ end }}{{ end }}
+{{- $shown := where $rows "key" "in" $pick }}
+{{- $years := slice }}
+{{- range $shown }}{{ if not (in $years .year) }}{{ $years = $years | append .year }}{{ end }}{{ end }}
 {{- $titles := slice }}
 {{- range .talks }}{{ if not (in $titles .title) }}{{ $titles = $titles | append .title }}{{ end }}{{ end }}
-{{- $rows := slice }}
-{{- range $titles }}
-  {{- $events := where $.talks "title" . }}
-  {{- $rows = $rows | append (dict "title" . "events" $events "year" (substr (index $events 0).date 0 4)) }}
-{{- end }}
-{{- $rows = first .cap $rows }}
-{{- $years := slice }}
-{{- range $rows }}{{ if not (in $years .year) }}{{ $years = $years | append .year }}{{ end }}{{ end }}
 <section class="sec speaking" aria-labelledby="speaking-title">
   <div class="sec-head"><h2 class="sec-title" id="speaking-title" data-reveal>Speaking</h2></div>
   <ol class="years">
@@ -18,13 +41,14 @@
     <li class="year">
       <h3 class="year__num">{{ $y }}</h3>
       <ul class="talks">
-        {{- range where $rows "year" $y }}
+        {{- range where $shown "year" $y }}
         {{- $multi := gt (len .events) 1 }}
         <li class="talk">
           <p class="talk__title"><a href="{{ (index .events 0).url }}">{{ .title }}</a></p>
           <ul class="talk__events">
             {{- range .events }}
-            {{- $when := (time.AsTime (printf "%s-01" .date)).Format "Jan 2006" }}
+            {{- /* The year heads the group, so the date shows the month only. */}}
+            {{- $when := (time.AsTime (printf "%s-01" .date)).Format "January" }}
             <li>{{ if $multi }}<a href="{{ .url }}">{{ .event }}</a>{{ else }}{{ .event }}{{ end }}<span class="talk__sep" aria-hidden="true"> · </span><span class="sr-only">, </span><time datetime="{{ .date }}">{{ $when }}</time></li>
             {{- end }}
           </ul>
