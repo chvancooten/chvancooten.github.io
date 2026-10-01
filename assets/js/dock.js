@@ -13,7 +13,7 @@
 // - Narrow screens, where the title bar's nav has a row of its own under the wordmark ("stacked"): the docking name
 //   would cross that row, so the bar fades in place and its nav row appears only once the name has docked.
 // - Reduced motion: no morph; the bar and the wordmark fade in once the name has scrolled away.
-import { clamp, smooth } from "./scene/math.js";
+import { clamp, mix, smooth } from "./scene/math.js";
 import { reducedMotion as reduced } from "./util.js";
 
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
@@ -71,15 +71,28 @@ export function initDock() {
     paint();
   }
 
-  // The states at progress p (scroll from the hero's top, as a fraction of its height).
+  // The states at progress p (scroll from the hero's top, as a fraction of its height). The first line travels to
+  // the first word (e) while the name shrinks (k). Each later line keeps its place beside or under the first as a
+  // layout that shrinks with the glyphs: its offset is k times an offset at full size that moves from the landing's
+  // layout to the wordmark's (the docked offset over the docked scale), first sideways (ex), then up into the row
+  // (ey). Both of those full-size layouts and the path between them (sideways while still a line apart, up once
+  // beside) are clear of the first line, so at any scale the lines never touch.
   function at(p) {
     const y = p * G.heroH;
-    const e = ease(clamp((p - G.r0) / (G.r1 - G.r0), 0, 1));
+    const u = clamp((p - G.r0) / (G.r1 - G.r0), 0, 1);
+    const e = ease(u), ex = ease(clamp(u / 0.6, 0, 1)), ey = smooth(0.6, 1, u);
+    const s0 = G.src[0], d0 = G.dst[0];
+    const top0 = s0.cy - G.heroTop - y; // the first line's centre on screen, undocked
+    const cx0 = s0.cx + e * (d0.cx - s0.cx), cy0 = top0 + e * (d0.cy - top0);
     const nm = G.src.map((s, i) => {
-      const d = G.dst[i];
-      const k = 1 + (d.fs / s.fs - 1) * e;
-      const tx = e * (d.cx - s.cx);
-      const ty = e * (d.cy - (s.cy - G.heroTop - y));
+      const d = G.dst[i], r = d.fs / s.fs;
+      const k = 1 + (r - 1) * e;
+      let cx = cx0, cy = cy0;
+      if (i) {
+        cx += k * mix(s.cx - s0.cx, (d.cx - d0.cx) / r, ex);
+        cy += k * mix(s.cy - s0.cy, (d.cy - d0.cy) / r, ey);
+      }
+      const tx = cx - s.cx, ty = cy - (s.cy - G.heroTop - y);
       return { t: `translate3d(${tx.toFixed(2)}px,${ty.toFixed(2)}px,0) scale(${k.toFixed(5)})`, o: 1 - smooth(G.f0, G.f1, p) };
     });
     // the role line gives way as the name rises into the bar (opacity only)
@@ -91,7 +104,7 @@ export function initDock() {
   function build() {
     if (!cssMode || reduced.matches) { style.textContent = ""; return; }
     const ps = new Set([0, G.r0, G.f0, G.f1, G.r1, 1]);
-    for (let i = 0; i <= 36; i++) ps.add(G.r0 + ((G.f1 - G.r0) * i) / 36);
+    for (let i = 0; i <= 72; i++) ps.add(G.r0 + ((G.f1 - G.r0) * i) / 72);
     const offs = [...ps].filter((p) => p >= 0 && p <= 1).sort((a, b) => a - b);
     const pc = (p) => `${(p * 100).toFixed(3)}%`;
     const tl = `${TIMELINE};animation-range:${Math.round(G.heroTop)}px ${Math.round(G.heroTop + G.heroH)}px`;

@@ -188,7 +188,8 @@ on the real clock, so a slow device still plays the intro in about 3 s.
 
 **The title bar.** There is no bar over the landing: the hero carries its own quiet bar with the same nav and tools
 (both come from `layouts/_partials/nav.html` and `tools.html`, so they always match). As the hero scrolls away, each
-line of the name moves and shrinks into its word of the title bar's wordmark and cross-fades into it, while the bar's
+line of the name moves and shrinks into its word of the title bar's wordmark (the second line first slides out
+beside the first, then rises into the row, so the two never touch) and cross-fades into it, while the bar's
 surface slides in underneath; scrolling back reverses it (`assets/js/dock.js`). Where the browser has CSS
 scroll-driven animations, this is pure CSS (keyframes generated from the measured geometry, on a scroll timeline);
 elsewhere a `requestAnimationFrame` loop applies the same states. Only one of the two navs is exposed at any time.
