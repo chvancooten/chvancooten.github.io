@@ -6,12 +6,14 @@
 // - It stops when offscreen or when the tab is hidden, caps the pixel ratio at 2, draws one still frame under
 //   reduced motion or when paused (the pause choice lasts for the session), and plays its intro gesture, a line
 //   unfurling into the two currents, at most once per session.
+// - It lowers its own quality, down to the still, where frames are too slow (see QUALITY).
 import { createField, step, warm, setIntro, introY, BUCKETS, LEVELS, K } from "./sim.js";
 
 const root = document.documentElement;
 const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
 const PAUSE_KEY = "motion-paused";
 const INTRO_KEY = "field-intro";
+const QUALITY_KEY = "field-quality";
 const INTRO_MS = 700;
 
 // Trail bands, head to tail: [first point, last point, point stride, alpha, width]; the trail tapers from its head to
@@ -23,6 +25,17 @@ const INTRO_MS = 700;
 //   head (dark only) is one chord per particle; the trails curve so gently that neither shows.
 const BANDS = [[0, 3, 1, 0.625, 1], [3, 6, 1, 0.32, 1], [6, 9, 2, 0.17, 1], [9, K, 2, 0.07, 1]];
 const GLOW = [0, 3, 3, 0.06, 3.5];
+// The reduced set (quality level 2): one strided tail band for the two, the same overall taper.
+const LOW_BANDS = [BANDS[0], BANDS[1], [6, K, 3, 0.12, 1]];
+
+// QUALITY: where 2D canvas is rastered in software (VMs, remote desktops, blocklisted GPUs) a frame can take longer
+// than the display allows, and the main thread stays busy. Over each window of SAMPLES frames the field takes the
+// median interval between frames and the median time each frame keeps the main thread busy (the callback through
+// the rendering update, marked by a message posted from the callback). When both are slow, it steps down a level:
+// 1, a pixel ratio of 1; 2, half the particles, the lighter bands and no glow; 3, the still frame. Requiring the
+// busy time too keeps a browser that caps animations at 30 fps to save power from looking slow. The level lasts
+// for the session, so the next page starts where this one ended up.
+const SLOW_INTERVAL = 25, SLOW_BUSY = 20, SAMPLES = 30, SETTLE = 10;
 // Edge fades as gradient stops along x and y: "side" (beside the copy, a long ramp toward it) and "band" (below the
 // copy, short ramps on every side). The same ramps are baked into the stills (still.mjs).
 const FADES = {
@@ -71,6 +84,8 @@ function mount(host) {
   const button = scope.querySelector("[data-motion-toggle]");
 
   let f = null, w = 0, h = 0, dpr = 1, band = false;
+  let level = Math.min(3, Math.max(0, +storage((s) => s.getItem(QUALITY_KEY)) || 0));
+  host.dataset.quality = level;
   let mask = null, maskRects = [], raf = 0, last = 0, onScreen = true, live = false;
   let introStart = -1;
   const inks = { rgb: new Array(BUCKETS).fill("0,0,0"), blend: "lighter", dark: true };
@@ -97,9 +112,10 @@ function mount(host) {
     styles = strokeStyles(1);
   }
 
+  const bands = () => (level >= 2 ? LOW_BANDS : BANDS);
   function strokeStyles(fade) {
     const a = fade * mode.alpha * (inks.dark ? 1.3 : 1.75);
-    return inks.rgb.map((rgb) => [...BANDS, GLOW].map((band) => `rgba(${rgb},${(band[3] * a).toFixed(3)})`));
+    return inks.rgb.map((rgb) => [...bands(), GLOW].map((band) => `rgba(${rgb},${(band[3] * a).toFixed(3)})`));
   }
 
   // The edge fade, drawn once per size: a long ramp on the side facing the copy, short ones elsewhere. It is kept
@@ -135,17 +151,17 @@ function mount(host) {
     maskRects = [[0, 0, x0, H], [x1, 0, W - x1, H], [x0, 0, x1 - x0, y0], [x0, y1, x1 - x0, H - y1]].filter(([, , rw, rh]) => rw > 0 && rh > 0);
   }
 
-  function layout() {
+  function layout(force = false) {
     const r = host.getBoundingClientRect();
     const nw = Math.max(1, Math.round(r.width)), nh = Math.max(1, Math.round(r.height));
-    const ndpr = Math.min(2, window.devicePixelRatio || 1);
-    if (f && nw === w && nh === h && ndpr === dpr) return false;
+    const ndpr = level >= 1 ? 1 : Math.min(2, window.devicePixelRatio || 1);
+    if (f && !force && nw === w && nh === h && ndpr === dpr) return false;
     w = nw; h = nh; dpr = ndpr;
     // "band" (own band below the copy, fades on all sides) or "side" (beside the copy, long fade toward it).
     band = getComputedStyle(host).getPropertyValue("--field-layout").trim() === "band";
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
-    f = createField(w, h, { seed: 7, density: mode.density, speed: mode.speed });
+    f = createField(w, h, { seed: 7, density: level >= 2 ? mode.density / 2 : mode.density, speed: mode.speed });
     warm(f);
     buildMask();
     return true;
@@ -198,13 +214,14 @@ function mount(host) {
     ctx.lineCap = "butt"; // a drained (zero-length) trail draws nothing
     ctx.lineJoin = "round";
     const st = fade === 1 ? styles : strokeStyles(fade); // the intro fades in; after it, no strings per frame
-    const glow = inks.dark && fade === 1; // a faint, wide pass under the newest segments gives the dark field depth
+    // A faint, wide pass under the newest segments gives the dark field depth.
+    const glow = inks.dark && fade === 1 && level < 2, set = bands();
     sortByBucket();
     for (let b = 0; b < BUCKETS; b++) {
       const from = counts[b], to = counts[b + 1];
       if (from === to) continue;
-      if (glow) stroke(st[b][BANDS.length], GLOW, from, to);
-      for (let k = 0; k < BANDS.length; k++) stroke(st[b][k], BANDS[k], from, to);
+      if (glow) stroke(st[b][set.length], GLOW, from, to);
+      for (let k = 0; k < set.length; k++) stroke(st[b][k], set[k], from, to);
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalCompositeOperation = "destination-out";
@@ -220,11 +237,38 @@ function mount(host) {
     }
   }
 
-  const running = () => !reduced.matches && !isPaused();
+  const running = () => !reduced.matches && !isPaused() && level < 3;
   const allowed = () => running() && onScreen && !document.hidden;
+
+  // Frame timing for QUALITY: intervals between frames and busy time per frame, a window at a time.
+  const intervals = new Float32Array(SAMPLES), busy = new Float32Array(SAMPLES);
+  let sampled = 0, settle = SETTLE, frameStart = 0, busyAt = 0;
+  const done = new MessageChannel();
+  done.port1.onmessage = () => { busy[busyAt] = performance.now() - frameStart; busyAt = (busyAt + 1) % SAMPLES; };
+  const median = (a) => { a.sort(); return a[SAMPLES >> 1]; };
+  function sample(interval) {
+    if (introStart >= 0) { settle = SETTLE; return; } // judge the field, not its intro
+    if (settle > 0) { settle--; return; }
+    intervals[sampled++] = interval;
+    if (sampled < SAMPLES) return;
+    sampled = 0;
+    if (median(intervals) > SLOW_INTERVAL && median(busy) > SLOW_BUSY) lower();
+  }
+  function lower() {
+    level = level === 0 && Math.min(2, window.devicePixelRatio || 1) <= 1 ? 2 : level + 1;
+    storage((s) => s.setItem(QUALITY_KEY, String(level)));
+    host.dataset.quality = level;
+    settle = SETTLE;
+    if (level >= 3) { stop(); syncButton(); still(); return; }
+    layout(true);
+    styles = strokeStyles(1);
+  }
 
   function tick(now) {
     raf = 0;
+    frameStart = performance.now();
+    if (last) sample(now - last);
+    if (level >= 3) return; // fell back to the still
     const dt = Math.min(0.05, last ? (now - last) / 1000 : 1 / 60);
     last = now;
     let fade = 1;
@@ -243,11 +287,12 @@ function mount(host) {
     }
     step(f, dt, pointer);
     draw(fade);
+    done.port2.postMessage(0); // arrives after this frame's rendering update
     if (allowed()) raf = requestAnimationFrame(tick);
     else last = 0;
   }
   let booted = false;
-  const start = () => { if (booted && !raf && allowed()) raf = requestAnimationFrame(tick); };
+  const start = () => { if (booted && !raf && allowed()) { settle = SETTLE; sampled = 0; raf = requestAnimationFrame(tick); } };
   const stop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; last = 0; };
 
   // One settled, static frame (reduced motion, paused, or a repaint while not running).
@@ -260,7 +305,7 @@ function mount(host) {
   function syncButton() {
     if (!button) return;
     const paused = isPaused();
-    button.hidden = reduced.matches;
+    button.hidden = reduced.matches || level >= 3;
     button.toggleAttribute("data-paused", paused);
     button.querySelector("span").textContent = paused ? "Play motion" : "Pause motion";
   }
