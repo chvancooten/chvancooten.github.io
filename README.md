@@ -112,14 +112,18 @@ only add the search palette, theme toggle, copy buttons, TOC highlighting, the c
 
 ## Design
 
-**Colours.** [Rosé Pine](https://rosepinetheme.com) (MIT licence): Main for the dark default, Dawn for light. The tokens
-in `assets/css/tokens.css` are the official colours, except a few whose lightness moved so every text pair passes WCAG
-AA (4.5:1) on the surface it sits on; those are marked "adj." in the file. Love (rose-red) is the accent and iris
-(purple) the second accent.
+**Colours.** [Flexoki](https://stephango.com/flexoki) by Steph Ango ([kepano/flexoki](https://github.com/kepano/flexoki),
+MIT licence), dark and light: black and base tones on dark, paper on light. The tokens in `assets/css/tokens.css` are
+the official colours, except a few whose OKLCH lightness moved, by the smallest step, so every pair passes WCAG AA on
+the surfaces it is used on (4.5:1 for text, 3:1 for borders, controls and the large star counts); those are marked
+"adj." in the file. Red is the accent and purple the second accent. The hero scene still uses its own inks for now
+(they are being reworked); its background follows the page.
 
-**Code.** `assets/css/syntax.css` maps Chroma's token classes (from `hugo gen chromastyles --style=rose-pine` and
-`--style=rose-pine-dawn`, which share one role mapping) to role variables. `tokens.css` sets the role colours per
-theme, lightened or darkened to at least 4.6:1 on the code background, comments included.
+**Code.** Hugo's Chroma has no Flexoki style, so `assets/css/syntax.css` maps Chroma's token classes onto Flexoki's own
+syntax roles (keywords green, strings cyan, functions orange, variables and attributes blue, numbers purple, constants
+and types yellow, imports red, language features magenta, punctuation and comments in the base tones; comments in
+italics). `tokens.css` sets the role colours per theme: the 400 shades on dark and the 600 shades on light, lightened or
+darkened to at least 4.5:1 on the code background and on a highlighted line.
 
 **Type.** All fonts are self-hosted latin subsets under the SIL Open Font License, 135 KB in total, with
 metric-matched fallback faces so the swap does not move the layout:
@@ -139,7 +143,7 @@ love (the red team) and foam (the blue team). They sweep in from far away as wid
 and turn iris, the purple of both, where they meet. The scene is raw WebGL2 with no library (`assets/js/scene/`,
 about 10 KB gzip): every particle is computed in the vertex shader from its id and the time, so there are no vertex
 buffers, and a frame is a few uniforms and three draw calls. Heads streak with their true screen motion, and depth
-of field, depth fog and short trails give the depth. On Dawn the inks are taken away from the paper, like ink; on
+of field, depth fog and short trails give the depth. On the light theme the inks are taken away from the paper, like ink; on
 dark they add up like light. The script only loads on the home page.
 
 The body text, links and the cue into the content each sit on a soft cloud of the background colour, so they keep
@@ -300,4 +304,4 @@ without waiting for the next Monday.
 ## Licence
 
 Content is licensed [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). The fonts are under the SIL Open
-Font License (see `static/fonts/`). The Rosé Pine palette is MIT licensed.
+Font License (see `static/fonts/`). The Flexoki palette is MIT licensed.

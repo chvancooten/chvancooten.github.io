@@ -99,35 +99,37 @@
   line-gap-override: 0%;
 }
 
-/* Colours: Rosé Pine (MIT, https://rosepinetheme.com). Main is the dark default, Dawn is light.
-   Values marked "adj." are the official colour with only its lightness moved, so every text pair
-   passes WCAG AA (4.5:1) on the surfaces it is used on. */
+/* Colours: Flexoki (MIT, kepano/flexoki, https://stephango.com/flexoki), dark and light. Values marked "adj." are the
+   official colour with only its OKLCH lightness moved, by the smallest step that passes WCAG AA on the surfaces it is
+   used on (4.5:1 for text, 3:1 for borders, controls and large numerals); the names are Flexoki's. */
 :root {
   color-scheme: dark;
-  --bg: #191724;          /* base */
-  --bg-2: #1f1d2e;        /* surface: code, cards, boxes */
-  --bg-3: #26233a;        /* overlay: hover fills, never behind muted text */
-  --text: #e0def4;        /* text, 13.4:1 */
-  --text-2: #908caa;      /* subtle, 5.5:1 on bg, 5.1:1 on bg-2 */
-  --muted: #8985a0;       /* adj. muted, 4.9:1 on bg, 4.6:1 on bg-2 */
-  --line: #6e6a86;        /* muted: borders and controls, 3.4:1 */
-  --hair: #2a2740;        /* decorative hairlines */
-  --accent: #eb6f92;      /* love, 6.1:1 */
-  --accent-ink: #191724;
-  --accent-2: #c4a7e7;    /* iris */
-  --foam: #9ccfd8;
-  --gold: #f6c177;        /* gold: star counts, 10.8:1 */
-  --gold-sm: #f6c177;     /* gold for small text */
-  --focus: #c4a7e7;
-  --header-bg: rgb(25 23 36 / 0.93);
-  --sel: rgb(196 167 231 / 0.3);
-  --shadow: 0 40px 80px -40px rgb(0 0 0 / 0.75);
-  --card-bg: linear-gradient(150deg, #29253f 0%, #211f33 55%, #1c1a2b 100%);
-  --card-edge: #34304c;
+  --bg: #100f0f;          /* black */
+  --bg-2: #1c1b1a;        /* base-950: surface for code, cards, boxes */
+  --bg-3: #282726;        /* base-900: hover fills, never behind muted text */
+  --text: #cecdc3;        /* base-200, 12.0:1 on bg, 10.8:1 on bg-2 */
+  --text-2: #878580;      /* base-500, 5.2:1 on bg, 4.7:1 on bg-2 */
+  --muted: #85847f;       /* adj. base-600, 5.1:1 on bg, 4.6:1 on bg-2 */
+  --line: #62615e;        /* adj. base-700: borders and controls, 3.1:1 */
+  --hair: #282726;        /* base-900: decorative hairlines */
+  --accent: #de594c;      /* adj. red-400, 5.1:1 on bg, 4.6:1 on bg-2 */
+  --accent-ink: #100f0f;  /* black on the accent, 5.1:1 */
+  --accent-2: #8b7ec8;    /* purple-400, 5.4:1 on bg, 4.9:1 on bg-2 */
+  --blue: #4385be;        /* blue-400 */
+  --gold: #d0a215;        /* yellow-400: star counts, 8.1:1 */
+  --gold-sm: #d0a215;     /* yellow-400 for small text */
+  --focus: #8b7ec8;       /* purple-400, 5.4:1 */
+  --header-bg: rgb(16 15 15 / 0.92);
+  --sel: rgb(139 126 200 / 0.32);
+  --shadow: 0 40px 80px -40px rgb(0 0 0 / 0.8);
+  --card-bg: linear-gradient(150deg, #282726 0%, #1c1b1a 55%, #151413 100%);
+  --card-edge: #343331;
 
   /* Hero scene (assets/js/scene): two currents, love/rose and foam/pine, that meet in iris. On dark the inks add
-     up like light. --scrim: the background as "r g b", for the soft clouds under text over the scene. */
-  --scene-bg: #191724;
+     up like light. The inks are still the scene's own (its colours are being reworked separately); the scene's
+     background and --scrim (the background as "r g b", for the soft clouds under text over the scene) follow the
+     page. */
+  --scene-bg: #100f0f;
   --scene-love: #eb6f92;
   --scene-rose: #ebbcba;
   --scene-foam: #9ccfd8;
@@ -135,18 +137,23 @@
   --scene-iris: #c4a7e7;
   --scene-subtle: #908caa;
   --scene-ink: add;
-  --scrim: 25 23 36;
+  --scrim: 16 15 15;
 
-  /* Syntax roles (Chroma rose-pine), on --bg-2. adj. = lightened to 4.6:1. */
-  --syn-kw: #4e90ac;      /* adj. pine */
-  --syn-ns: #c4a7e7;      /* iris */
-  --syn-name: #ebbcba;    /* rose */
-  --syn-type: #9ccfd8;    /* foam */
-  --syn-str: #f6c177;     /* gold */
-  --syn-punct: #908caa;   /* subtle */
-  --syn-com: #8884a1;     /* adj. muted */
-  --syn-del: #eb6f92;     /* love */
-  --syn-hl: #302e39;
+  /* Syntax roles: Flexoki's own mapping (400 shades on dark), on --bg-2 and on a highlighted line (--syn-hl). adj. =
+     lightened to 4.5:1 on both. */
+  --syn-kw: #879a39;      /* keywords: green-400, 5.5:1 */
+  --syn-ns: #ea6456;      /* imports: adj. red-400, 5.3:1 */
+  --syn-fn: #db712e;      /* functions: adj. orange-400, 5.3:1 */
+  --syn-name: #5294ce;    /* variables, attributes: adj. blue-400, 5.3:1 */
+  --syn-type: #d0a215;    /* types, constants: yellow-400, 7.3:1 */
+  --syn-str: #3aa99f;     /* strings: cyan-400, 6.0:1 */
+  --syn-num: #9285d0;     /* numbers: adj. purple-400, 5.3:1 */
+  --syn-feat: #da68a2;    /* language features: adj. magenta-400, 5.3:1 */
+  --syn-punct: #918f8a;   /* punctuation, operators: adj. base-500 (tx-2), 5.3:1 */
+  --syn-com: #908f8b;     /* comments: adj. base-700 (tx-3), 5.3:1, in italics */
+  --syn-del: #ea6456;     /* deleted: adj. red-400 */
+  --syn-ins: #879a39;     /* inserted: green-400 */
+  --syn-hl: #282726;      /* highlighted line: base-900 */
 
   --f-display: "Bricolage Grotesque", "Bricolage Fallback", "Instrument Sans", system-ui, sans-serif;
   --f-text: "Instrument Sans", "Instrument Fallback", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -174,29 +181,29 @@
 
 [data-theme="light"] {
   color-scheme: light;
-  --bg: #faf4ed;          /* base */
-  --bg-2: #fffaf3;        /* surface */
-  --bg-3: #f2e9e1;        /* overlay */
-  --text: #464261;        /* adj. text (darker than Dawn #575279), 8.7:1 */
-  --text-2: #6d6986;      /* adj. subtle, 4.8:1 */
-  --muted: #726c86;       /* adj. muted, 4.6:1 on bg, 4.8:1 on bg-2 */
-  --line: #797593;        /* subtle: borders and controls, 4.0:1 */
-  --hair: #e4dbd2;
-  --accent: #ab526c;      /* adj. love, 4.6:1 */
-  --accent-ink: #ffffff;  /* 5.1:1 on accent */
-  --accent-2: #7b6298;    /* adj. iris, 4.8:1 */
-  --foam: #286983;        /* pine */
-  --gold: #a5811d;        /* adj. gold, still a yellow: 3.3:1, large numerals only */
-  --gold-sm: #8a6a17;     /* adj. gold for small text, 4.6:1 */
-  --focus: #7b6298;
-  --header-bg: rgb(250 244 237 / 0.94);
-  --sel: rgb(123 98 152 / 0.2);
-  --shadow: 0 36px 70px -40px rgb(70 66 97 / 0.45);
-  --card-bg: linear-gradient(150deg, #fffdf9 0%, #fff8f0 55%, #f6ede3 100%);
-  --card-edge: #eadfd3;
+  --bg: #fffcf0;          /* paper */
+  --bg-2: #f2f0e5;        /* base-50: surface */
+  --bg-3: #e6e4d9;        /* base-100: overlay */
+  --text: #100f0f;        /* black, 18.6:1 on bg, 16.7:1 on bg-2 */
+  --text-2: #6d6c67;      /* adj. base-600, 5.1:1 on bg, 4.6:1 on bg-2 */
+  --muted: #6e6c68;       /* adj. base-500, 5.1:1 on bg, 4.6:1 on bg-2 */
+  --line: #939188;        /* adj. base-300: borders and controls, 3.1:1 */
+  --hair: #e6e4d9;        /* base-100 */
+  --accent: #af3029;      /* red-600, 6.2:1 on bg, 5.6:1 on bg-2 */
+  --accent-ink: #ffffff;  /* white on the accent, 6.4:1 */
+  --accent-2: #5e409d;    /* purple-600, 7.6:1 on bg, 6.8:1 on bg-2 */
+  --blue: #205ea6;        /* blue-600 */
+  --gold: #a87e00;        /* adj. yellow-600, still a yellow: 3.6:1 on bg, 3.3:1 on bg-2, large numerals only */
+  --gold-sm: #8e6500;     /* adj. yellow-600 for small text, 5.1:1 on bg, 4.6:1 on bg-2 */
+  --focus: #5e409d;       /* purple-600, 7.6:1 */
+  --header-bg: rgb(255 252 240 / 0.92);
+  --sel: rgb(94 64 157 / 0.2);
+  --shadow: 0 36px 70px -40px rgb(16 15 15 / 0.4);
+  --card-bg: linear-gradient(150deg, #fffcf0 0%, #f7f5ea 55%, #eceadf 100%);
+  --card-edge: #dad8ce;
 
-  /* Dawn inks for the same two currents, taken away from the paper like ink. */
-  --scene-bg: #faf4ed;
+  /* The scene on paper: the same inks, taken away from the paper like ink (see above). */
+  --scene-bg: #fffcf0;
   --scene-love: #b4637a;
   --scene-rose: #d7827e;
   --scene-foam: #56949f;
@@ -204,16 +211,20 @@
   --scene-iris: #907aa9;
   --scene-subtle: #797593;
   --scene-ink: ink;
-  --scrim: 250 244 237;
+  --scrim: 255 252 240;
 
-  /* Syntax roles (Chroma rose-pine-dawn), on --bg-2. adj. = darkened to 4.6:1. */
-  --syn-kw: #286983;      /* pine */
-  --syn-ns: #7e6896;      /* adj. iris */
-  --syn-name: #ab5a58;    /* adj. rose */
-  --syn-type: #3c7b85;    /* adj. foam */
-  --syn-str: #a85f00;     /* adj. gold */
-  --syn-punct: #736f8d;   /* adj. subtle */
-  --syn-com: #746f81;     /* adj. muted */
-  --syn-del: #a95a71;     /* adj. love */
-  --syn-hl: #e1dbd5;
+  /* Syntax roles: Flexoki's mapping in its 600 shades for light. adj. = darkened to 4.5:1 on --bg-2 and --syn-hl. */
+  --syn-kw: #556e00;      /* adj. green-600, 5.1:1 */
+  --syn-ns: #af3029;      /* red-600, 5.6:1 */
+  --syn-fn: #ad4400;      /* adj. orange-600, 5.1:1 */
+  --syn-name: #205ea6;    /* blue-600, 5.7:1 */
+  --syn-type: #855d00;    /* adj. yellow-600, 5.2:1 */
+  --syn-str: #00716a;     /* adj. cyan-600, 5.2:1 */
+  --syn-num: #5e409d;     /* purple-600, 6.8:1 */
+  --syn-feat: #a02f6f;    /* magenta-600, 5.9:1 */
+  --syn-punct: #666560;   /* adj. base-600 (tx-2), 5.1:1 */
+  --syn-com: #66655c;     /* adj. base-300 (tx-3), 5.1:1, in italics */
+  --syn-del: #af3029;     /* red-600 */
+  --syn-ins: #556e00;     /* adj. green-600 */
+  --syn-hl: #e6e4d9;      /* base-100 */
 }

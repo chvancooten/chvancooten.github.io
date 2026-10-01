@@ -2,7 +2,7 @@
 // this keeps the toggle label and theme-color in sync, persists the choice, and tells
 // listeners (the hero scene) through a "themechange" event on document.
 const KEY = "theme";
-const COLORS = { dark: "#191724", light: "#faf4ed" };
+const COLORS = { dark: "#100f0f", light: "#fffcf0" }; // Flexoki black and paper
 
 export function initTheme() {
   const root = document.documentElement;

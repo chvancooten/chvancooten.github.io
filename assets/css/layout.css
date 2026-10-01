@@ -3,8 +3,8 @@
 
 .preview-banner {
   padding: 0.4rem var(--gutter);
-  background: #f6c177;
-  color: #191724;
+  background: #d0a215; /* Flexoki yellow-400, with black: 8.1:1 */
+  color: #100f0f;
   font-size: var(--fs-xs);
   font-weight: 600;
   text-align: center;
