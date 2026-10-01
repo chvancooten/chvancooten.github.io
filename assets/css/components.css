@@ -223,6 +223,11 @@
   .post--toc > .post-head { grid-column: 1 / -1; font-size: var(--fs-body); }
   .post--toc > .post-body, .post--toc > .post-foot { grid-column: 1; }
   .post--toc > .toc { grid-column: 3; grid-row: 2 / span 2; }
+  /* Code blocks and tables run on into the gutter beside the prose, up to the table of contents (or to 58rem
+     without one), while the prose keeps its measure: these posts are largely one-line commands. */
+  .post > .post-body { max-width: 58rem; }
+  .post--toc > .post-body { grid-column: 1 / 3; max-width: none; padding-right: 2.5rem; }
+  .post-body > :not(.code, table) { max-width: var(--measure); }
 }
 
 /* ---------- Table of contents: sticky with scroll-spy on wide screens, collapsed <details> below ---------- */
