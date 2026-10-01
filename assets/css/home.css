@@ -85,7 +85,8 @@
   .field__still--band { display: block; }
 }
 
-/* ---------- Offensys: one typographic moment. The triad's full stops use the field's three inks. ---------- */
+/* ---------- Offensys: one typographic statement. Its scroll-linked reveal lights each line up from the muted ink
+   to its own colour (colour, not opacity, so every frame keeps the text's contrast: muted is 4.6:1 here). ---------- */
 .offensys {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -94,39 +95,42 @@
   border-block: 1px solid var(--hair);
   background: var(--bg-2);
 }
-.offensys__head { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1rem; margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
-.offensys__title { font-family: var(--f-display); font-weight: 700; font-stretch: 86%; font-size: clamp(1.625rem, 1.3rem + 1.2vw, 2.25rem); letter-spacing: -0.02em; line-height: 1; }
-.offensys__kicker { color: var(--accent-2); font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem); font-weight: 500; }
-.triad {
+.offensys__title {
+  grid-column: 1 / -1;
+  margin-bottom: clamp(1.25rem, 2.5vw, 2rem);
+  color: var(--text-2);
+  font-family: var(--f-text);
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+.claim {
   grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
   font-family: var(--f-display);
   font-weight: 800;
   font-stretch: 80%;
-  font-size: clamp(3.5rem, 12.5vw, 11rem);
+  font-size: clamp(3rem, 9vw, 8.25rem);
   letter-spacing: -0.04em;
-  line-height: 0.9;
+  line-height: 0.92;
+  text-wrap: balance;
 }
-.triad__line { display: block; }
-.triad__line:nth-child(1) .triad__dot { color: var(--field-foam); }
-.triad__line:nth-child(2) .triad__dot { color: var(--field-iris); }
-.triad__line:nth-child(3) { color: var(--accent); }
+.claim__line { display: block; }
+.claim__purple { color: var(--accent-2); } /* iris: 7.9:1 on dark, adj. iris 5.0:1 on Dawn */
 .offensys__body { grid-column: 1 / -1; margin-top: clamp(1.75rem, 4vw, 3rem); }
 .offensys__body p { max-width: 30em; margin-bottom: 1.25rem; font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem); line-height: 1.55; }
-@media (min-width: 60em) {
-  .triad { grid-column: 1 / span 8; grid-row: 2; }
-  .offensys__body { grid-column: 9 / -1; grid-row: 2; align-self: center; margin-top: 0; }
+@media (min-width: 75em) {
+  .claim { grid-column: 1 / span 8; grid-row: 2; }
+  .offensys__body { grid-column: 9 / -1; grid-row: 2; align-self: end; margin-top: 0; }
 }
-/* Scroll-linked reveal of each line, finished by the time the line is fully in view: it rises and lights up from the
-   muted ink to its own colour. Colour, not opacity, so every frame keeps the text's contrast (muted is 4.6:1 on
-   this surface). */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
-    .triad__line { animation: triad-in linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
+    .claim__line { animation: claim-in linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
   }
 }
-@keyframes triad-in { from { color: var(--muted); transform: translateY(0.2em); } }
+@keyframes claim-in { from { color: var(--muted); transform: translateY(0.2em); } }
 
 /* ---------- Work: Speaking and Open source ---------- */
 .sec { padding: clamp(4rem, 8vw, 7rem) var(--gutter) 0; }

@@ -18,12 +18,9 @@
   {{- partial "field.html" "hero" }}
 </section>
 
-<section class="offensys" aria-labelledby="offensys-title">
-  <div class="offensys__head">
-    <h2 class="offensys__title" id="offensys-title">{{ $company.name }}</h2>
-    <p class="offensys__kicker">Continuous Purple Teaming</p>
-  </div>
-  <p class="triad"><span class="triad__line">Blocked<span class="triad__dot">.</span></span> <span class="triad__line">Detected<span class="triad__dot">.</span></span> <span class="triad__line">Missed<span class="triad__dot">.</span></span></p>
+<section class="offensys" id="offensys" aria-labelledby="offensys-title">
+  <h2 class="offensys__title" id="offensys-title">Currently building - {{ $company.name }}</h2>
+  <p class="claim"><span class="claim__line">Continuous</span> <span class="claim__line claim__purple">Purple Teaming</span></p>
   <div class="offensys__body">
     <p>The {{ $company.name }} platform runs realistic, behavior-based attack simulations in your environment, so you can see what your controls block, what they detect, and what they miss.</p>
     <a class="link-arrow" href="{{ $company.url }}">Visit offensys.com{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a>
