@@ -31,10 +31,11 @@ const runtime = host?.dataset.src ? import(host.dataset.src) : Promise.reject(ne
 runtime.catch(() => {}); // reported by boot()
 
 // The landing's UI joins the intro: [selector, delay (s), duration (s), offset (px)], eased out, transform only.
-// The offsets are the first-paint states in home.css.
-const JOIN = [[".hero-bar", 1.2, 0.8, -10], [".hero__role", 1.45, 0.8, 14], [".hero__lede", 1.6, 0.85, 16], [".hero__cta", 1.75, 0.85, 16], [".cue", 2, 0.8, 10], [".hero__ctrl", 2.05, 0.8, 10]]
-  .map(([s, d, t, y]) => ({ el: hero?.querySelector(s), d, t, y, v: "" }))
-  .filter((j) => j.el);
+// The offsets are the first-paint states in home.css. The lede, the calls to action and the cue move their contents,
+// not themselves: a transformed element paints as a layer of its own, and their soft clouds (pseudo-elements) would
+// then cover their neighbours' text instead of staying under all text.
+const JOIN = [[".hero-bar", 1.2, 0.8, -10], [".hero__role", 1.45, 0.8, 14], [".hero__lede > *", 1.6, 0.85, 16], [".hero__cta > *", 1.75, 0.85, 16], [".cue > *", 2, 0.8, 10], [".hero__ctrl", 2.05, 0.8, 10]]
+  .flatMap(([s, d, t, y]) => [...(hero?.querySelectorAll(s) || [])].map((el) => ({ el, d, t, y, v: "" })));
 const easeOut = (x) => 1 - (1 - x) ** 3;
 let joining = root.hasAttribute("data-intro");
 

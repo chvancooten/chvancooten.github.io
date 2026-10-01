@@ -152,16 +152,18 @@ html.no-gl .stage::before { opacity: 1; animation: none; }
 /* First paint of a first visit: the name and the landing's UI already sit where the intro starts them (transform
    only, from the final layout, never hidden): the name a little lifted and enlarged, the rest a few pixels off. The
    scene's first frame takes over (js/scene/hero.js); if the script never runs, they settle by themselves. The start
-   state is on the name's inner lines only: the outer ones belong to the title bar's dock. */
+   state is on the name's inner lines only: the outer ones belong to the title bar's dock. The lede, the calls to
+   action and the cue move their contents, so their clouds stay put, under all text (a transformed element would
+   paint as a layer of its own, its cloud over a neighbour's text). */
 @media (prefers-reduced-motion: no-preference) {
   [data-intro] .hero__name .nm > span { transform: translate3d(0, 0.04em, 0) scale(1.05); }
   [data-intro] .hero-bar { transform: translate3d(0, -10px, 0); }
   [data-intro] .hero__role { transform: translate3d(0, 14px, 0); }
-  [data-intro] :is(.hero__lede, .hero__cta) { transform: translate3d(0, 16px, 0); }
-  [data-intro] :is(.cue, .hero__ctrl) { transform: translate3d(0, 10px, 0); }
-  [data-intro] :is(.hero__name .nm > span, .hero-bar, .hero__role, .hero__lede, .hero__cta, .cue, .hero__ctrl) { animation: intro-settle 0.6s 3s var(--ease-out) forwards; }
+  [data-intro] :is(.hero__lede, .hero__cta) > * { transform: translate3d(0, 16px, 0); }
+  [data-intro] :is(.cue > *, .hero__ctrl) { transform: translate3d(0, 10px, 0); }
+  [data-intro] :is(.hero__name .nm > span, .hero-bar, .hero__role, .hero__lede > *, .hero__cta > *, .cue > *, .hero__ctrl) { animation: intro-settle 0.6s 3s var(--ease-out) forwards; }
   /* the intro cannot play: the landing settles from its start state rather than snapping */
-  .intro-release :is(.hero__name .nm > span, .hero-bar, .hero__role, .hero__lede, .hero__cta, .cue, .hero__ctrl) { transition: transform 0.45s var(--ease-out); }
+  .intro-release :is(.hero__name .nm > span, .hero-bar, .hero__role, .hero__lede > *, .hero__cta > *, .cue > *, .hero__ctrl) { transition: transform 0.45s var(--ease-out); }
 }
 @keyframes intro-settle { to { transform: none; } }
 .hero__lede { max-width: 31em; font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.3125rem); line-height: 1.55; }
@@ -171,8 +173,8 @@ html.no-gl .stage::before { opacity: 1; animation: none; }
 .hero__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.75rem; width: fit-content; margin-top: 2rem; }
 .hero .link-quiet { color: var(--text); }
 
-/* The cue into the content: quiet, centred at the foot of the landing (without a transform: the intro moves it
-   with one). */
+/* The cue into the content: quiet, centred at the foot of the landing (without a transform: its position stays
+   its own while the intro moves its contents). */
 .cue {
   position: absolute;
   inset: auto 0 1.3rem;
