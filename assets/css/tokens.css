@@ -47,22 +47,47 @@
   descent-override: 30.73%;
   line-gap-override: 0%;
 }
+/* Instrument Sans: one fallback per weight range and style, each measured as the ratio of the two faces' advance
+   on post prose (Arial and Liberation Sans share advances). Its own ascent and descent are 0.97 and 0.25 em; the
+   overrides are divided by size-adjust, which scales them too. */
 @font-face {
   font-family: "Instrument Fallback";
   src: local("Arial"), local("ArialMT"), local("Liberation Sans"), local("LiberationSans"), local("Helvetica");
   font-weight: 400 500;
-  size-adjust: 102.27%;
-  ascent-override: 94.84%;
-  descent-override: 24.44%;
+  font-style: normal;
+  size-adjust: 101.08%;
+  ascent-override: 95.96%;
+  descent-override: 24.73%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Instrument Fallback";
+  src: local("Arial Italic"), local("Arial-ItalicMT"), local("Liberation Sans Italic"), local("LiberationSans-Italic"), local("Helvetica Oblique");
+  font-weight: 400 500;
+  font-style: italic;
+  size-adjust: 101.47%;
+  ascent-override: 95.59%;
+  descent-override: 24.64%;
   line-gap-override: 0%;
 }
 @font-face {
   font-family: "Instrument Fallback";
   src: local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"), local("LiberationSans-Bold"), local("Helvetica Bold");
   font-weight: 600 700;
-  size-adjust: 102.27%;
-  ascent-override: 94.84%;
-  descent-override: 24.44%;
+  font-style: normal;
+  size-adjust: 97.32%;
+  ascent-override: 99.67%;
+  descent-override: 25.69%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Instrument Fallback";
+  src: local("Arial Bold Italic"), local("Arial-BoldItalicMT"), local("Liberation Sans Bold Italic"), local("LiberationSans-BoldItalic"), local("Helvetica Bold Oblique");
+  font-weight: 600 700;
+  font-style: italic;
+  size-adjust: 96.82%;
+  ascent-override: 100.18%;
+  descent-override: 25.82%;
   line-gap-override: 0%;
 }
 @font-face {
