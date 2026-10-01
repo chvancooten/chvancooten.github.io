@@ -208,8 +208,8 @@ blocking the main thread.
 
 - Without JavaScript, without WebGL2, or when the shaders fail, the landing shows a designed still of the scene at
   rest (`static/scene/still-{wide,tall}-{dark,light}.webp`, landscape and portrait), and the windows (which only
-  exist with JavaScript) each hold a soft composition of their subject's colours. A scene that has not come up
-  2.5 s after load gets the same fallbacks.
+  exist with JavaScript) each show a still of their own view (`static/scene/window-{1..4}-{dark,light}.webp`). A
+  scene that has not come up 2.5 s after load gets the same fallbacks. The stills are only fetched where they show.
 - Software WebGL renderers (SwiftShader, llvmpipe and similar, as in VMs, remote desktops and headless browsers) get
   the fallbacks too, because there every frame stalls the main thread. For screenshots and measurements, storing a
   quality level before the page loads (`sessionStorage["scene-quality"] = "0"` for full quality) forces the live
@@ -217,7 +217,8 @@ blocking the main thread.
 
 The stills are browser captures of the scene's composed still frame (motion off) behind the landing, with the copy,
 the page's scrims and the bars hidden: 1600x1000 (pixel ratio 1) for `wide` and 390x844 (pixel ratio 2) for `tall`,
-in each theme, encoded as WebP at quality 0.8. Recapture them after changing the scene's look. `/preview.png`, the
+in each theme, encoded as WebP at quality 0.8; the window stills are each band at 1440x900 with motion off, scaled
+to 60 % and encoded at 0.72. Recapture them after changing the scene's look. `/preview.png`, the
 social card, is a 1200x630 capture of the same landing in the dark theme, with the scene enlarged and brightened
 against the page colour so its flow lines survive a thumbnail.
 

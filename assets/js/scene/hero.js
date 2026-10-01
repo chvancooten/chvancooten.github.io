@@ -29,6 +29,8 @@ const button = hero?.querySelector("[data-motion-toggle]");
 let scene = null, frames = null, still = false, nameMotion = null;
 const runtime = host?.dataset.src ? import(host.dataset.src) : Promise.reject(new Error("scene: no runtime"));
 runtime.catch(() => {}); // reported by boot()
+// A scene that has not come up 2.5 s after load gets the stills (html.scene-late; CSS fetches them only then).
+setTimeout(() => { if (!root.matches(".scene-live, .no-gl")) root.classList.add("scene-late"); }, 2500);
 
 // The landing's UI joins the intro: [selector, delay (s), duration (s), offset (px)], eased out, transform only.
 // The offsets are the first-paint states in home.css. The lede, the calls to action and the cue move their contents,

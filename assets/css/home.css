@@ -80,18 +80,20 @@ html.js.is-docked .kind-home :is(.site-header, .site-header .brand) { visibility
 }
 
 /* The landing's designed still (static/scene/): without JS, without WebGL2 (html.no-gl), or when the scene has not
-   come up 2.5 s after load. With the scene, the page colour. */
-.stage { position: absolute; inset: 0; z-index: -3; overflow: hidden; pointer-events: none; }
-.stage::before { content: ""; position: absolute; inset: 0; background: url("../scene/still-wide-dark.webp") 50% 50% / cover no-repeat var(--bg); }
-[data-theme="light"] .stage::before { background-image: url("../scene/still-wide-light.webp"); }
+   come up 2.5 s after load (html.scene-late, from js/scene/hero.js). With the scene, the page colour. The image is
+   only set where it shows, so a visit whose scene runs never fetches it. */
+.stage { position: absolute; inset: 0; z-index: -3; overflow: hidden; pointer-events: none; --still: url("../scene/still-wide-dark.webp"); }
+[data-theme="light"] .stage { --still: url("../scene/still-wide-light.webp"); }
 @media (orientation: portrait) {
-  .stage::before { background-image: url("../scene/still-tall-dark.webp"); }
-  [data-theme="light"] .stage::before { background-image: url("../scene/still-tall-light.webp"); }
+  .stage { --still: url("../scene/still-tall-dark.webp"); }
+  [data-theme="light"] .stage { --still: url("../scene/still-tall-light.webp"); }
 }
+.stage::before { content: ""; position: absolute; inset: 0; background: 50% 50% / cover no-repeat var(--bg); }
+:is(html:not(.js), .no-gl, .scene-late:not(.scene-live)) .stage::before { background-image: var(--still); }
 .js .stage::before { opacity: 0; }
-.js:not(.scene-live) .stage::before { animation: still-in 0.6s 2.5s forwards; }
-html.no-gl .stage::before { opacity: 1; animation: none; }
-@keyframes still-in { to { opacity: 1; } }
+:is(.no-gl, .scene-late:not(.scene-live)) .stage::before { opacity: 1; }
+.scene-late:not(.scene-live) :is(.stage, .window)::before { animation: still-in 0.6s var(--ease-out) both; }
+@keyframes still-in { from { opacity: 0; } }
 
 /* Scrims: a thin band under the header and a soft floor across the frame; the rest is per text. */
 .hero::before {
@@ -249,28 +251,21 @@ html.no-gl .stage::before { opacity: 1; animation: none; }
 /* ---------- Windows: full-bleed bands between the chapters, the only places below the landing where the scene
    shows (js/scene/windows.js). They are empty and decorative: the canvas behind the page shows through, and the
    chapters around them sit calmly on the page colour. They need JS; without the scene (no WebGL2, a failure, or a
-   scene that has not come up 2.5 s after load) each holds a soft composition of its subject's colours. ---------- */
+   scene that has not come up 2.5 s after load) each shows a still of its own view, captured from the scene with
+   motion off (static/scene/window-*), and fetched only then. ---------- */
 .window { display: none; }
 .js .window { position: relative; display: block; height: clamp(14rem, 46vh, 32rem); pointer-events: none; }
 @media (max-width: 59.99em) { .js .window { height: clamp(12rem, 34vh, 22rem); } }
-.window::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  -webkit-mask-image: linear-gradient(transparent, #000 34%, #000 66%, transparent);
-  mask-image: linear-gradient(transparent, #000 34%, #000 66%, transparent);
-  --k: 22%;
-  background:
-    radial-gradient(34% 70% at var(--x1, 30%) 50%, color-mix(in srgb, var(--c1, var(--scene-blue)) var(--k), transparent), transparent 70%),
-    radial-gradient(34% 70% at var(--x2, 70%) 55%, color-mix(in srgb, var(--c2, var(--scene-red)) var(--k), transparent), transparent 70%);
-}
-[data-theme="light"] .window::before { --k: 16%; }
-.window--2::before { --c1: var(--scene-red-2); --c2: var(--scene-red); --x1: 38%; --x2: 64%; }
-.window--3::before { --c1: var(--scene-blue); --c2: var(--scene-blue-2); --x1: 34%; --x2: 58%; }
-.window--4::before { --c1: var(--scene-purple); --c2: var(--scene-purple); --x1: 46%; --x2: 56%; }
-.js:not(.scene-live) .window::before { animation: still-in 0.6s 2.5s forwards; }
-html.no-gl .window::before { opacity: 1; animation: none; }
+.window::before { content: ""; position: absolute; inset: 0; opacity: 0; background: 50% 50% / cover no-repeat; }
+:is(.no-gl, .scene-late:not(.scene-live)) .window::before { background-image: var(--still); opacity: 1; }
+.window--1 { --still: url("../scene/window-1-dark.webp"); }
+.window--2 { --still: url("../scene/window-2-dark.webp"); }
+.window--3 { --still: url("../scene/window-3-dark.webp"); }
+.window--4 { --still: url("../scene/window-4-dark.webp"); }
+[data-theme="light"] .window--1 { --still: url("../scene/window-1-light.webp"); }
+[data-theme="light"] .window--2 { --still: url("../scene/window-2-light.webp"); }
+[data-theme="light"] .window--3 { --still: url("../scene/window-3-light.webp"); }
+[data-theme="light"] .window--4 { --still: url("../scene/window-4-light.webp"); }
 
 /* ---------- Offensys: one typographic statement, on the page colour like every chapter (nothing in them moves). */
 .offensys {
