@@ -16,7 +16,7 @@
 //
 // Views (opts.views(env), every frame; env: { it, ft, T, W, H, theme }, W and H the canvas size in CSS px): a list of
 // { id, rect: { x0, y0, x1, y1, f } (where it shows, in canvas CSS px, feathered inside by f), veil, pose (a fixed
-// camera; without one, the landing's camera), form (the world's form, uP.z: 0 the braid), glows, trail }. Without opts.views
+// camera; without one, the landing's camera), form (0 the braid, 1 the vortex), glows, trail }. Without opts.views
 // the whole canvas is the landing. opts.visible() says whether any view is on screen (otherwise the scene stops
 // after one empty frame); opts.vignette(theme, H) sets the background's vignette.
 //

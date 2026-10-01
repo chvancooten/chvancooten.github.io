@@ -9,6 +9,9 @@
 // - The camera (T = 3 s): alongside the tight rope downstream, gliding toward the knot while the braid forms, then
 //   rising and swinging out to the resting frame: a sideways "Y" right of the copy on landscape screens, an upright
 //   one between the name and the copy on portrait screens.
+// - The vortex (uP.z = 1, the last window): both currents drawn into one slow, turbulent, rotating cloud. Each spirals
+//   inward along its own arm; red and blue alternate around it and cross above and below each other, and they turn
+//   purple only where they mix: in the fringes the arms share and in the core.
 //
 // Every particle is derived from its id and the time (see gl.js for the Pt struct, hash and uniforms), so there are
 // no buffers. Ink slots: 0 red, 1 red (second), 2 blue, 3 blue (second), 4 purple, 5 dust.
@@ -61,7 +64,47 @@ Pt braid(uint id,vec4 h,float t){
   }
   return o;
 }
+vec3 turb(vec3 p,float t){
+  return .55*vec3(sin(.53*p.z+.21*t+1.3),sin(.61*p.x-.17*t+.4),sin(.47*p.y+.29*p.x+.19*t+2.1))
+    +.28*vec3(sin(1.31*p.y+.9*p.x-.29*t),sin(1.13*p.z+.23*t+4.),sin(1.21*p.x-.7*p.z-.31*t+1.));
+}
+Pt vortex(uint id,vec4 h,float t){
+  Pt o;
+  float f=float(id)/uN;
+  float k=float(id&1u);
+  float om=.035*t;
+  vec3 base=k<.5?mix(uInk[0],uInk[1],h.z*.5):mix(uInk[2],uInk[3],h.z*.6);
+  if(f<.84){
+    float s=fract(h.x+t*.014);
+    float r=.8+8.6*pow(1.-s,.65);
+    float q=h.y*2.-1.;
+    q=sign(q)*pow(abs(q),.8);
+    float th=k*3.14159265+3.2*log(9.4/r)+om+q*(1.2+.03*r);
+    vec3 p=vec3(cos(th)*r,(h.w-.5)*(.5+.16*r)+(k*2.-1.)*(.3+.05*r)*sin(2.*th-.6*r),sin(th)*r);
+    o.p=p+turb(p,t)*(.22+.045*r);
+    o.c=mix(base,uInk[4],max(.95*smoothstep(.45,.9,abs(q)),smoothstep(3.6,1.2,r)));
+    o.a=.55*smoothstep(0.,.08,s)*smoothstep(1.,.88,s)*(1.-.3*abs(q));
+    o.s=.019*(.7+.6*h.z);
+  }else if(f<.93){
+    float r=1.05*sqrt(-log(1.-.97*h.x));
+    float a=6.2832*h.y+om+t*(.06+.22/(.6+r));
+    o.p=vec3(cos(a)*r,(h.z-.5)*(.5+.3*r),sin(a)*r);
+    o.p+=turb(o.p*1.3,t)*.18;
+    o.c=mix(uInk[4],k<.5?uInk[0]:uInk[2],.22*h.w);
+    o.a=.45*exp(-r*.5)*(.6+.4*h.w);
+    o.s=.018;
+  }else{
+    float r=11.*sqrt(h.x),a=6.2832*h.y+.6*om;
+    vec3 p=vec3(cos(a)*r,(h.z-.5)*5.,sin(a)*r);
+    o.p=p+turb(p,t)*.6;
+    o.c=mix(uInk[5],uInk[4],h.w*h.w);
+    o.a=.15;
+    o.s=.017;
+  }
+  return o;
+}
 Pt particle(uint id,vec4 h,float t,float it){
+  if(uP.z>.5)return vortex(id,h,t);
   Pt o=braid(id,h,t);
   float t0=.02+.9*clamp(length(o.p)/26.,0.,1.)+.25*fract(h.w*5.17);
   float a=clamp((it-t0)/.75,0.,1.);

@@ -4,7 +4,7 @@
 // - the landing, with its own camera (the intro, then rest with pointer parallax and a slow drift), and composition
 //   veils that keep its copy legible: a column under the copy on wide screens, bands above and below on narrow ones;
 // - the full-bleed windows between the chapters (.window), each with its own camera and subject: W1 the two
-//   currents side by side, W2 the red current, W3 the blue one, W4 the braid where they meet.
+//   currents side by side, W2 the red current, W3 the blue one, W4 the vortex where they mix into purple.
 //   As a band crosses the screen its camera only cranes (moves vertically, across the flow). A camera moving along
 //   the flow would make the particles seem to run backwards, as if the scroll rewound time; the simulation time
 //   itself only ever moves forward.
@@ -19,7 +19,13 @@ const WINDOWS = [
   { a: { pos: [12, 6.6, 18], tgt: [0, 0.4, 14], hfov: 60, focus: 12.5, ap: 0.6, blur: 8, roll: 0 }, b: { pos: [12, 5.2, 18], tgt: [0, -0.3, 14] } },
   { a: { pos: [9, 2.1, 8], tgt: [5.2, 1.1, 19], hfov: 58, focus: 10, ap: 0.6, blur: 8, roll: 0.06 }, b: { pos: [9, 1.0, 8], tgt: [5.2, 0.6, 19], roll: 0.04 } },
   { a: { pos: [-4.4, -1.9, 7.5], tgt: [-6.6, 0.4, 18.5], hfov: 50, focus: 11, ap: 0.6, blur: 8, roll: -0.08 }, b: { pos: [-4.4, -3.0, 7.5], tgt: [-6.6, -0.1, 18.5], roll: -0.06 } },
-  { a: { pos: [4.6, 1.8, -10.5], tgt: [0, 0.3, -11.5], hfov: 56, focus: 4.8, ap: 0.5, blur: 8, roll: 0.03 }, b: { pos: [4.6, 0.5, -10.5], tgt: [0, -0.3, -11.5], roll: 0.03 } },
+  {
+    form: 1,
+    a: { pos: [0, 10, 16], tgt: [0, -0.4, 0], hfov: 62, focus: 18.5, ap: 1.4, blur: 14, roll: 0.05 }, b: { pos: [0, 8.4, 16.6], tgt: [0, -0.8, 0], roll: 0.04 },
+    portrait: { a: { pos: [0, 10.5, 15], tgt: [0, -0.3, 0], hfov: 64, focus: 18, ap: 1.4, blur: 14, roll: 0.03 }, b: { pos: [0, 8.8, 15.8], tgt: [0, -0.6, 0], roll: 0.02 } },
+    glows: [{ p: [0, 0, 0], r: 0.22, a: { dark: 0.1, light: 0.07 }, ink: 4 }],
+    trail: { time: 1.1, width: 0.7, alpha: { dark: 0.6, light: 0.55 } },
+  },
 ];
 
 const vmix = (a, b, k) => a.map((x, i) => mix(x, b[i], k));
