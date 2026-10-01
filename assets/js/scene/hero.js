@@ -31,6 +31,15 @@ const runtime = host?.dataset.src ? import(host.dataset.src) : Promise.reject(ne
 runtime.catch(() => {}); // reported by boot()
 // A scene that has not come up 2.5 s after load gets the stills (html.scene-late; CSS fetches them only then).
 setTimeout(() => { if (!root.matches(".scene-live, .no-gl")) root.classList.add("scene-late"); }, 2500);
+// A window's still is fetched (in those states) only once the window is about a screen away (.is-near).
+const near = (el) => el.classList.add("is-near");
+const windows = document.querySelectorAll(".window");
+if ("IntersectionObserver" in window) {
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { near(e.target); io.unobserve(e.target); }
+  }, { rootMargin: "100% 0px" });
+  for (const el of windows) io.observe(el);
+} else windows.forEach(near);
 
 // The landing's UI joins the intro: [selector, delay (s), duration (s), offset (px)], eased out, transform only.
 // The offsets are the first-paint states in home.css. The lede, the calls to action and the cue move their contents,

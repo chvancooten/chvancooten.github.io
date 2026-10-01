@@ -252,12 +252,14 @@ html.js.is-docked .kind-home :is(.site-header, .site-header .brand) { visibility
    shows (js/scene/windows.js). They are empty and decorative: the canvas behind the page shows through, and the
    chapters around them sit calmly on the page colour. They need JS; without the scene (no WebGL2, a failure, or a
    scene that has not come up 2.5 s after load) each shows a still of its own view, captured from the scene with
-   motion off (static/scene/window-*), and fetched only then. ---------- */
+   motion off (static/scene/window-*), fetched only then, and only once the window is about a screen away
+   (.is-near, js/scene/hero.js). ---------- */
 .window { display: none; }
 .js .window { position: relative; display: block; height: clamp(14rem, 46vh, 32rem); pointer-events: none; }
 @media (max-width: 59.99em) { .js .window { height: clamp(12rem, 34vh, 22rem); } }
 .window::before { content: ""; position: absolute; inset: 0; opacity: 0; background: 50% 50% / cover no-repeat; }
-:is(.no-gl, .scene-late:not(.scene-live)) .window::before { background-image: var(--still); opacity: 1; }
+:is(.no-gl, .scene-late:not(.scene-live)) .window::before { opacity: 1; }
+:is(.no-gl, .scene-late:not(.scene-live)) .window.is-near::before { background-image: var(--still); }
 .window--1 { --still: url("../scene/window-1-dark.webp"); }
 .window--2 { --still: url("../scene/window-2-dark.webp"); }
 .window--3 { --still: url("../scene/window-3-dark.webp"); }

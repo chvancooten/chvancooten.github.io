@@ -51,6 +51,7 @@
   font-stretch: 90%;
   font-size: 1.125rem;
   letter-spacing: -0.042em; /* the name's own setting: the docking name cross-fades into this */
+  word-spacing: 0.08em; /* the tight tracking leaves the words only 2 px apart at this size: "Cas van Cooten" */
   line-height: 1;
   white-space: nowrap;
   color: var(--text);

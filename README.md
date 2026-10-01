@@ -209,7 +209,8 @@ blocking the main thread.
 - Without JavaScript, without WebGL2, or when the shaders fail, the landing shows a designed still of the scene at
   rest (`static/scene/still-{wide,tall}-{dark,light}.webp`, landscape and portrait), and the windows (which only
   exist with JavaScript) each show a still of their own view (`static/scene/window-{1..4}-{dark,light}.webp`). A
-  scene that has not come up 2.5 s after load gets the same fallbacks. The stills are only fetched where they show.
+  scene that has not come up 2.5 s after load gets the same fallbacks. The stills are only fetched where they show,
+  and a window's only once it is about a screen away.
 - Software WebGL renderers (SwiftShader, llvmpipe and similar, as in VMs, remote desktops and headless browsers) get
   the fallbacks too, because there every frame stalls the main thread. For screenshots and measurements, storing a
   quality level before the page loads (`sessionStorage["scene-quality"] = "0"` for full quality) forces the live
