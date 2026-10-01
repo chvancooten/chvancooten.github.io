@@ -61,7 +61,7 @@
   padding: 0 0.85rem 0 0.7rem;
   border: 1px solid var(--hair);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--bg) 75%, transparent);
+  background: var(--bg); /* opaque: the field never shows through the label */
   color: var(--text-2);
   font-size: 0.8125rem;
   cursor: pointer;

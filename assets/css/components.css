@@ -78,8 +78,11 @@
 }
 .social a:hover { color: var(--accent); }
 .social--small a { width: 2.25rem; height: 2.25rem; }
-.social-text { display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; margin: 0; padding: 0; list-style: none; }
-.social-text a { display: inline-block; padding-block: 0.3rem; color: var(--text-2); font-weight: 500; text-decoration: none; }
+/* Each link is at least a 40 px target ("X" alone is 12 px wide); the padding is part of the 1.5rem between words,
+   and the first link is pulled back so the text lines up with the column. */
+.social-text { display: flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; margin: 0; padding: 0; list-style: none; }
+.social-text a { display: inline-block; min-width: 2.5rem; padding: 0.3rem 0.5rem; color: var(--text-2); font-weight: 500; text-align: center; text-decoration: none; }
+.social-text li:first-child a { margin-left: -0.5rem; }
 .social-text a:hover { color: var(--text); text-decoration: underline; text-decoration-color: var(--accent); }
 
 /* ---------- Section and list headings ---------- */
