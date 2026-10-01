@@ -118,13 +118,15 @@
   .triad { grid-column: 1 / span 8; grid-row: 2; }
   .offensys__body { grid-column: 9 / -1; grid-row: 2; align-self: center; margin-top: 0; }
 }
-/* Scroll-linked reveal of each line, finished by the time the line is fully in view. Opacity and position only. */
+/* Scroll-linked reveal of each line, finished by the time the line is fully in view: it rises and lights up from the
+   muted ink to its own colour. Colour, not opacity, so every frame keeps the text's contrast (muted is 4.6:1 on
+   this surface). */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
     .triad__line { animation: triad-in linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
   }
 }
-@keyframes triad-in { from { opacity: 0.1; transform: translateY(0.2em); } to { opacity: 1; transform: none; } }
+@keyframes triad-in { from { color: var(--muted); transform: translateY(0.2em); } }
 
 /* ---------- Work: Speaking and Open source ---------- */
 .sec { padding: clamp(4rem, 8vw, 7rem) var(--gutter) 0; }
