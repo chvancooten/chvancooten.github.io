@@ -35,7 +35,7 @@
 {{- $years := slice }}
 {{- range $shown }}{{ if not (in $years .year) }}{{ $years = $years | append .year }}{{ end }}{{ end }}
 <section class="sec speaking" aria-labelledby="speaking-title">
-  <div class="sec-head"><h2 class="sec-title" id="speaking-title" data-reveal>Speaking</h2></div>
+  <div class="sec-head"><h2 class="sec-title" id="speaking-title">Speaking</h2></div>
   <ol class="years">
     {{- range $years }}
     {{- $y := . }}

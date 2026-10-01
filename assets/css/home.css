@@ -245,9 +245,9 @@ html.no-gl .stage::before { opacity: 1; animation: none; }
 }
 
 /* ---------- Windows: full-bleed bands between the chapters, the only places below the landing where the scene
-   shows (js/scene/windows.js). They are empty and decorative: the canvas behind the page shows through. They need
-   JS; without the scene (no WebGL2, a failure, or a scene that has not come up 2.5 s after load) each holds a soft
-   composition of its subject's colours. ---------- */
+   shows (js/scene/windows.js). They are empty and decorative: the canvas behind the page shows through, and the
+   chapters around them sit calmly on the page colour. They need JS; without the scene (no WebGL2, a failure, or a
+   scene that has not come up 2.5 s after load) each holds a soft composition of its subject's colours. ---------- */
 .window { display: none; }
 .js .window { position: relative; display: block; height: clamp(14rem, 46vh, 32rem); pointer-events: none; }
 @media (max-width: 59.99em) { .js .window { height: clamp(12rem, 34vh, 22rem); } }
@@ -270,15 +270,12 @@ html.no-gl .stage::before { opacity: 1; animation: none; }
 .js:not(.scene-live) .window::before { animation: still-in 0.6s 2.5s forwards; }
 html.no-gl .window::before { opacity: 1; animation: none; }
 
-/* ---------- Offensys: one typographic statement. Its scroll-linked reveal lights each line up from the muted ink
-   to its own colour (colour, not opacity, so every frame keeps the text's contrast: muted is 4.6:1 here). ---------- */
+/* ---------- Offensys: one typographic statement, on the page colour like every chapter (nothing in them moves). */
 .offensys {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: 1.5rem;
   padding: clamp(4.5rem, 9vw, 8rem) var(--gutter);
-  border-block: 1px solid var(--hair);
-  background: var(--bg-2);
 }
 .offensys__title {
   grid-column: 1 / -1;
@@ -303,19 +300,13 @@ html.no-gl .window::before { opacity: 1; animation: none; }
   text-wrap: balance;
 }
 .claim__line { display: block; }
-.claim__purple { color: var(--accent-2); } /* purple: 4.9:1 on dark, 6.8:1 on light (on --bg-2) */
+.claim__purple { color: var(--accent-2); } /* purple: 5.4:1 on dark, 7.6:1 on light */
 .offensys__body { grid-column: 1 / -1; margin-top: clamp(1.75rem, 4vw, 3rem); }
 .offensys__body p { max-width: 30em; margin-bottom: 1.25rem; font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem); line-height: 1.55; }
 @media (min-width: 75em) {
   .claim { grid-column: 1 / span 8; grid-row: 2; }
   .offensys__body { grid-column: 9 / -1; grid-row: 2; align-self: end; margin-top: 0; }
 }
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .claim__line { animation: claim-in linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
-  }
-}
-@keyframes claim-in { from { color: var(--muted); transform: translateY(0.2em); } }
 
 /* ---------- Work: Speaking and Open source ---------- */
 .sec { padding: clamp(4rem, 8vw, 7rem) var(--gutter) 0; }
@@ -325,8 +316,6 @@ html.no-gl .window::before { opacity: 1; animation: none; }
 .years { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--hair); }
 .year { display: grid; grid-template-columns: minmax(8rem, 3fr) 9fr; column-gap: 1.5rem; padding-block: 1.5rem; border-bottom: 1px solid var(--hair); }
 .year__num {
-  position: sticky;
-  top: calc(var(--header-h) + 1.5rem);
   align-self: start;
   color: var(--muted);
   font-family: var(--f-display);
@@ -369,7 +358,7 @@ html.no-gl .window::before { opacity: 1; animation: none; }
 .talk__video .icon { width: 1.25rem; height: 1.25rem; }
 @media (max-width: 44.99em) {
   .year { grid-template-columns: 1fr; row-gap: 0.75rem; }
-  .year__num { position: static; font-size: 2.5rem; }
+  .year__num { font-size: 2.5rem; }
 }
 
 .oss { padding-top: clamp(3rem, 6vw, 5rem); }
@@ -428,7 +417,6 @@ html.no-gl .window::before { opacity: 1; animation: none; }
   align-items: center;
   gap: 3rem clamp(2rem, 5vw, 5rem);
   padding: clamp(5rem, 10vw, 8.5rem) var(--gutter);
-  border-top: 1px solid var(--hair);
 }
 .contact__title { margin-bottom: 1.5rem; font-family: var(--f-display); font-weight: 800; font-stretch: 84%; font-size: clamp(2.75rem, 1.8rem + 4vw, 4.75rem); letter-spacing: -0.035em; line-height: 0.95; }
 .contact__intro { max-width: 32em; color: var(--text-2); font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem); line-height: 1.6; }

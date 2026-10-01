@@ -713,10 +713,8 @@ html:not(.js) .card3d__slab { display: none; }
   .palette__close { min-width: 2.75rem; min-height: 2.75rem; }
 }
 
-/* ---------- Motion: time-based reveals (JS, fire once), view transitions ---------- */
+/* ---------- Motion: view transitions between pages ---------- */
 @media (prefers-reduced-motion: no-preference) {
-  .will-reveal { opacity: 0; transform: translateY(0.6rem); }
-  .will-reveal.is-revealed { opacity: 1; transform: none; transition: opacity 0.6s var(--ease-out), transform 0.7s var(--ease-out); }
   @view-transition { navigation: auto; }
   ::view-transition-old(root),
   ::view-transition-new(root) { animation-duration: 200ms; }

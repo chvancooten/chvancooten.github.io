@@ -53,7 +53,7 @@
 
 {{- with hugo.Data.projects }}
 <section class="sec oss" aria-labelledby="oss-title">
-  <div class="sec-head"><h2 class="sec-title" id="oss-title" data-reveal>Open source</h2></div>
+  <div class="sec-head"><h2 class="sec-title" id="oss-title">Open source</h2></div>
   <p class="sec-intro">Most of my tooling starts as a side project in Go, Python, Rust or Nim, and I publish it as open source. Releasing offensive tools is a much-debated call, I know. I still think it's the right one: when the tools are out in the open, defenders get to test against them too.</p>
   <ul class="repos">
     {{- range sort .projects "stars" "desc" }}
@@ -77,7 +77,7 @@
 {{- partial "window.html" 3 }}
 <section class="writing" id="writing" aria-labelledby="writing-title">
   <div class="writing__head">
-    <h2 class="sec-title" id="writing-title" data-reveal>Writing</h2>
+    <h2 class="sec-title" id="writing-title">Writing</h2>
     {{- with $posts }}
     <a class="link-arrow" href="{{ $postsPage.RelPermalink }}">All {{ len $posts }} {{ cond (eq (len $posts) 1) "post" "posts" }}{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a>
     {{- end }}
@@ -95,7 +95,7 @@
 {{- /* About and contact: the menu's About entry and the hero's "Get in touch" (#contact) both land here. */}}
 <section class="contact" id="about" aria-labelledby="about-title">
   <div class="contact__copy">
-    <h2 class="contact__title" id="about-title" data-reveal>About</h2>
+    <h2 class="contact__title" id="about-title">About</h2>
     <p class="contact__intro">I'm Cas, an offensive security enthusiast and red teamer based in the Netherlands. These days most of my time goes into <a href="{{ $company.url }}">{{ $company.name }}</a>, the company I co-founded. I'm always up for a chat about offensive security and new programming languages.</p>
     {{- with site.GetPage "/about" }}
     <p class="contact__more"><a class="link-arrow" href="{{ .RelPermalink }}">More about me{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a></p>
