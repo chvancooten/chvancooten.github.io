@@ -89,17 +89,14 @@
   .search-btn kbd { display: none; }
   .search-btn { padding: 0; }
 }
-@media (max-width: 25em) {
-  .site-header__inner { gap: 0.5rem; }
-  .brand { font-size: 1rem; font-stretch: 90%; }
-  .site-nav ul { gap: 0; }
-  .site-nav a { font-size: 0.875rem; padding: 0 0.3rem; }
-  .icon-btn { min-width: 2.25rem; height: 2.25rem; padding: 0; }
-}
-@media (max-width: 21.5em) {
-  /* 320-344px: the nav moves to its own row rather than dropping an item. */
+@media (max-width: 31.24em) {
+  /* Below 500px the nav gets a row of its own under the wordmark and the tools, rather than squeezing the
+     wordmark against Work (and, from 375px down, pushing the theme toggle off the screen). --header-h follows, so
+     anchors and sticky elements still clear the header. */
+  :root { --header-h: 5.25rem; }
   .site-header__inner { flex-wrap: wrap; row-gap: 0; padding-block: 0.25rem; }
-  .site-nav { order: 3; flex-basis: 100%; margin-left: -0.3rem; }
+  .site-nav { order: 3; flex-basis: 100%; margin-left: -0.35rem; }
+  .site-nav ul { gap: 0.75rem; }
   .site-nav a { min-height: 2.25rem; }
 }
 
