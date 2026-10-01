@@ -95,7 +95,7 @@ Writing notes:
 | `layouts/_markup/` | Render hooks for headings, code blocks, images and links |
 | `layouts/_shortcodes/x.html` | Static X post cards |
 | `assets/css/` | `tokens.css` (fonts, colour tokens for both themes), `base.css`, `layout.css`, `components.css`, `home.css`, `syntax.css` |
-| `assets/js/` | `main.js` and its modules (theme toggle, search palette, copy buttons, TOC scroll-spy, heading reveals, card tilt) |
+| `assets/js/` | `main.js` and its modules (theme toggle, search palette, copy buttons, TOC scroll-spy, heading reveals, the 3D business card) |
 | `assets/js/dock.js` | The home page's hero converting into the title bar |
 | `assets/js/scene/` | The hero scene in WebGL2: `hero.js` (the home page controller), `index.js` (`mount()` and the runtime), `gl.js` (the renderer), `v1.js` (the particles and camera path), `math.js` |
 | `content/_index.md` | Home page lede and description |
@@ -106,10 +106,12 @@ Writing notes:
 | `static/scene/` | Stills of the hero scene at rest (the fallback without JavaScript or WebGL2, and the 404 page) |
 | `static/fonts/` | Bricolage Grotesque, Instrument Sans and JetBrains Mono (latin subsets; SIL OFL licences next to the files) |
 | `static/cas-van-cooten.vcf` | The vCard behind "Save contact" on the business card |
+| `static/images/card-portrait*.webp` | The card's portrait: the photo, and a soft luminance matte of its near-black studio background used as a CSS mask |
 
 Dark is the default theme. The toggle stores `"dark"` or `"light"` in `localStorage["theme"]`, and a tiny inline
 script applies it to `<html data-theme>` before the first paint. Everything works with JavaScript disabled; scripts
-only add the search palette, theme toggle, copy buttons, TOC highlighting, the card tilt and the live hero scene.
+only add the search palette, theme toggle, copy buttons, TOC highlighting, the card's tilt and turn, the title bar's dock
+and the live hero scene.
 
 ## Design
 
@@ -191,13 +193,21 @@ encoded as WebP at quality 0.8. Recapture them after changing the scene's look.
   2560x1600 pixels). A *Pause motion* button stops it for the rest of the browser session.
 - Adaptive quality: when frames are slow the scene steps down, first to a pixel ratio of 1, then to half the
   particles (with stronger inks), then to a still frame. The level lasts for the session.
-- The business card on the home page tilts slightly toward a mouse or pen, with a glare.
+- The business card is a small 3D object: dark in both themes, with real thickness, the portrait on the front and the
+  profiles (GitHub, X, LinkedIn, email) and *Save contact* on the back. It tilts toward a mouse or pen, with a
+  specular glare, and the *Turn over* button below it turns it (mouse, touch and keyboard); the face turned away is
+  inert. Without JavaScript both faces lie flat, one above the other. The portrait files come from the
+  owner's studio photo: cropped to head and shoulders, a soft luminance matte (the near-black background becomes
+  transparent, so keying errors vanish into the card's own near-black surface), then exported as a 500x540 WebP
+  without alpha (`card-portrait.webp`) and the matte as a separate WebP for `mask-image`
+  (`card-portrait-matte.webp`); an alpha plane in the photo itself would cost about ten times as much.
 - Section headings fade up once, over a fixed time, when they first come into view. The Offensys claim ("Continuous
   Purple Teaming") reveals line by line as it scrolls in.
 - Pages cross-fade between each other where browsers support view transitions.
 
 With `prefers-reduced-motion: reduce`, the scene draws one composed still frame (no intro, drift, parallax or
-scroll-linked camera). The pause button, the card tilt, the reveals and the view transitions are off, and smooth
+scroll-linked camera). The pause button, the card's tilt, the reveals and the view transitions are off (the card's
+turn is a short cross-fade), and smooth
 scrolling is disabled.
 
 ## Speaking

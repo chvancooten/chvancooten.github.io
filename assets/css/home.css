@@ -418,10 +418,9 @@ html.no-gl[data-theme="light"] .stage { background-image: url("../scene/still-wi
 .contact__mail a:hover { text-decoration-color: var(--accent); }
 .copy-btn { min-height: 2.25rem; padding: 0 0.85rem; font-size: 0.875rem; font-weight: 500; }
 .contact .social-text { margin-top: 2rem; }
-.contact .card-stage { display: flex; justify-content: flex-end; }
 @media (max-width: 61.99em) {
   .contact { grid-template-columns: 1fr; }
-  .contact .card-stage { justify-content: flex-start; }
+  .contact .card-stage { align-items: flex-start; }
 }
 
 /* ---------- 404: a calm still of the scene beside the message ---------- */

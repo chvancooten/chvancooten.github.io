@@ -1,11 +1,45 @@
-{{- /* The business card: who, what, where, and a vCard to save (static/cas-van-cooten.vcf). */ -}}
-<div class="card" data-card>
-  <div class="card__glare" aria-hidden="true"></div>
-  <p class="card__site">casvancooten.com</p>
-  <p class="card__name">{{ site.Params.author.name }}</p>
-  <p class="card__role">Offensive security enthusiast <span aria-hidden="true">·</span> Co-founder of <a href="{{ site.Params.company.url }}">{{ site.Params.company.name }}</a></p>
-  <div class="card__foot">
-    <span>The Netherlands</span>
-    <a class="btn card__save" href="{{ "cas-van-cooten.vcf" | relURL }}" download="cas-van-cooten.vcf">Save contact</a>
+{{- /* The business card, a small physical object (js/card.js): dark in both themes, with real thickness (stacked
+       slabs), the portrait on the front and, on the back, the profiles and "Save contact" (static/cas-van-cooten.vcf).
+       A button below the card turns it over; the face turned away is inert. Without JS both faces lie flat, one
+       above the other. Use inside a .card-stage. */ -}}
+{{- $company := site.Params.company }}
+{{- $email := "" }}
+{{- range where site.Params.social "icon" "mail" }}{{ $email = strings.TrimPrefix "mailto:" .url }}{{ end }}
+<div class="card3d" data-card3d>
+  <div class="card3d__tilt">
+    <div class="card3d__body">
+      {{- range slice "-4" "-2.7" "-1.35" "0" "1.35" "2.7" "4" }}<i class="card3d__slab" style="--z: {{ . }}px" aria-hidden="true"></i>{{ end }}
+      <div class="card3d__face card3d__front">
+        <div class="card3d__surface"></div>
+        <div class="card3d__glare" aria-hidden="true"></div>
+        <img class="card3d__photo" src="{{ "images/card-portrait.webp" | relURL }}" alt="Portrait of {{ site.Params.author.name }}" width="500" height="540" loading="lazy" decoding="async">
+        <div class="card3d__text">
+          <p class="card3d__site">casvancooten.com</p>
+          <p class="card3d__name">{{ site.Params.author.name }}</p>
+          <p class="card3d__role">Offensive security enthusiast<span class="sr-only">,</span><br>Co-founder of <a href="{{ $company.url }}">{{ $company.name }}</a></p>
+          <p class="card3d__meta">The Netherlands</p>
+        </div>
+      </div>
+      <div class="card3d__face card3d__back">
+        <div class="card3d__surface"></div>
+        <div class="card3d__glare" aria-hidden="true"></div>
+        <div class="card3d__inner">
+          <div class="card3d__head">
+            <p class="card3d__name">{{ site.Params.author.name }}</p>
+            <span class="card3d__line" aria-hidden="true"></span>
+            <p class="card3d__contact">{{ $email }}<br>casvancooten.com</p>
+          </div>
+          <div class="card3d__actions">
+            <a class="card3d__save" href="{{ "cas-van-cooten.vcf" | relURL }}" download="cas-van-cooten.vcf">Save contact</a>
+            <ul class="card3d__social">
+              {{- range site.Params.social }}
+              <li><a href="{{ .url }}"{{ if not (strings.HasPrefix .url "mailto:") }} rel="me"{{ end }} aria-label="{{ .name }}" title="{{ .name }}">{{ partial "icon.html" (dict "name" .icon "size" 18) }}</a></li>
+              {{- end }}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+<button class="card3d__flip js-only" type="button">{{ partial "icon.html" (dict "name" "flip" "size" 16) }}<span>Turn over</span></button>

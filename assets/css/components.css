@@ -462,62 +462,138 @@ pre:not(.chroma) code { color: var(--text); }
   .pager__link--newer { grid-column: 2; text-align: right; }
 }
 
-/* ---------- Business card (home contact): a card you can save ---------- */
-/* Business-card proportions (3.5 x 2 in). The card does not clip, so on a narrow screen it grows taller rather than
-   cut its content off; the glare clips itself to the rounded corners. */
-.card-stage { perspective: 1200px; }
-.card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
+/* ---------- The business card (home About section, About page): a small physical object ----------
+   Dark in both themes: the surface is the portrait's own near-black, so the photo has no edge, and the card keeps
+   Flexoki's dark text colours (--c-*) in the light theme too. Real thickness: seven slabs of edge material between
+   the two faces. Its layers sit at different depths (surface and glare, the portrait, the text), and js/card.js tilts
+   it toward a mouse or pen and turns it over with the button below it. Without JS both faces lie flat, one above
+   the other; with reduced motion the turn is a short cross-fade. */
+.card-stage { display: flex; flex-direction: column; align-items: flex-end; gap: 0.9rem; }
+.card3d {
+  --c-text: #cecdc3;      /* base-200, 12.2:1 on the surface */
+  --c-text-2: #878580;    /* base-500, 5.3:1 */
+  --c-accent: #de594c;    /* adj. red-400, 5.3:1 */
+  --c-accent-2: #8b7ec8;  /* purple-400 */
+  --c-blue: #4385be;      /* blue-400 */
+  --focus: #8b7ec8;       /* the dark theme's focus ring, 5.5:1 on the surface */
+  container-type: inline-size;
   width: min(28rem, 100%);
-  aspect-ratio: 1.75 / 1;
-  padding: clamp(1.25rem, 2.5vw, 1.75rem);
-  border: 1px solid var(--card-edge);
-  border-radius: 18px;
-  background: var(--card-bg);
-  box-shadow: var(--shadow);
-  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  perspective: 1200px;
+  filter: drop-shadow(0 26px 28px rgb(0 0 0 / 0.36)) drop-shadow(0 6px 8px rgb(0 0 0 / 0.22));
 }
-.card__glare {
+[data-theme="light"] .card3d { filter: drop-shadow(0 26px 30px rgb(16 15 15 / 0.22)) drop-shadow(0 5px 9px rgb(16 15 15 / 0.16)); }
+.card3d__tilt { position: relative; transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.card3d__body { position: relative; aspect-ratio: 1.75; transform-style: preserve-3d; }
+/* the edge: a lighter core between the two dark faces, so the thickness reads as a lit rim when the card turns */
+.card3d__slab { position: absolute; inset: 0; border-radius: 12px; background: linear-gradient(150deg, #403e3c 0%, #282726 45%, #141312 100%); transform: translateZ(var(--z)); }
+.card3d__face { position: absolute; inset: 0; border-radius: 12px; transform-style: preserve-3d; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.card3d__front { transform: translateZ(5px); }
+.card3d__back { transform: rotateY(180deg) translateZ(5px); }
+.card3d__surface {
   position: absolute;
   inset: 0;
-  z-index: 2;
   border-radius: inherit;
-  opacity: var(--glare, 0);
-  background: radial-gradient(340px circle at var(--gx, 50%) var(--gy, 30%), rgb(255 255 255 / 0.12), transparent 60%);
-  mix-blend-mode: screen;
+  background: radial-gradient(62% 92% at 74% 32%, #0b0c0d 0%, #070708 48%, #040404 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), inset 1px 0 0 rgb(255 255 255 / 0.05), inset 0 0 0 1px rgb(255 255 255 / 0.06);
+}
+/* the specular highlight: on the surface, under the portrait (the face is never washed out) */
+.card3d__glare {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--glare, 0.35);
+  background:
+    radial-gradient(38% 60% at var(--gx, 62%) var(--gy, 22%), rgb(255 255 255 / 0.2), rgb(255 255 255 / 0.06) 46%, rgb(255 255 255 / 0) 72%),
+    linear-gradient(112deg, rgb(255 255 255 / 0) 30%, rgb(255 255 255 / 0.045) 48%, rgb(255 255 255 / 0) 62%);
+  transform: translateZ(0.5px);
+}
+/* the portrait: the photo (no alpha) under a soft luminance matte of its near-black studio background */
+.card3d__photo {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: 100%;
+  aspect-ratio: 500 / 540;
+  border-bottom-right-radius: 12px;
+  -webkit-mask: url("../images/card-portrait-matte.webp") 0 0 / 100% 100% no-repeat;
+  mask: url("../images/card-portrait-matte.webp") 0 0 / 100% 100% no-repeat;
+  transform: translateZ(14px) scale(0.988);
+  transform-origin: 100% 100%;
   pointer-events: none;
 }
-[data-theme="light"] .card__glare { background: radial-gradient(340px circle at var(--gx, 50%) var(--gy, 30%), rgb(255 255 255 / 0.75), transparent 60%); mix-blend-mode: soft-light; }
-.card > :not(.card__glare) { position: relative; z-index: 1; }
-.card__site { align-self: flex-end; color: var(--text-2); font-size: var(--fs-xs); }
-.card__name {
-  margin-top: auto !important;
-  font-family: var(--f-display);
-  font-weight: 800;
-  font-stretch: 86%;
-  font-size: clamp(1.625rem, 1.2rem + 1.4vw, 2.25rem);
-  letter-spacing: -0.03em;
-  line-height: 1;
-  color: var(--text);
-}
-.card__role { margin-top: 0.6rem !important; color: var(--text-2); font-size: var(--fs-sm); }
-.card__role a { color: var(--accent); font-weight: 600; text-decoration: none; }
-.card__role a:hover { text-decoration: underline; }
-.card__foot {
+.card3d__text {
+  position: absolute;
+  top: 11%;
+  bottom: 11%;
+  left: 7%;
+  width: 56%;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 1.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--card-edge);
-  color: var(--text-2);
-  font-size: var(--fs-sm);
+  flex-direction: column;
+  color: var(--c-text);
+  transform: translateZ(26px) scale(0.978);
+  transform-origin: 0 0;
 }
-.card__save { min-height: 2.5rem; padding-inline: 1rem; font-size: 0.9375rem; }
+.card3d p { margin: 0; }
+.card3d__site { margin-bottom: auto !important; color: var(--c-text-2); font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.card3d__name { margin-bottom: 0.45rem !important; color: var(--c-text); font-family: var(--f-display); font-weight: 800; font-stretch: 88%; font-size: clamp(1.375rem, 1.1rem + 1.1vw, 1.875rem); letter-spacing: -0.03em; line-height: 0.95; }
+.card3d__role { color: var(--c-text-2); font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.875rem); line-height: 1.4; }
+.card3d__role a { color: var(--c-accent); font-weight: 600; text-decoration: none; }
+.card3d__role a:hover { text-decoration: underline; }
+.card3d__meta { margin-top: 0.75rem !important; color: var(--c-text-2); font-size: 0.75rem; }
+.card3d__inner {
+  position: absolute;
+  inset: 11% 8%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--c-text);
+  transform: translateZ(22px) scale(0.982);
+}
+.card3d__back .card3d__name { font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem); }
+.card3d__line { display: block; height: 1px; margin: 0.6rem 0; background: linear-gradient(90deg, var(--c-accent), var(--c-accent-2), var(--c-blue)); opacity: 0.85; }
+.card3d__contact { color: var(--c-text-2); font-size: 0.8125rem; line-height: 1.6; }
+.card3d__actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 0.75rem; }
+.card3d__save {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0 1.1rem;
+  border: 1px solid var(--c-text);
+  border-radius: 4px;
+  background: var(--c-text);
+  color: #050506;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.card3d__save:hover { background: transparent; color: var(--c-text); }
+/* the profiles: 36 px targets */
+.card3d__social { display: flex; gap: 0.15rem; margin: 0 -0.4rem 0 0; padding: 0; list-style: none; }
+.card3d__social a { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; border-radius: 999px; color: var(--c-text-2); transition: color var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out); }
+.card3d__social a:hover { color: var(--c-text); background: rgb(255 255 255 / 0.08); }
+/* a small card (narrow screens): the address is beside the card on the page, so the back keeps its actions */
+@container (max-width: 22rem) {
+  .card3d__inner { inset: 9% 7%; }
+  .card3d__contact { display: none; }
+  .card3d__save { min-height: 2.25rem; padding-inline: 0.9rem; font-size: 0.875rem; }
+}
+.card3d__flip { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 2.5rem; padding: 0 0.25rem; border: 0; background: none; color: var(--text-2); font: inherit; font-size: var(--fs-sm); cursor: pointer; }
+.card3d__flip:hover { color: var(--text); }
+@media (prefers-reduced-motion: reduce) {
+  .card3d__face { -webkit-backface-visibility: visible; backface-visibility: visible; transition: opacity 0.15s ease; }
+  .card3d__back { transform: translateZ(4px); opacity: 0; }
+  .card3d.is-flipped .card3d__back { opacity: 1; }
+  .card3d.is-flipped .card3d__front { opacity: 0; }
+}
+/* Without JS: both faces flat, the front above the back, no thickness. */
+html:not(.js) .card3d { filter: none; perspective: none; }
+html:not(.js) :is(.card3d__tilt, .card3d__body, .card3d__face) { transform: none; transform-style: flat; }
+html:not(.js) .card3d__body { display: grid; gap: 1rem; aspect-ratio: auto; }
+html:not(.js) .card3d__face { position: relative; aspect-ratio: 1.75; -webkit-backface-visibility: visible; backface-visibility: visible; box-shadow: 0 18px 30px -18px rgb(0 0 0 / 0.5); }
+html:not(.js) .card3d__slab { display: none; }
 
 /* ---------- Generic pages (About) ---------- */
 .page { padding-inline: var(--gutter); }
