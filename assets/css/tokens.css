@@ -123,17 +123,17 @@
   --sel: rgb(139 126 200 / 0.32);
   --shadow: 0 40px 80px -40px rgb(0 0 0 / 0.8);
 
-  /* Hero scene (assets/js/scene): two currents, love/rose and foam/pine, that meet in iris. On dark the inks add
-     up like light. The inks are still the scene's own (its colours are being reworked separately); the scene's
-     background and --scrim (the background as "r g b", for the soft clouds under text over the scene) follow the
-     page. */
+  /* The scene (assets/js/scene): two currents, red and blue, that turn purple where they meet; Flexoki's own red,
+     blue and purple (each with a second shade) and a neutral dust. On dark the inks glow over the page (added, at
+     most a little above each ink's own brightness); --scrim is the background as "r g b", for the soft clouds
+     under the landing's text. */
   --scene-bg: #100f0f;
-  --scene-love: #eb6f92;
-  --scene-rose: #ebbcba;
-  --scene-foam: #9ccfd8;
-  --scene-pine: #31748f;
-  --scene-iris: #c4a7e7;
-  --scene-subtle: #908caa;
+  --scene-red: #d14d41;     /* red-400 */
+  --scene-red-2: #af3029;   /* red-600 */
+  --scene-blue: #4385be;    /* blue-400 */
+  --scene-blue-2: #205ea6;  /* blue-600 */
+  --scene-purple: #8b7ec8;  /* purple-400 */
+  --scene-dust: #575653;    /* base-700 */
   --scene-ink: add;
   --scrim: 16 15 15;
 
@@ -198,14 +198,14 @@
   --sel: rgb(94 64 157 / 0.2);
   --shadow: 0 36px 70px -40px rgb(16 15 15 / 0.4);
 
-  /* The scene on paper: the same inks, taken away from the paper like ink (see above). */
+  /* The scene on paper: the 600 shades first, laid over the paper like ink (never subtracted from it). */
   --scene-bg: #fffcf0;
-  --scene-love: #b4637a;
-  --scene-rose: #d7827e;
-  --scene-foam: #56949f;
-  --scene-pine: #286983;
-  --scene-iris: #907aa9;
-  --scene-subtle: #797593;
+  --scene-red: #af3029;     /* red-600 */
+  --scene-red-2: #d14d41;   /* red-400 */
+  --scene-blue: #205ea6;    /* blue-600 */
+  --scene-blue-2: #4385be;  /* blue-400 */
+  --scene-purple: #5e409d;  /* purple-600 */
+  --scene-dust: #878580;    /* base-500 */
   --scene-ink: ink;
   --scrim: 255 252 240;
 

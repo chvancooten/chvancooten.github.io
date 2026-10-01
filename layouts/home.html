@@ -5,10 +5,12 @@
 {{- $email := "" }}
 {{- range where site.Params.social "icon" "mail" }}{{ $email = strings.TrimPrefix "mailto:" .url }}{{ end }}
 
+{{- /* The scene: one WebGL2 canvas (added by js/scene), fixed behind the page. It shows in the landing and in the
+       windows between the chapters, and nowhere else (C3 "Windows"). */}}
+<div class="scene" data-scene data-src="{{ (partial "func/scene-runtime.html" .).RelPermalink }}" aria-hidden="true"></div>
 <section class="hero" aria-labelledby="hero-name">
-  {{- /* The scene: a WebGL2 canvas (added by js/scene) over a designed still, which is what shows without JS or
-         WebGL2 and before the scene boots. */}}
-  <div class="stage" data-scene aria-hidden="true"></div>
+  {{- /* The landing's designed still: what shows without JS or WebGL2 (and if the scene is late). */}}
+  <div class="stage" aria-hidden="true"></div>
   {{- /* The landing's own quiet bar (with JS): the same nav and tools as the title bar, which takes over as the
          name docks into its wordmark (js/dock.js). Only one of the two is ever exposed. */}}
   <div class="hero-bar">
@@ -41,10 +43,13 @@
   </div>
 </section>
 
+{{- partial "window.html" 1 }}
 <div id="work">
 {{- with hugo.Data.talks }}
 {{- partial "talks.html" (dict "talks" .talks "cap" (site.Params.homeTalks | default 6) "repo" hugo.Data.projects.talks) }}
 {{- end }}
+
+{{- partial "window.html" 2 }}
 
 {{- with hugo.Data.projects }}
 <section class="sec oss" aria-labelledby="oss-title">
@@ -69,6 +74,7 @@
 {{- end }}
 </div>
 
+{{- partial "window.html" 3 }}
 <section class="writing" id="writing" aria-labelledby="writing-title">
   <div class="writing__head">
     <h2 class="sec-title" id="writing-title" data-reveal>Writing</h2>
@@ -85,6 +91,7 @@
   {{- end }}
 </section>
 
+{{- partial "window.html" 4 }}
 {{- /* About and contact: the menu's About entry and the hero's "Get in touch" (#contact) both land here. */}}
 <section class="contact" id="about" aria-labelledby="about-title">
   <div class="contact__copy">

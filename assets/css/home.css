@@ -68,27 +68,30 @@ html.js.is-docked .kind-home :is(.site-header, .site-header .brand) { visibility
    The landing is not a stacking context of its own (they are in the root's, above the page colour), so the docking
    name (z-index 30) can rise above the title bar (20). */
 
-/* The stage. Before the scene boots, a soft composition of its colours; without JS or WebGL2, a still of the
-   scene at rest (static/scene/). The canvas fades in over either. */
-.stage {
-  position: absolute;
-  inset: 0;
-  z-index: -3;
-  overflow: hidden;
-  pointer-events: none;
-  background:
-    radial-gradient(26% 20% at 70% 46%, color-mix(in srgb, var(--accent-2) 20%, transparent), transparent 70%),
-    radial-gradient(46% 26% at 90% 26%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 72%),
-    radial-gradient(46% 26% at 86% 66%, color-mix(in srgb, var(--blue) 9%, transparent), transparent 72%),
-    var(--bg);
-}
-/* A first visit starts dark: the intro builds the scene up from almost nothing. */
-.js[data-intro=""] .stage { background: var(--bg); }
-.stage > canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; opacity: 0; }
-.stage.is-live > canvas { opacity: 1; }
+/* The scene: one canvas, fixed behind the whole page (below the landing's scrims and clouds), sized to the large
+   viewport so a mobile toolbar that comes and goes does not resize it. Its frames (the landing, the windows) are
+   masked in its own shader; everywhere else it is the page colour. The canvas crossfades in on its first frame, from
+   the page colour: no blurred placeholder before it. */
+.scene { position: fixed; inset: 0 0 auto; z-index: -4; height: 100vh; height: 100lvh; pointer-events: none; }
+.scene > canvas { display: block; width: 100%; height: 100%; opacity: 0; }
+.scene.is-shown > canvas { opacity: 1; }
 @media (prefers-reduced-motion: no-preference) {
-  .stage > canvas { transition: opacity 0.4s var(--ease-out); }
+  .scene > canvas { transition: opacity 0.6s var(--ease-out); }
 }
+
+/* The landing's designed still (static/scene/): without JS, without WebGL2 (html.no-gl), or when the scene has not
+   come up 2.5 s after load. With the scene, the page colour. */
+.stage { position: absolute; inset: 0; z-index: -3; overflow: hidden; pointer-events: none; }
+.stage::before { content: ""; position: absolute; inset: 0; background: url("../scene/still-wide-dark.webp") 50% 50% / cover no-repeat var(--bg); }
+[data-theme="light"] .stage::before { background-image: url("../scene/still-wide-light.webp"); }
+@media (orientation: portrait) {
+  .stage::before { background-image: url("../scene/still-tall-dark.webp"); }
+  [data-theme="light"] .stage::before { background-image: url("../scene/still-tall-light.webp"); }
+}
+.js .stage::before { opacity: 0; }
+.js:not(.scene-live) .stage::before { animation: still-in 0.6s 2.5s forwards; }
+html.no-gl .stage::before { opacity: 1; animation: none; }
+@keyframes still-in { to { opacity: 1; } }
 
 /* Scrims: a thin band under the header and a soft floor across the frame; the rest is per text. */
 .hero::before {
@@ -146,13 +149,21 @@ html.js.is-docked .kind-home :is(.site-header, .site-header .brand) { visibility
 .hero__name .nm { display: inline-block; white-space: nowrap; transform-origin: 50% 50%; will-change: transform, opacity; }
 .hero__name .nm > span { display: inline-block; transform-origin: 0 100%; will-change: transform; }
 @media (prefers-reduced-motion: reduce) { .hero__name { z-index: auto; } }
-/* First paint of a first visit: the name already sits where the intro starts it (transform only, never hidden).
-   The scene's first frame takes over; if the script never runs, the name settles by itself. */
+/* First paint of a first visit: the name and the landing's UI already sit where the intro starts them (transform
+   only, from the final layout, never hidden): the name a little lifted and enlarged, the rest a few pixels off. The
+   scene's first frame takes over (js/scene/hero.js); if the script never runs, they settle by themselves. The start
+   state is on the name's inner lines only: the outer ones belong to the title bar's dock. */
 @media (prefers-reduced-motion: no-preference) {
-  [data-intro] .hero__name .nm > span { transform: translate3d(0, 0.05em, 0) scale(1.07); animation: name-settle 0.9s 2.6s var(--ease-out) forwards; }
-  [data-intro="settle"] .hero__name .nm > span { animation-delay: 0s; }
+  [data-intro] .hero__name .nm > span { transform: translate3d(0, 0.04em, 0) scale(1.05); }
+  [data-intro] .hero-bar { transform: translate3d(0, -10px, 0); }
+  [data-intro] .hero__role { transform: translate3d(0, 14px, 0); }
+  [data-intro] :is(.hero__lede, .hero__cta) { transform: translate3d(0, 16px, 0); }
+  [data-intro] :is(.cue, .hero__ctrl) { transform: translate3d(0, 10px, 0); }
+  [data-intro] :is(.hero__name .nm > span, .hero-bar, .hero__role, .hero__lede, .hero__cta, .cue, .hero__ctrl) { animation: intro-settle 0.6s 3s var(--ease-out) forwards; }
+  /* the intro cannot play: the landing settles from its start state rather than snapping */
+  .intro-release :is(.hero__name .nm > span, .hero-bar, .hero__role, .hero__lede, .hero__cta, .cue, .hero__ctrl) { transition: transform 0.45s var(--ease-out); }
 }
-@keyframes name-settle { to { transform: none; } }
+@keyframes intro-settle { to { transform: none; } }
 .hero__lede { max-width: 31em; font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.3125rem); line-height: 1.55; }
 .hero__lede p + p { margin-top: 0.75em; }
 .hero__lede a { color: inherit; text-decoration-color: var(--line); }
@@ -160,11 +171,13 @@ html.js.is-docked .kind-home :is(.site-header, .site-header .brand) { visibility
 .hero__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.75rem; width: fit-content; margin-top: 2rem; }
 .hero .link-quiet { color: var(--text); }
 
-/* The cue into the content: quiet, centred at the foot of the landing. */
+/* The cue into the content: quiet, centred at the foot of the landing (without a transform: the intro moves it
+   with one). */
 .cue {
   position: absolute;
-  left: 50%;
-  bottom: 1.3rem;
+  inset: auto 0 1.3rem;
+  width: fit-content;
+  margin-inline: auto;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -174,7 +187,6 @@ html.js.is-docked .kind-home :is(.site-header, .site-header .brand) { visibility
   font-weight: 500;
   letter-spacing: 0.02em;
   text-decoration: none;
-  transform: translateX(-50%);
   --cloud-spread: 1rem;
   --cloud-blur: 2rem;
 }
@@ -216,35 +228,47 @@ html.js.is-docked .kind-home :is(.site-header, .site-header .brand) { visibility
       linear-gradient(to bottom, rgb(var(--scrim) / 0.85) 0, rgb(var(--scrim) / 0.45) var(--header-h), rgb(var(--scrim) / 0) calc(var(--header-h) + 3rem)),
       linear-gradient(to top, rgb(var(--scrim) / 0.6), rgb(var(--scrim) / 0) 14%);
   }
-  .stage {
-    background:
-      radial-gradient(40% 16% at 52% 58%, color-mix(in srgb, var(--accent-2) 20%, transparent), transparent 70%),
-      radial-gradient(40% 18% at 18% 44%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 72%),
-      radial-gradient(40% 18% at 84% 44%, color-mix(in srgb, var(--blue) 9%, transparent), transparent 72%),
-      var(--bg);
-  }
   .hero__copy { display: contents; }
   .hero__copy > * { position: relative; }
   .hero__role { grid-row: 1; margin-bottom: 0.7rem; }
   .hero__name { grid-row: 2; margin-bottom: 0; font-size: clamp(3.4rem, 17.4vw, 6.5rem); }
   .hero__lede { grid-row: 4; font-size: 1.0625rem; line-height: 1.5; --cloud-spread: 1.5rem; --cloud-blur: 2.5rem; }
   .hero__cta { grid-row: 5; margin-top: 1.25rem; }
-  .cue { left: var(--gutter); bottom: 1.45rem; flex-direction: row; transform: none; }
+  .cue { left: var(--gutter); bottom: 1.45rem; margin-inline: 0; flex-direction: row; }
   .cue__long { display: none; }
   .cue__short { display: inline; }
   .cue__line { order: 0; width: 1.75rem; height: 1px; background: linear-gradient(to right, var(--line), transparent); }
-}
-/* The designed still (no JS, no WebGL2): the scene at rest, framed for landscape or portrait. */
-html:not(.js) .stage, html.no-gl .stage { background: url("../scene/still-wide-dark.webp") 50% 50% / cover no-repeat var(--bg); }
-html.no-gl[data-theme="light"] .stage { background-image: url("../scene/still-wide-light.webp"); }
-@media (orientation: portrait) {
-  html:not(.js) .stage, html.no-gl .stage { background-image: url("../scene/still-tall-dark.webp"); }
-  html.no-gl[data-theme="light"] .stage { background-image: url("../scene/still-tall-light.webp"); }
 }
 @media (max-height: 40em) and (min-width: 60em) {
   .hero__lede { font-size: 1.0625rem; }
   .hero__name { font-size: clamp(4rem, 17vh, 9rem); }
 }
+
+/* ---------- Windows: full-bleed bands between the chapters, the only places below the landing where the scene
+   shows (js/scene/windows.js). They are empty and decorative: the canvas behind the page shows through. They need
+   JS; without the scene (no WebGL2, a failure, or a scene that has not come up 2.5 s after load) each holds a soft
+   composition of its subject's colours. ---------- */
+.window { display: none; }
+.js .window { position: relative; display: block; height: clamp(14rem, 46vh, 32rem); pointer-events: none; }
+@media (max-width: 59.99em) { .js .window { height: clamp(12rem, 34vh, 22rem); } }
+.window::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  -webkit-mask-image: linear-gradient(transparent, #000 34%, #000 66%, transparent);
+  mask-image: linear-gradient(transparent, #000 34%, #000 66%, transparent);
+  --k: 22%;
+  background:
+    radial-gradient(34% 70% at var(--x1, 30%) 50%, color-mix(in srgb, var(--c1, var(--scene-blue)) var(--k), transparent), transparent 70%),
+    radial-gradient(34% 70% at var(--x2, 70%) 55%, color-mix(in srgb, var(--c2, var(--scene-red)) var(--k), transparent), transparent 70%);
+}
+[data-theme="light"] .window::before { --k: 16%; }
+.window--2::before { --c1: var(--scene-red-2); --c2: var(--scene-red); --x1: 38%; --x2: 64%; }
+.window--3::before { --c1: var(--scene-blue); --c2: var(--scene-blue-2); --x1: 34%; --x2: 58%; }
+.window--4::before { --c1: var(--scene-purple); --c2: var(--scene-purple); --x1: 46%; --x2: 56%; }
+.js:not(.scene-live) .window::before { animation: still-in 0.6s 2.5s forwards; }
+html.no-gl .window::before { opacity: 1; animation: none; }
 
 /* ---------- Offensys: one typographic statement. Its scroll-linked reveal lights each line up from the muted ink
    to its own colour (colour, not opacity, so every frame keeps the text's contrast: muted is 4.6:1 here). ---------- */

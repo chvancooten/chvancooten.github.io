@@ -30,9 +30,15 @@
 {{- $css = $css | resources.Concat "css/main.css" | minify | fingerprint }}
 <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
 {{- $opts := dict "format" "esm" "minify" true "target" "es2020" }}
+{{- /* The scene ships to the home page only: the landing's script, and the runtime it imports after first paint,
+       whose integrity the import map carries (it comes before any module script). */}}
+{{- if .IsHome }}
+{{- with partial "func/scene-runtime.html" . }}
+<script type="importmap">{{ dict "integrity" (dict .RelPermalink .Data.Integrity) | jsonify | safeHTML }}</script>
+{{- end }}
+{{- end }}
 {{- $js := resources.Get "js/main.js" | js.Build $opts | fingerprint }}
 <script type="module" src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
-{{- /* The hero scene ships to the home page only. */}}
 {{- if .IsHome }}
 {{- $scene := resources.Get "js/scene/hero.js" | js.Build (merge $opts (dict "targetPath" "js/scene.js")) | fingerprint }}
 <script type="module" src="{{ $scene.RelPermalink }}" integrity="{{ $scene.Data.Integrity }}"></script>

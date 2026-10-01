@@ -1,0 +1,5 @@
+{{- /* The scene's runtime chunk (assets/js/scene/stage.js), the same build wherever it is asked for: the home page's
+       import map carries its integrity, the scene's element its URL (js/scene/hero.js imports it). */ -}}
+{{- $opts := dict "format" "esm" "minify" true "target" "es2020" "targetPath" "js/scene-runtime.js" }}
+{{- $r := resources.Get "js/scene/stage.js" | js.Build $opts | fingerprint }}
+{{- return $r }}
