@@ -5,7 +5,8 @@
 // foam (the blue team) rightwards below it; each enters from its own edge. The shear between them rolls up into
 // slow eddies along the seam, and particles that linger there mix into iris, the purple of the two combined.
 // Every velocity is derived from a stream function, so the flow is divergence-free: particles neither pile up nor
-// thin out, and there is no net drift in any direction. Second 60 looks like second 3.
+// thin out, and there is no net drift in any direction; the recycling below keeps the density across the seam as
+// it was at the start. Second 60 looks like second 3.
 
 export const K = 12; // trail samples per particle
 export const SAMPLE = 1 / 15; // seconds between trail samples, so a trail is about 0.8 s long
@@ -64,6 +65,11 @@ export function createField(w, h, { seed = 7, density = 13, speed = 1, min = 160
     reseed(f, i);
     f.A[i] = f.rand() * f.L[i]; // stagger the recycling
   }
+  // The share of particles in the seam band (within SEAM_BAND shear widths of the seam) at the start, which the
+  // reseeds hold it at (see reseed).
+  let near = 0;
+  for (let i = 0; i < n; i++) if (Math.abs(f.Y[i] - seam(f, f.X[i])) < SEAM_BAND * f.d) near++;
+  f.seamTarget = f.seamShare = near / n;
   return f;
 }
 
@@ -129,10 +135,26 @@ export function resetTrail(f, i) {
   f.HY.fill(f.Y[i], o, o + K);
 }
 
-// A fresh particle anywhere in the box, on the current of its side of the seam, pre-mixed near the seam.
-// Recycling particles this way keeps the density even for good (the pointer wake can push holes into the eddies).
-function reseed(f, i) {
-  const x = f.rand() * f.w, y = f.rand() * f.h;
+// A fresh particle on the current of its side of the seam, pre-mixed near the seam: anywhere in the box when the
+// field is created or a lifetime ends. Recycling particles this way keeps the density even for good (the pointer
+// wake can push holes into the eddies). On its own it drains the seam, though: particles there circle in the eddies
+// until their lifetime ends, while elsewhere they leave through an edge first, so the seam band lost its particles
+// to the rest of the box (from 15% of them to 5% within two minutes). So half the reseeds keep their distance from
+// the seam (at a new x), and a restoring term holds the seam band at its share at the start: while it holds too
+// few particles, more reseeds land in it, and while it holds too many, more of its own reseed outside it.
+export const SEAM_BAND = 0.6;
+function reseed(f, i, recycle = false) {
+  const x = f.rand() * f.w, ys = seam(f, x);
+  let y = f.rand() * f.h;
+  if (recycle) {
+    const off = f.Y[i] - seam(f, f.X[i]);
+    const gap = (f.seamShare - f.seamTarget) / (0.1 * f.seamTarget); // < 0: too few in the band, > 0: too many
+    if (f.rand() < 0.5) y = ys + off;
+    if (gap < 0 && f.rand() < -gap) y = ys + (2 * f.rand() - 1) * SEAM_BAND * f.d;
+    else if (gap > 0 && Math.abs(off) < SEAM_BAND * f.d && f.rand() < gap) {
+      for (let k = 0; k < 8 && Math.abs(y - ys) < SEAM_BAND * f.d; k++) y = f.rand() * f.h;
+    }
+  }
   const e = (y - seam(f, x)) / f.d;
   f.X[i] = x; f.Y[i] = y; f.T[i] = e < 0 ? 0 : 1;
   f.M[i] = Math.min(1, Math.exp(-1.2 * e * e) * (0.4 + 0.7 * f.rand()));
@@ -141,12 +163,14 @@ function reseed(f, i) {
   resetTrail(f, i);
 }
 
-// A particle that left the box re-enters from its own current's upstream edge, unmixed.
+// A particle that left the box re-enters from its own current's upstream edge, unmixed, at least ENTRY shear-layer
+// widths from the seam (closer in, the current is too slow to carry it into the box).
+const ENTRY = 0.2;
 function respawn(f, i) {
   const love = f.T[i] === 0;
   const x = love ? f.w + 2 + f.rand() * 6 : -2 - f.rand() * 6;
   const ys = seam(f, Math.min(f.w, Math.max(0, x)));
-  const y = love ? f.h * 0.02 + f.rand() * Math.max(1, ys - 0.25 * f.d - f.h * 0.02) : ys + 0.25 * f.d + f.rand() * Math.max(1, f.h * 0.98 - ys - 0.25 * f.d);
+  const y = love ? f.h * 0.02 + f.rand() * Math.max(1, ys - ENTRY * f.d - f.h * 0.02) : ys + ENTRY * f.d + f.rand() * Math.max(1, f.h * 0.98 - ys - ENTRY * f.d);
   f.X[i] = x; f.Y[i] = y; f.M[i] = 0; f.A[i] = 0;
   place(f, i);
   resetTrail(f, i);
@@ -172,13 +196,14 @@ export function step(f, dt, p = null) {
     }
   }
   const margin = 10, drain = K * SAMPLE;
+  let live = 0, near = 0;
   const { A, L, D } = f;
   for (let i = 0; i < n; i++) {
     if (D[i] > 0) {
       // Frozen: the trail drains into the head (butt caps draw nothing once it is gone), then a new particle. The head
       // is placed anyway, so it follows the intro like its trail does.
       D[i] -= dt;
-      if (D[i] <= 0) reseed(f, i);
+      if (D[i] <= 0) reseed(f, i, true);
       else place(f, i);
       continue;
     }
@@ -189,6 +214,8 @@ export function step(f, dt, p = null) {
     velocity(f, x + k1.u * half, y + k1.v * half, t + half, k2);
     x += k2.u * dt;
     y += k2.v * dt;
+    live++;
+    if (Math.abs(k2.e) < SEAM_BAND) near++;
     let m = M[i] + mixRate * Math.exp(-1.5 * k2.e * k2.e);
     if (wake) {
       // The wake: particles near the pointer are dragged along its path and pushed slightly aside.
@@ -207,6 +234,7 @@ export function step(f, dt, p = null) {
     if (x < -margin || x > f.w + margin || y < -margin || y > f.h + margin) respawn(f, i);
     else place(f, i);
   }
+  if (live) f.seamShare += (near / live - f.seamShare) * Math.min(1, 2 * dt); // smoothed over about half a second
   f.t = t + dt;
   eddies(f);
   f.clock += dt;
