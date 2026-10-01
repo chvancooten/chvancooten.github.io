@@ -4,13 +4,15 @@
 // - the landing, with its own camera (the intro, then rest with pointer parallax and a slow drift), and composition
 //   veils that keep its copy legible: a column under the copy on wide screens, bands above and below on narrow ones;
 // - the full-bleed windows between the chapters (.window), each with its own camera and subject: W1 the two
-//   currents side by side, W2 the red current, W3 the blue one, W4 the vortex where they mix into purple.
-//   As a band crosses the screen its camera only cranes (moves vertically, across the flow). A camera moving along
-//   the flow would make the particles seem to run backwards, as if the scroll rewound time; the simulation time
-//   itself only ever moves forward.
+//   currents side by side, W2 the red current, W3 the blue one, W4 the two strands twined, purple where they cross.
+//   As a band crosses the screen the cameras of W1 to W3 only crane (move vertically, across the flow). A camera
+//   moving along the flow would make the particles seem to run backwards, as if the scroll rewound time; the
+//   simulation time itself only ever moves forward. W4's camera holds still: craning over a twisted braid changes the
+//   angle on it, which makes its twist seem to turn back as the page scrolls.
 // createWindows() returns the views for the scene (index.js, opts.views) and what they depend on: visible() (is any
 // frame on screen), vignette(theme) and layout() (for measurements); update() re-measures, destroy() stops.
 import { clamp, mix, smooth } from "./math.js";
+import { STRANDS } from "./v1.js";
 
 // A pose as the band enters (a) and as it leaves (b), framed by horizontal field of view (hfov), so a window keeps
 // its composition from a phone to a wide screen. portrait: the same for narrow screens, where a band is close to
@@ -21,13 +23,18 @@ const WINDOWS = [
   { a: { pos: [-4.4, -1.9, 7.5], tgt: [-6.6, 0.4, 18.5], hfov: 50, focus: 11, ap: 0.6, blur: 8, roll: -0.08 }, b: { pos: [-4.4, -3.0, 7.5], tgt: [-6.6, -0.1, 18.5], roll: -0.06 } },
   {
     form: 1,
-    a: { pos: [0, 10, 16], tgt: [0, -0.4, 0], hfov: 62, focus: 18.5, ap: 1.4, blur: 14, roll: 0.05 }, b: { pos: [0, 8.4, 16.6], tgt: [0, -0.8, 0], roll: 0.04 },
-    portrait: { a: { pos: [0, 10.5, 15], tgt: [0, -0.3, 0], hfov: 64, focus: 18, ap: 1.4, blur: 14, roll: 0.03 }, b: { pos: [0, 8.8, 15.8], tgt: [0, -0.6, 0], roll: 0.02 } },
-    glows: [{ p: [0, 0, 0], r: 0.22, a: { dark: 0.1, light: 0.07 }, ink: 4 }],
-    trail: { time: 1.1, width: 0.7, alpha: { dark: 0.6, light: 0.55 } },
+    a: { pos: [0, 1.6, 15], tgt: [0, 0, 0], hfov: 58, focus: 15, ap: 0.8, blur: 10, roll: 0.02 }, b: {},
+    portrait: { a: { pos: [0, 1.4, 15.5], tgt: [0, 0, 0], hfov: 46, focus: 15.5, ap: 0.8, blur: 10, roll: 0.02 }, b: {} },
+    glows: crossings,
+    trail: { time: 1.1, width: 0.7, alpha: { dark: 0.55, light: 0.5 } },
   },
 ];
 
+// W4's glows: a soft purple one at each of the three crossings nearest the middle, where they are at flow time ft.
+function crossings(ft) {
+  const S = Math.PI / STRANDS.w, x0 = ((((STRANDS.twist * ft) / STRANDS.w) % S) + S) % S;
+  return [-1, 0, 1].map((j) => ({ p: [x0 + (j - 0.5) * S, 0, 0], r: 0.13, a: { dark: 0.08, light: 0.055 }, ink: 4 }));
+}
 const vmix = (a, b, k) => a.map((x, i) => mix(x, b[i], k));
 function poseMix(a, b, k) {
   const o = { pos: vmix(a.pos, b.pos ?? a.pos, k), tgt: vmix(a.tgt, b.tgt ?? a.tgt, k) };
@@ -96,7 +103,8 @@ export function createWindows({ hero, frames, header, reduced }) {
       pose.fov = (2 * Math.atan(Math.tan((hf * Math.PI) / 360) / (W / H)) * 180) / Math.PI;
       // the lens shift keeps the subject centred in the band, wherever the band is on the screen
       pose.shift = [0, 1 - (y0 + y1) / H];
-      out.push({ id: `w${i + 1}`, rect: { x0: -400, y0, x1: W + 400, y1, f: 0.34 * h }, pose, form: P.form || 0, glows: P.glows, trail: P.trail });
+      const glows = typeof P.glows === "function" ? P.glows(e.ft) : P.glows;
+      out.push({ id: `w${i + 1}`, rect: { x0: -400, y0, x1: W + 400, y1, f: 0.34 * h }, pose, form: P.form || 0, glows, trail: P.trail });
     });
     return out;
   }

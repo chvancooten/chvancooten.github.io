@@ -9,16 +9,22 @@
 // - The camera (T = 3 s): alongside the tight rope downstream, gliding toward the knot while the braid forms, then
 //   rising and swinging out to the resting frame: a sideways "Y" right of the copy on landscape screens, an upright
 //   one between the name and the copy on portrait screens.
-// - The vortex (uP.z = 1, the last window): both currents drawn into one slow, turbulent, rotating cloud. Each spirals
-//   inward along its own arm; red and blue alternate around it and cross above and below each other, and they turn
-//   purple only where they mix: in the fringes the arms share and in the core.
+// - The strands (uP.z = 1, the last window): the two currents as one calm braid seen from the side, along x. Each
+//   strand is a wide, soft cloud of fibres around its centreline; red stays red and blue stays blue between the
+//   crossings, and purple glows only where they cross. The flow along them and the twist are slow (STRANDS), and
+//   both are functions of the time alone.
 //
 // Every particle is derived from its id and the time (see gl.js for the Pt struct, hash and uniforms), so there are
 // no buffers. Ink slots: 0 red, 1 red (second), 2 blue, 3 blue (second), 4 purple, 5 dust.
 import { makePath, blendKeys, rig, smooth } from "./math.js";
 
+// The strands' braid: angular frequency along x (crossings every pi / w units), twist (rad/s, the crossings drift
+// along +x at twist / w units/s), flow along the strands (units/s), helix radius and length.
+export const STRANDS = { w: 0.55, twist: 0.12, flow: 0.3, radius: 1.25, length: 46 };
+const f1 = (v) => v.toFixed(4);
 const GLSL = `
 const float ZT=44.,ZL=88.;
+const float SW=${f1(STRANDS.w)},ST=${f1(STRANDS.twist)},SV=${f1(STRANDS.flow)},SA=${f1(STRANDS.radius)},SL=${f1(STRANDS.length)};
 float twist(float z){return z<0.?1.2*z:1.6*(1.-exp(-z/3.));}
 vec3 ctr(float z,float k,out float w,out float S){
   S=pow(smoothstep(-1.,26.,z),.6);
@@ -64,47 +70,40 @@ Pt braid(uint id,vec4 h,float t){
   }
   return o;
 }
-vec3 turb(vec3 p,float t){
-  return .55*vec3(sin(.53*p.z+.21*t+1.3),sin(.61*p.x-.17*t+.4),sin(.47*p.y+.29*p.x+.19*t+2.1))
-    +.28*vec3(sin(1.31*p.y+.9*p.x-.29*t),sin(1.13*p.z+.23*t+4.),sin(1.21*p.x-.7*p.z-.31*t+1.));
-}
-Pt vortex(uint id,vec4 h,float t){
+Pt strands(uint id,vec4 h,float t){
   Pt o;
   float f=float(id)/uN;
   float k=float(id&1u);
-  float om=.035*t;
-  vec3 base=k<.5?mix(uInk[0],uInk[1],h.z*.5):mix(uInk[2],uInk[3],h.z*.6);
-  if(f<.84){
-    float s=fract(h.x+t*.014);
-    float r=.8+8.6*pow(1.-s,.65);
-    float q=h.y*2.-1.;
-    q=sign(q)*pow(abs(q),.8);
-    float th=k*3.14159265+3.2*log(9.4/r)+om+q*(1.2+.03*r);
-    vec3 p=vec3(cos(th)*r,(h.w-.5)*(.5+.16*r)+(k*2.-1.)*(.3+.05*r)*sin(2.*th-.6*r),sin(th)*r);
-    o.p=p+turb(p,t)*(.22+.045*r);
-    o.c=mix(base,uInk[4],max(.95*smoothstep(.45,.9,abs(q)),smoothstep(3.6,1.2,r)));
-    o.a=.55*smoothstep(0.,.08,s)*smoothstep(1.,.88,s)*(1.-.3*abs(q));
+  if(f<.86){
+    float x=(fract(h.x+t*SV*(.8+.4*h.y)/SL)-.5)*SL;
+    float ph=SW*x-ST*t+k*3.14159265;
+    float rr=.6*sqrt(-log(1.-.97*h.z));
+    float a=6.2832*h.w+1.3*x-.2*t;
+    o.p=vec3(x,SA*sin(ph),.9*SA*cos(ph))+vec3(0.,cos(a),sin(a))*rr;
+    vec3 base=k<.5?mix(uInk[0],uInk[1],h.y*.6):mix(uInk[2],uInk[3],h.y*.7);
+    float s=sin(ph);
+    o.c=mix(base,uInk[4],.88*exp(-s*s/.2));
+    o.a=.5*(.3+.7*exp(-rr*rr*2.4))*smoothstep(SL*.5,SL*.5-5.,abs(x));
     o.s=.019*(.7+.6*h.z);
   }else if(f<.93){
-    float r=1.05*sqrt(-log(1.-.97*h.x));
-    float a=6.2832*h.y+om+t*(.06+.22/(.6+r));
-    o.p=vec3(cos(a)*r,(h.z-.5)*(.5+.3*r),sin(a)*r);
-    o.p+=turb(o.p*1.3,t)*.18;
-    o.c=mix(uInk[4],k<.5?uInk[0]:uInk[2],.22*h.w);
-    o.a=.45*exp(-r*.5)*(.6+.4*h.w);
+    float S=3.14159265/SW;
+    float x=mod(floor(h.x*8.)*S+ST*t/SW+SL*.5,8.*S)-SL*.5;
+    vec3 r=vec3(h.y,h.z,fract(h.w*7.3))-.5;
+    o.p=vec3(x,0.,0.)+normalize(r+1e-3)*.75*sqrt(-log(1.-.95*fract(h.w*3.7)));
+    o.c=mix(uInk[4],k<.5?uInk[0]:uInk[2],.15*h.y);
+    o.a=.36*exp(-dot(o.p.yz,o.p.yz)*.6)*smoothstep(SL*.5,SL*.5-5.,abs(x));
     o.s=.018;
   }else{
-    float r=11.*sqrt(h.x),a=6.2832*h.y+.6*om;
-    vec3 p=vec3(cos(a)*r,(h.z-.5)*5.,sin(a)*r);
-    o.p=p+turb(p,t)*.6;
+    float x=(fract(h.x+t*SV*.5/SL)-.5)*SL;
+    o.p=vec3(x,(h.y-.5)*7.,(h.z-.5)*7.);
     o.c=mix(uInk[5],uInk[4],h.w*h.w);
-    o.a=.15;
+    o.a=.13*smoothstep(SL*.5,SL*.5-5.,abs(x));
     o.s=.017;
   }
   return o;
 }
 Pt particle(uint id,vec4 h,float t,float it){
-  if(uP.z>.5)return vortex(id,h,t);
+  if(uP.z>.5)return strands(id,h,t);
   Pt o=braid(id,h,t);
   float t0=.02+.9*clamp(length(o.p)/26.,0.,1.)+.25*fract(h.w*5.17);
   float a=clamp((it-t0)/.75,0.,1.);

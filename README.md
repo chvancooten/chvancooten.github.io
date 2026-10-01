@@ -155,12 +155,13 @@ chapters themselves sit calmly on the page colour and nothing in them moves.
 
 - W1, after Offensys: the two currents side by side; W2, between Speaking and Open source: the red current; W3,
   before Writing: the blue one.
-- W4, before About: the end of the story. Both currents are drawn into one slow, turbulent, rotating cloud: each
-  spirals inward along its own arm, red and blue alternate around it and cross above and below each other, and they
-  turn purple only where they mix, in the seams between the arms and in the core. It is a large, diffuse volume with
-  slow rotation, framed whole on narrow screens.
-- As a window crosses the screen its camera only cranes (moves vertically, across the flow). The particles' time
-  only ever moves forward; scrolling moves cameras, never time, so nothing runs backwards when the page scrolls up.
+- W4, before About: the end of the story. The two currents as one calm braid seen from the side: two wide, soft
+  strands crossing along the horizontal axis, red and blue between the crossings and a soft purple glow only where
+  they cross. The flow along them (about 0.3 units/s) and the twist (0.12 rad/s) are slow: at 390 px wide its
+  particles move about 10 px/s, against about 180 px/s for the braid this window showed before.
+- As a window crosses the screen the cameras of W1 to W3 only crane (move vertically, across the flow), and W4's
+  holds still (craning over a twisted braid would make its twist seem to turn back). The particles' time only ever
+  moves forward; scrolling moves cameras, never time, so nothing runs backwards when the page scrolls up.
 
 The particles are accumulated as ink and coverage and composited once (`assets/js/scene/gl.js`): the colour is the
 coverage-weighted mean of the inks, so a dense red region stays red and a dense blue one blue, and two inks only mix
