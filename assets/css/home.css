@@ -48,7 +48,7 @@ html.js.is-docked .kind-home :is(.site-header, .site-header .brand) { visibility
 @media (max-width: 31.24em) {
   /* one row on the landing: the links on the left, the tools on the right (the wordmark only exists docked) */
   .js .hero-bar { justify-content: space-between; min-height: 3.5rem; }
-  .hero-bar .site-nav { margin-left: -0.35rem; }
+  .hero-bar .site-nav { order: 0; flex-basis: auto; margin-left: -0.35rem; } /* not the title bar's own row */
   .hero-bar .site-nav ul { gap: 0.75rem; }
 }
 
