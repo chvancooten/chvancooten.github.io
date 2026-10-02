@@ -142,12 +142,14 @@ The files were made from the Google Fonts sources with fonttools (`varLib.instan
 Fonts latin range with the kern, liga, calt, locl, mark, mkmk, ccmp, rlig, tnum and case features; JetBrains Mono
 keeps kern, locl, mark, mkmk and ccmp only).
 
-**The landing and the scene.** The home page opens on a full-viewport landing: the name over a 3D scene of two
-currents of particles, red (the red team) and blue (the blue team). They sweep in from far away as wide streams,
-twist into a tight braid and turn purple, the colour of both, where they meet. The scene is raw WebGL2 with no
-library: every particle is computed in the vertex shader from its id and the time, so there are no vertex buffers,
-and a frame is a few uniforms and a few draw calls. Heads streak with their true screen motion, and depth of field,
-depth fog and short trails give the depth.
+**The landing and the scene.** The home page opens on a full-viewport landing: the name over a 3D scene of two currents
+of particles, red (the red team) and blue (the blue team). They sweep in from far away as wide streams and twist into a
+tight braid, still red and blue with a purple tinge where they meet. Further down the braid they fuse into one purple
+cord, the colour of both. The fuse point drifts slowly along the braid, and around it the two strands tangle: they wind
+round each other unevenly, wander and fray a little. On narrow screens, where the copy covers the lower part of the
+braid, they fuse nearer the knot. The scene is raw WebGL2 with no library: every particle is computed in the vertex
+shader from its id and the time, so there are no vertex buffers, and a frame is a few uniforms and a few draw calls.
+Heads streak with their true screen motion, and depth of field, depth fog and short trails give the depth.
 
 The scene is one canvas, fixed behind the page, and it shows in exactly five frames: the landing, and four
 full-bleed windows between the chapters (`.window`, from `layouts/_partials/window.html`), each a view of the same
@@ -156,13 +158,16 @@ chapters themselves sit calmly on the page colour and nothing in them moves.
 
 - W1, after Offensys: the two currents side by side; W2, between Speaking and Open source: the red current; W3,
   before Writing: the blue one.
-- W4, before About: the end of the story. The two currents as one calm braid seen from the side: two wide, soft
-  strands crossing along the horizontal axis, red and blue between the crossings and a soft purple glow only where
-  they cross. The flow along them (about 0.3 units/s) and the twist (0.12 rad/s) are slow: at 390 px wide its
-  particles move about 10 px/s, against about 180 px/s for the braid this window showed before.
-- As a window crosses the screen the cameras of W1 to W3 only crane (move vertically, across the flow), and W4's
-  holds still (craning over a twisted braid would make its twist seem to turn back). The particles' time only ever
-  moves forward; scrolling moves cameras, never time, so nothing runs backwards when the page scrolls up.
+- W4, before About: the end of the story. The two currents as one calm braid seen from the side: two wide, soft strands
+  crossing along the horizontal axis, red and blue between the crossings and a soft purple glow only where they cross.
+  Toward the right they zip into one purple rope, and the join follows the window up the screen: as the band enters at
+  the bottom the strands are apart, by the middle the right half has joined, and as it leaves it is nearly all one rope
+  (scrolling back up unzips them; with motion off it shows the middle state). The flow along them (about 0.3 units/s)
+  and the twist (0.12 rad/s) are slow: at 390 px wide its particles move about 10 px/s, against about 180 px/s for the
+  braid this window showed before.
+- As a window crosses the screen the cameras of W1 to W3 only crane (move vertically, across the flow), and W4's holds
+  still (craning over a twisted braid would make its twist seem to turn back). The particles' time only ever moves
+  forward; scrolling moves cameras and W4's join, never time, so nothing runs backwards when the page scrolls up.
 
 The particles are accumulated as ink and coverage and composited once (`assets/js/scene/gl.js`): the colour is the
 coverage-weighted mean of the inks, so a dense red region stays red and a dense blue one blue, and two inks only mix
@@ -203,6 +208,10 @@ elsewhere a `requestAnimationFrame` loop applies the same states. Only one of th
 On narrow screens, where the title bar's nav has a row of its own, that row appears only once the name has docked.
 With reduced motion there is no morph: the bar fades in once the name has gone. Without JavaScript the title bar is
 the usual pinned one, as on every other page.
+
+The bar's surface is frosted glass: the page colour at 70 % (76 % on paper) over a 22 px blur, so the colour and
+movement of what scrolls under it come through softly. Its secondary text (the nav links and tool icons) is one
+Flexoki step stronger than on the page (`--header-text-2`), so it keeps at least 4.5:1 over the scene's red and blue.
 
 `mount(container, options)` in `assets/js/scene/index.js` takes the frames to render (`views`, from `windows.js`) and
 returns `setScroll(progress)`, `setFocus(0..1)`, `setIntensity(0..1)`, `pause()`, `resume()`, `restyle()` and

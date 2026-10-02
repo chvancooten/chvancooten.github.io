@@ -4,15 +4,17 @@
 // - the landing, with its own camera (the intro, then rest with pointer parallax and a slow drift), and composition
 //   veils that keep its copy legible: a column under the copy on wide screens, bands above and below on narrow ones;
 // - the full-bleed windows between the chapters (.window), each with its own camera and subject: W1 the two
-//   currents side by side, W2 the red current, W3 the blue one, W4 the two strands twined, purple where they cross.
+//   currents side by side, W2 the red current, W3 the blue one, W4 the two strands twined, purple where they cross,
+//   zipping into one purple rope as the band rises (the join follows the band's place on the screen, see v1.js).
 //   As a band crosses the screen the cameras of W1 to W3 only crane (move vertically, across the flow). A camera
 //   moving along the flow would make the particles seem to run backwards, as if the scroll rewound time; the
 //   simulation time itself only ever moves forward. W4's camera holds still: craning over a twisted braid changes the
-//   angle on it, which makes its twist seem to turn back as the page scrolls.
+//   angle on it, which makes its twist seem to turn back as the page scrolls. (Its join does move with the scroll:
+//   it changes the shape, not the time, and the flow keeps running into it.)
 // createWindows() returns the views for the scene (index.js, opts.views) and what they depend on: visible() (is any
 // frame on screen), vignette(theme) and layout() (for measurements); update() re-measures, destroy() stops.
 import { clamp, mix, smooth } from "./math.js";
-import { STRANDS } from "./v1.js";
+import { STRANDS, zipAt } from "./v1.js";
 
 // A pose as the band enters (a) and as it leaves (b), framed by horizontal field of view (hfov), so a window keeps
 // its composition from a phone to a wide screen. portrait: the same for narrow screens, where a band is close to
@@ -30,10 +32,14 @@ const WINDOWS = [
   },
 ];
 
-// W4's glows: a soft purple one at each of the three crossings nearest the middle, where they are at flow time ft.
-function crossings(ft) {
+// W4's glows: a soft purple one at each of the three crossings nearest the middle, where they are at flow time ft,
+// fading where the strands have zipped into one (k: the join's progress).
+function crossings(ft, k) {
   const S = Math.PI / STRANDS.w, x0 = ((((STRANDS.twist * ft) / STRANDS.w) % S) + S) % S;
-  return [-1, 0, 1].map((j) => ({ p: [x0 + (j - 0.5) * S, 0, 0], r: 0.13, a: { dark: 0.08, light: 0.055 }, ink: 4 }));
+  return [-1, 0, 1].map((j) => {
+    const x = x0 + (j - 0.5) * S, o = 1 - zipAt(x, k);
+    return { p: [x, 0, 0], r: 0.13, a: { dark: 0.08 * o, light: 0.055 * o }, ink: 4 };
+  });
 }
 const vmix = (a, b, k) => a.map((x, i) => mix(x, b[i], k));
 function poseMix(a, b, k) {
@@ -88,8 +94,10 @@ export function createWindows({ hero, frames, header, reduced }) {
     if (!L) measure();
     const s = sy(), { W, H } = e;
     const out = [];
+    // the braid's param: 1 on narrow layouts, where the copy's veils sit over the braid's lower part (v1.js)
+    const narrow = L.desk ? 0 : 1;
     if (L.hero.y1 - s > 0) {
-      out.push({ id: "hero", rect: { x0: -400, y0: L.hero.y0 - 400 - s, x1: W + 400, y1: L.hero.y1 - s, f: 0.24 * H }, veil: heroVeil(s, W) });
+      out.push({ id: "hero", rect: { x0: -400, y0: L.hero.y0 - 400 - s, x1: W + 400, y1: L.hero.y1 - s, f: 0.24 * H }, veil: heroVeil(s, W), param: narrow });
     }
     L.windows.forEach((r, i) => {
       const y0 = r.y0 - s, y1 = r.y1 - s, h = y1 - y0;
@@ -98,13 +106,16 @@ export function createWindows({ hero, frames, header, reduced }) {
       const S = !L.desk && P.portrait ? P.portrait : P;
       // where the band is: 0 entering at the bottom, 1 leaving at the top (the middle under reduced motion)
       const p = clamp(((y0 + y1) / 2 - H / 2) / (H / 2 + h / 2), -1, 1);
-      const pose = poseMix(S.a, S.b, reduced.matches ? 0.5 : (1 - p) / 2);
+      const k = reduced.matches ? 0.5 : (1 - p) / 2;
+      const pose = poseMix(S.a, S.b, k);
       const hf = pose.hfov * (L.desk || P.portrait ? 1 : 0.74);
       pose.fov = (2 * Math.atan(Math.tan((hf * Math.PI) / 360) / (W / H)) * 180) / Math.PI;
       // the lens shift keeps the subject centred in the band, wherever the band is on the screen
       pose.shift = [0, 1 - (y0 + y1) / H];
-      const glows = typeof P.glows === "function" ? P.glows(e.ft) : P.glows;
-      out.push({ id: `w${i + 1}`, rect: { x0: -400, y0, x1: W + 400, y1, f: 0.34 * h }, pose, form: P.form || 0, glows, trail: P.trail });
+      const glows = typeof P.glows === "function" ? P.glows(e.ft, k) : P.glows;
+      // the strands' param is the band's progress (their join follows it), the braid's the layout
+      const param = P.form === 1 ? k : narrow;
+      out.push({ id: `w${i + 1}`, rect: { x0: -400, y0, x1: W + 400, y1, f: 0.34 * h }, pose, form: P.form || 0, param, glows, trail: P.trail });
     });
     return out;
   }

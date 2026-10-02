@@ -14,11 +14,12 @@
 // stalls the main thread while the compositor reads the canvas back); onFail() reports a later failure (shaders, a
 // lost context). In all these cases the page keeps its CSS stills.
 //
-// Views (opts.views(env), every frame; env: { it, ft, T, W, H, theme }, W and H the canvas size in CSS px): a list of
-// { id, rect: { x0, y0, x1, y1, f } (where it shows, in canvas CSS px, feathered inside by f), veil, pose (a fixed
-// camera; without one, the landing's camera), form (0 the braid, 1 the strands), glows, trail }. Without opts.views
-// the whole canvas is the landing. opts.visible() says whether any view is on screen (otherwise the scene stops
-// after one empty frame); opts.vignette(theme, H) sets the background's vignette.
+// Views (opts.views(env), every frame; env: { it, ft, T, W, H, theme }, W and H the canvas size in CSS px): a list of {
+// id, rect: { x0, y0, x1, y1, f } (where it shows, in canvas CSS px, feathered inside by f), veil, pose (a fixed
+// camera; without one, the landing's camera), form (0 the braid, 1 the strands), param (the form's own setting, 0..1,
+// see v1.js), glows, trail }. Without opts.views the whole canvas is the landing. opts.visible() says whether any view
+// is on screen (otherwise the scene stops after one empty frame); opts.vignette(theme, H) sets the background's
+// vignette.
 //
 // Colours come from the container's CSS: --scene-bg, --scene-red, --scene-red-2, --scene-blue, --scene-blue-2,
 // --scene-purple, --scene-dust, and --scene-ink ("add" for light on dark, "ink" for ink on paper).
@@ -222,7 +223,7 @@ export function mount(container, opts = {}) {
       s.lens.set([pose.focus, pose.ap * dpr, pose.blur * dpr, dpr * sizeK(Math.min(level, STILL - 1))]);
       s.fog.set(world.fog);
       s.trail.set([tr.time, tr.width, tr.alpha[theme]]);
-      s.params.set([0, 0, v.form || 0, 0]);
+      s.params.set([0, 0, v.form || 0, v.param || 0]);
       setMask(s.mask, v.rect ? [v.rect] : null, v.veil, dpr, W, H);
       f.views.push(s);
       for (const g of v.glows || world.glows(it)) {
