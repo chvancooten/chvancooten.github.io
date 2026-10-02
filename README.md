@@ -366,6 +366,19 @@ without a commit here. Like any production run, it does not deploy if `main` has
 Production only deploys from `chvancooten/chvancooten.github.io`: a fork with Actions enabled builds and checks, but
 never publishes.
 
+Cloudflare sits in front of GitHub Pages and caches the pages as well as the assets. After each production or
+preview deploy, `scripts/purge-cloudflare.sh` waits until GitHub Pages itself serves the new `index.html` (it asks the
+Pages origin directly, past Cloudflare), then purges the whole zone. Purging straight after the push would be too
+early, because Cloudflare would cache the old page again before Pages publishes. The purge needs two settings in
+the repository (*Settings > Secrets and variables > Actions*):
+
+- the variable `CLOUDFLARE_ZONE_ID`: the zone id from the domain's *Overview* page in Cloudflare;
+- the secret `CLOUDFLARE_API_TOKEN`: an API token with only the *Zone > Cache Purge* permission, for this zone.
+
+Until both exist, the step skips with a notice. A purge only clears Cloudflare: browsers keep a page for as long as
+the `Cache-Control` header that Cloudflare sends says. Set Cloudflare's *Browser Cache TTL* to *Respect existing
+headers* to pass on GitHub Pages' 10 minutes, rather than holding pages in browsers for hours.
+
 GitHub disables scheduled workflows in a public repository after 60 days without repository activity, so the weekly
 refresh stops after two quiet months. GitHub's documented way back is to enable the workflow again: *Enable
 workflow* on the workflow's page in the Actions tab, or `gh workflow enable "github pages"`. A manual run (*Run
