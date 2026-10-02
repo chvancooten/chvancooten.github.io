@@ -19,10 +19,22 @@
 //    subtracted, so nothing looks inverted.
 // Shader programs compile without blocking the main thread: completion is polled (KHR_parallel_shader_compile, or a
 // fence where the extension is missing) before any status is queried.
+//
+// Robustness: a NaN in the accumulation buffer survives every mask (NaN * 0 is NaN), spreads through the filtering,
+// and then fails the composite's coverage test, so it shows as a hole of bare page colour the shape of the particle,
+// even in another view's frame. Some GPU drivers produce them where SwiftShader does not, so nothing non-finite may
+// leave a shader: the vertex shaders cull such a particle, the fragment shaders drop such a fragment, and the
+// composite reads such a texel as empty. The test reads the bits (bad()), since compilers may assume that floats are
+// finite and fold isnan() and isinf() away. Each view also draws under a scissor around its own frame: nothing it
+// draws can reach another frame, and the pixels outside it cost nothing.
+
+// NaN or Inf: all exponent bits set.
+const FINITE = "bool bad(float x){return (floatBitsToUint(x)&0x7f800000u)==0x7f800000u;}";
 
 const HEADER = `#version 300 es
 precision highp float;
 precision highp int;
+${FINITE}
 uniform mat4 uVP;
 uniform mat4 uVPp;
 uniform vec2 uRes;
@@ -46,6 +58,7 @@ float fogAt(float d){return smoothstep(uFog.z,uFog.w,d)*exp(-max(d-uFog.x,0.)*uF
 // (uVeil.xy), a band at the bottom (uVeil.zw) and one at the top (uVeil2.xy; uVeil2.z is their feather, uVeil2.w the
 // frame height).
 const SHADE = `
+${FINITE}
 uniform vec4 uMask;
 uniform vec4 uRects[8];
 uniform float uRectF[8];
@@ -105,6 +118,7 @@ void main(){
   vec2 cr=vec2(float(gl_VertexID&1),float(gl_VertexID>>1))*2.-1.;
   float hl=L*.5+re;
   vec2 px=s0-dv*.5+dir*cr.x*hl+nr*cr.y*re;
+  if(bad(px.x+px.y+hl+re+blur+al+a.c.x+a.c.y+a.c.z)){${CULL}vQ=vec2(0.);vS=vec3(1.);vC=vec4(0.);return;}
   vQ=vec2(cr.x*hl,cr.y*re);
   vS=vec3(L*.5,re,smoothstep(1.6*uDpr,7.*uDpr,blur));
   vC=vec4(a.c*al,al);
@@ -124,6 +138,7 @@ void main(){
   float g=exp(-q*q*4.2);
   float disc=(1.-smoothstep(.62,1.,q))*(.8+.2*smoothstep(.3,.8,q));
   o=vC*(mix(g,disc*.4,vS.z)*step(q,1.)*shade(gl_FragCoord.xy)*uAccS);
+  if(bad(o.r+o.g+o.b+o.a))o=vec4(0.);
 }`;
 
 const SEG = 5; // trail segments
@@ -146,8 +161,13 @@ void main(){
   vec4 cb=uVP*vec4(b.p,1.);
   float d=ca.w;
   float al=a.a*uGain*uTrail.z*fogAt(d);
-  if(d<.05||cb.w<.05||al<.001){${CULL}vV=0.;vC=vec4(0.);return;}
+  vV=0.;vC=vec4(0.);
+  // A point at or behind the near plane is culled. A point that shows nothing is put on the trail's centreline, with
+  // no width: a strip that shows nothing then has no area, and one that shows in part tapers to that point. (Culled,
+  // it would stretch a sliver from the particle across the screen to the cull point.)
   vec2 sa=(ca.xy/ca.w*.5+.5)*uRes;
+  if(!(d>=.05)||bad(sa.x+sa.y)){${CULL}return;}
+  if(!(cb.w>=.05)||!(al>=.001)){gl_Position=vec4(sa/uRes*2.-1.,0.,1.);return;}
   vec2 sb=(cb.xy/cb.w*.5+.5)*uRes;
   vec2 dv=i<${SEG}?sb-sa:sa-sb;
   float L=length(dv);
@@ -162,9 +182,11 @@ void main(){
   float mr=.7*uDpr;
   if(re<mr){al*=re/mr;re=mr;}
   al*=pow(1.-u,1.35)*smoothstep(0.,.12,u+.02);
+  vec2 px=sa+nr*side*re;
+  if(bad(px.x+px.y+al+a.c.x+a.c.y+a.c.z)){gl_Position=vec4(sa/uRes*2.-1.,0.,1.);return;}
   vV=side;
   vC=vec4(a.c*al,al);
-  gl_Position=vec4((sa+nr*side*re)/uRes*2.-1.,0.,1.);
+  gl_Position=vec4(px/uRes*2.-1.,0.,1.);
 }`;
 
 const TRAIL_FS = `#version 300 es
@@ -174,7 +196,10 @@ in float vV;
 in vec4 vC;
 uniform float uAccS;
 out vec4 o;
-void main(){o=vC*(exp(-vV*vV*2.6)*shade(gl_FragCoord.xy)*uAccS);}`;
+void main(){
+  o=vC*(exp(-vV*vV*2.6)*shade(gl_FragCoord.xy)*uAccS);
+  if(bad(o.r+o.g+o.b+o.a))o=vec4(0.);
+}`;
 
 const FULL_VS = `#version 300 es
 void main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));gl_Position=vec4(p*2.-1.,0.,1.);}`;
@@ -207,6 +232,7 @@ void main(){
 
 const COMP_FS = `#version 300 es
 precision highp float;
+${FINITE}
 uniform sampler2D uAcc;
 uniform sampler2D uBgT;
 uniform vec2 uRes;
@@ -215,7 +241,7 @@ uniform float uLight;
 uniform float uSeed;
 uniform vec3 uComp;
 out vec4 o;
-vec3 lin(vec3 c){return mix(c/12.92,pow((c+.055)/1.055,vec3(2.4)),step(.04045,c));}
+vec3 lin(vec3 c){c=max(c,vec3(0.));return mix(c/12.92,pow((c+.055)/1.055,vec3(2.4)),step(.04045,c));}
 vec3 gam(vec3 c){c=max(c,vec3(0.));return mix(c*12.92,1.055*pow(c,vec3(1./2.4))-.055,step(.0031308,c));}
 vec3 toLab(vec3 c){c=lin(c);
   vec3 m=pow(max(vec3(dot(c,vec3(.4122214708,.5363325363,.0514459929)),dot(c,vec3(.2119034982,.6806995451,.1073969566)),dot(c,vec3(.0883024619,.2817188376,.6299787005))),vec3(0.)),vec3(1./3.));
@@ -227,9 +253,10 @@ void main(){
   vec2 p=gl_FragCoord.xy,u=p/uOut;
   vec3 bg=texture(uBgT,u).rgb+(fract(sin(dot(p+uSeed,vec2(12.9898,78.233)))*43758.5453)-.5)/170.;
   vec4 s=texture(uAcc,u)*uComp.z;
+  if(bad(s.r+s.g+s.b+s.a))s=vec4(0.);
   vec3 col=bg;
   if(s.a>1e-4){
-    vec3 ink=s.rgb/s.a;
+    vec3 ink=clamp(s.rgb/s.a,0.,1.);
     float w=1.-exp(-s.a*uComp.x);
     if(uLight>.5){
       // ink on paper: the paper's own tint fades out under the ink, while the ink's hue carries even where it is
@@ -272,9 +299,10 @@ export function createRenderer(gl, world) {
   let fence = pcs ? null : gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
   gl.flush();
   const vao = gl.createVertexArray();
-  // The accumulation buffer: half-float where it can be rendered to, else 8-bit with the sums scaled by a quarter.
-  const floatOK = !!gl.getExtension("EXT_color_buffer_float");
-  const accS = floatOK ? 1 : 0.25;
+  // The accumulation buffer: half-float where it can be rendered to (and the framebuffer is complete with it, see
+  // size()), else 8-bit with the sums scaled by a quarter.
+  let floatOK = !!(gl.getExtension("EXT_color_buffer_float") || gl.getExtension("EXT_color_buffer_half_float"));
+  let accS = floatOK ? 1 : 0.25;
   const tex = [], fbs = [];
   let P = null, state = "pending", aw = 0, ah = 0;
 
@@ -327,9 +355,15 @@ export function createRenderer(gl, world) {
     aw = W; ah = H;
     target(0, Math.ceil(W / BGS), Math.ceil(H / BGS), gl.RGBA8, gl.UNSIGNED_BYTE, gl.LINEAR);
     target(1, W, H, floatOK ? gl.RGBA16F : gl.RGBA8, floatOK ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE, gl.LINEAR);
+    if (floatOK && gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+      floatOK = false;
+      accS = 0.25;
+      target(1, W, H, gl.RGBA8, gl.UNSIGNED_BYTE, gl.LINEAR);
+    }
   }
 
-  // m: { only, n, rects (Float32Array 32), feather (Float32Array 8), veil (4), veil2 (4) }, in device pixels.
+  // m: { only, n, rects (Float32Array 32), feather (Float32Array 8), veil (4), veil2 (4), box (Int32Array 4: the
+  // scissor, x y w h) }, in device pixels.
   function shade(S, m) {
     gl.uniform4f(S.u.uMask, m.only, 0, m.n, 0);
     gl.uniform4fv(S.u.uRects, m.rects);
@@ -364,8 +398,12 @@ export function createRenderer(gl, world) {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE);
     gl.blendEquation(gl.FUNC_ADD);
+    gl.enable(gl.SCISSOR_TEST);
     let verts = 6;
     for (const v of f.views) {
+      const b = v.mask.box;
+      if (b[2] <= 0 || b[3] <= 0) continue;
+      gl.scissor(b[0], b[1], b[2], b[3]);
       const common = (S) => {
         gl.useProgram(S.p);
         gl.uniformMatrix4fv(S.u.uVP, false, v.VP);
@@ -391,6 +429,7 @@ export function createRenderer(gl, world) {
       verts += f.n * VERTS_PER_PARTICLE;
     }
 
+    gl.disable(gl.SCISSOR_TEST);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, f.OW, f.OH);
     gl.disable(gl.BLEND);
@@ -420,5 +459,5 @@ export function createRenderer(gl, world) {
     gl.deleteVertexArray(vao);
   }
 
-  return { poll, draw, dispose, composite: floatOK ? "rgba16f" : "rgba8" };
+  return { poll, draw, dispose, get composite() { return floatOK ? "rgba16f" : "rgba8"; } };
 }

@@ -172,6 +172,12 @@ looks inverted. The composite always runs at the canvas's full resolution, also 
 render scale (it filters their premultiplied sums up), so the browser never upscales a finished frame, which would mix
 the inks with the paper in sRGB and turn faint red edges peach on light.
 
+Nothing non-finite may reach the accumulation buffer. A NaN there survives every mask, so it shows as a hole of bare
+page colour the shape of a particle, even in another view's frame (seen on some laptop GPUs, never in SwiftShader).
+The shaders test their outputs by their bits (compilers may fold `isnan()` away): a vertex shader culls such a
+particle, a fragment shader drops such a fragment, and the composite reads such a texel as empty. Each view also
+draws under a scissor around its own frame, so it cannot reach another frame and costs nothing outside its own.
+
 The landing's copy stays legible in two ways: the scene darkens itself under the copy (a column on wide screens,
 bands above and below it on narrow ones), and the body text, links and the cue each sit on a soft cloud of the page
 colour, opaque enough to keep at least 4.5:1 over the brightest pixel of the scene. The name is display text and sits

@@ -83,18 +83,24 @@ function isSoftware(gl) {
   return /swiftshader|llvmpipe|softpipe|software|basic render/i.test(String(name));
 }
 
-// Mask and veil uniforms (device px, y up) for a view's rectangles and veil (CSS px, y down).
-const newMask = () => ({ only: 0, n: 0, rects: new Float32Array(32), feather: new Float32Array(8), veil: new Float32Array(4), veil2: new Float32Array(4) });
-function setMask(m, rects, veil, dpr, H) {
+// Mask and veil uniforms (device px, y up) for a view's rectangles and veil (CSS px, y down), and the scissor box
+// around the rectangles (the whole W x H render size without them): the mask is 0 outside them.
+const newMask = () => ({ only: 0, n: 0, rects: new Float32Array(32), feather: new Float32Array(8), veil: new Float32Array(4), veil2: new Float32Array(4), box: new Int32Array(4) });
+function setMask(m, rects, veil, dpr, W, H) {
   m.rects.fill(0);
   m.feather.fill(0);
   m.only = rects ? 1 : 0;
   m.n = rects ? Math.min(8, rects.length) : 0;
+  let x0 = rects ? W : 0, y0 = rects ? H : 0, x1 = rects ? 0 : W, y1 = rects ? 0 : H;
   for (let i = 0; i < m.n; i++) {
     const r = rects[i];
-    m.rects.set([r.x0 * dpr, H - r.y1 * dpr, r.x1 * dpr, H - r.y0 * dpr], i * 4);
+    const q = [r.x0 * dpr, H - r.y1 * dpr, r.x1 * dpr, H - r.y0 * dpr];
+    m.rects.set(q, i * 4);
     m.feather[i] = (r.f ?? 120) * dpr;
+    x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[2]); y1 = Math.max(y1, q[3]);
   }
+  x0 = clamp(Math.floor(x0), 0, W); y0 = clamp(Math.floor(y0), 0, H);
+  m.box.set([x0, y0, Math.max(0, clamp(Math.ceil(x1), 0, W) - x0), Math.max(0, clamp(Math.ceil(y1), 0, H) - y0)]);
   const v = veil || {};
   m.veil.set([(v.colX ?? 0) * dpr, v.colS ?? 0, H - (v.bottomY ?? 0) * dpr, v.bottomS ?? 0]);
   m.veil2.set([(v.topH ?? 0) * dpr, v.topS ?? 0, (v.f ?? 160) * dpr, H]);
@@ -217,7 +223,7 @@ export function mount(container, opts = {}) {
       s.fog.set(world.fog);
       s.trail.set([tr.time, tr.width, tr.alpha[theme]]);
       s.params.set([0, 0, v.form || 0, 0]);
-      setMask(s.mask, v.rect ? [v.rect] : null, v.veil, dpr, H);
+      setMask(s.mask, v.rect ? [v.rect] : null, v.veil, dpr, W, H);
       f.views.push(s);
       for (const g of v.glows || world.glows(it)) {
         const q = gi < GLOW_SLOTS && project(s.VP, g.p, W, H);
@@ -229,7 +235,7 @@ export function mount(container, opts = {}) {
       lastViews.push({ id: v.id ?? null, pos: pose.pos.map((x) => Math.round(x * 1000) / 1000) });
     });
     const rects = list.map((v) => v.rect).filter(Boolean);
-    setMask(f.bgMask, opts.views ? rects : null, list[0]?.veil, dpr, H);
+    setMask(f.bgMask, opts.views ? rects : null, list[0]?.veil, dpr, W, H);
     return { it, T };
   }
 
