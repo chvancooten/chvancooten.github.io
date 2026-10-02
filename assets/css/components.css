@@ -697,10 +697,19 @@ html:not(.js) .card3d__slab { display: none; }
 .palette__results { flex: 1; min-height: 0; padding: 0.4rem; overflow-y: auto; overscroll-behavior: contain; }
 .palette__results:empty { flex: none; padding: 0; }
 .palette__results:focus-visible { outline-offset: -2px; }
-.palette__item { display: block; padding: 0.6rem 0.75rem; border-radius: 8px; color: var(--text); text-decoration: none; }
-.palette__item[aria-selected="true"] { background: var(--bg); box-shadow: inset 2px 0 0 var(--accent); }
-.palette__title { display: block; overflow-wrap: anywhere; color: var(--text); font-weight: 600; line-height: 1.4; }
-.palette__meta { display: block; margin-top: 0.15rem; color: var(--text-2); font-size: var(--fs-xs); }
+/* The active result: a plain fill and an arrow at its end that says Enter opens it. */
+.palette__item { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 1rem; padding: 0.6rem 0.75rem; border-radius: 8px; color: var(--text); text-decoration: none; }
+.palette__item::after { content: "\2192"; content: "\2192" / ""; grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--text-2); opacity: 0; transform: translateX(-0.25rem); }
+.palette__item[aria-selected="true"] { background: var(--bg); }
+.palette__item[aria-selected="true"]::after { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .palette__item::after { transition: opacity 0.12s var(--ease-out), transform 0.12s var(--ease-out); }
+}
+@media (forced-colors: active) {
+  .palette__item[aria-selected="true"] { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+.palette__title { display: block; grid-column: 1; overflow-wrap: anywhere; color: var(--text); font-weight: 600; line-height: 1.4; }
+.palette__meta { display: block; grid-column: 1; margin-top: 0.15rem; color: var(--text-2); font-size: var(--fs-xs); }
 .palette mark { background: none; color: inherit; text-decoration: underline 2px var(--accent-2); text-underline-offset: 3px; }
 .palette__empty { padding: 1.25rem 1.15rem; color: var(--text-2); font-size: var(--fs-sm); }
 .palette__foot { display: flex; flex-wrap: wrap; gap: 0.35rem 1.25rem; padding: 0.6rem 1rem; border-top: 1px solid var(--hair); color: var(--text-2); font-size: 0.75rem; }
