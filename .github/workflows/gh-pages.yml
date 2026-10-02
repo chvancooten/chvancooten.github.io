@@ -16,7 +16,9 @@
 #   token). A failed sync only warns: the build then uses the committed file.
 #   The weekly run picks up new talks and recordings without a commit here.
 #
-# All writes to gh-pages go through scripts/deploy-gh-pages.sh.
+# All writes to gh-pages go through scripts/deploy-gh-pages.sh. After a production
+# or preview deploy, scripts/purge-cloudflare.sh waits for GitHub Pages to serve
+# it and purges Cloudflare's cache (once the zone id and token are configured).
 name: github pages
 
 on:
@@ -220,6 +222,15 @@ jobs:
               await github.rest.issues.createComment({ ...context.repo, issue_number: pr.number, body });
             }
 
+      # Last, so a failed purge never holds up the deploy. Skipped with a notice until the
+      # CLOUDFLARE_ZONE_ID variable and the CLOUDFLARE_API_TOKEN secret exist.
+      - name: Purge the Cloudflare cache
+        env:
+          CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: scripts/purge-cloudflare.sh "$RUNNER_TEMP/site" "/pr-preview/pr-$PR_NUMBER/"
+
   deploy-production:
     name: Deploy production
     needs: build
@@ -309,6 +320,15 @@ jobs:
       - name: Report skipped pruning
         if: steps.tip.outputs.current == 'true' && steps.open-prs.outcome != 'success'
         run: echo "::warning::Could not list open PRs, so no previews were pruned"
+
+      # Last, so a failed purge never holds up the deploy. Skipped with a notice until the
+      # CLOUDFLARE_ZONE_ID variable and the CLOUDFLARE_API_TOKEN secret exist.
+      - name: Purge the Cloudflare cache
+        if: steps.tip.outputs.current == 'true'
+        env:
+          CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: scripts/purge-cloudflare.sh "$RUNNER_TEMP/site" /
 
   cleanup-preview:
     name: Remove PR preview
