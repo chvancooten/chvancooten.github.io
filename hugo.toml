@@ -63,7 +63,7 @@ copyright     = "CC BY-NC 4.0"
     name     = "Cas van Cooten"
     handle   = "chvancooten"
     jobTitle = "Offensive security enthusiast and co-founder of Offensys"
-    image    = "images/me.png"
+    image    = "images/portrait.webp"
 
   [params.company]
     name = "Offensys"

@@ -107,6 +107,7 @@ Writing notes:
 | `static/fonts/` | Bricolage Grotesque, Instrument Sans and JetBrains Mono (latin subsets; SIL OFL licences next to the files) |
 | `static/cas-van-cooten.vcf` | The vCard behind "Save contact" on the business card |
 | `static/images/card-portrait*.webp` | The card's portrait: the photo, and a soft luminance matte of its near-black studio background used as a CSS mask |
+| `static/images/portrait.webp` | The same photo as a square head-and-shoulders crop (384 px), shown round on the About page and under each post (`params.author.image`). The old `me.png` stays only so its URL keeps working |
 
 Dark is the default theme. The toggle stores `"dark"` or `"light"` in `localStorage["theme"]`, and a tiny inline
 script applies it to `<html data-theme>` before the first paint. Everything works with JavaScript disabled; scripts
