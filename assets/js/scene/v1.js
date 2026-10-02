@@ -25,9 +25,11 @@ const f1 = (v) => v.toFixed(4);
 const GLSL = `
 const float ZT=44.,ZL=88.;
 const float SW=${f1(STRANDS.w)},ST=${f1(STRANDS.twist)},SV=${f1(STRANDS.flow)},SA=${f1(STRANDS.radius)},SL=${f1(STRANDS.length)};
+// 1 below a, 0 above b (smoothstep with its edges reversed is undefined in GLSL, and some drivers take that literally)
+float fall(float a,float b,float x){return 1.-smoothstep(a,b,x);}
 float twist(float z){return z<0.?1.2*z:1.6*(1.-exp(-z/3.));}
 vec3 ctr(float z,float k,out float w,out float S){
-  S=pow(smoothstep(-1.,26.,z),.6);
+  S=pow(max(smoothstep(-1.,26.,z),1e-12),.6);
   float R=mix(.2,6.4,S);
   float th=twist(z)-1.28+k*3.14159265;
   vec2 c=vec2(cos(th),sin(th)*mix(1.,.38,S))*R;
@@ -44,16 +46,16 @@ Pt braid(uint id,vec4 h,float t){
     float w,S;
     vec3 c=ctr(z,k,w,S);
     float halo=step(.78,fract(h.z*7.31));
-    float rr=w*sqrt(-log(1.-.96*h.z))*.5*(1.+1.5*halo);
+    float rr=w*sqrt(max(-log(1.-.96*h.z),0.))*.5*(1.+1.5*halo);
     float ph=6.2832*h.w+1.7*z*(1.-.65*S);
     o.p=c+vec3(cos(ph),sin(ph),0.)*rr;
     vec3 base=k<.5?mix(uInk[0],uInk[1],h.y*h.y*.8):mix(uInk[2],uInk[3],h.y*.9);
-    o.c=mix(base,uInk[4],smoothstep(5.,-2.5,z)*(h.y<.22?.4:.92));
+    o.c=mix(base,uInk[4],fall(-2.5,5.,z)*(h.y<.22?.4:.92));
     float core=exp(-rr*rr/(w*w)*1.6);
-    o.a=(.28+.72*core)*(1.-.55*halo)*(1.+.9*exp(-z*z/5.))*mix(.42,1.,S)*smoothstep(-44.,-34.,z)*smoothstep(44.,32.,z);
+    o.a=(.28+.72*core)*(1.-.55*halo)*(1.+.9*exp(-z*z/5.))*mix(.42,1.,S)*smoothstep(-44.,-34.,z)*fall(32.,44.,z);
     o.s=.019*(.7+.6*h.z);
   }else if(f<.875){
-    float r=2.9*sqrt(-log(1.-.985*h.x))*.62;
+    float r=2.9*sqrt(max(-log(1.-.985*h.x),0.))*.62;
     float a=6.2832*h.y+t*(.14+.38/(.6+r));
     float z=(h.z-.5)*.34-.2+.12*sin(r*2.3-t*.8);
     o.p=vec3(cos(a)*r,sin(a)*r*.86,z);
@@ -65,7 +67,7 @@ Pt braid(uint id,vec4 h,float t){
     o.p=vec3((h.x-.5)*36.,(h.y-.5)*22.,z);
     o.p.xy+=.5*sin(vec2(.21,.17)*z+t*.1+h.w*6.);
     o.c=mix(uInk[5],uInk[4],h.w*h.w);
-    o.a=.2*smoothstep(-44.,-36.,z)*smoothstep(44.,36.,z);
+    o.a=.2*smoothstep(-44.,-36.,z)*fall(36.,44.,z);
     o.s=.017;
   }
   return o;
@@ -77,27 +79,27 @@ Pt strands(uint id,vec4 h,float t){
   if(f<.86){
     float x=(fract(h.x+t*SV*(.8+.4*h.y)/SL)-.5)*SL;
     float ph=SW*x-ST*t+k*3.14159265;
-    float rr=.6*sqrt(-log(1.-.97*h.z));
+    float rr=.6*sqrt(max(-log(1.-.97*h.z),0.));
     float a=6.2832*h.w+1.3*x-.2*t;
     o.p=vec3(x,SA*sin(ph),.9*SA*cos(ph))+vec3(0.,cos(a),sin(a))*rr;
     vec3 base=k<.5?mix(uInk[0],uInk[1],h.y*.6):mix(uInk[2],uInk[3],h.y*.7);
     float s=sin(ph);
     o.c=mix(base,uInk[4],.88*exp(-s*s/.2));
-    o.a=.5*(.3+.7*exp(-rr*rr*2.4))*smoothstep(SL*.5,SL*.5-5.,abs(x));
+    o.a=.5*(.3+.7*exp(-rr*rr*2.4))*fall(SL*.5-5.,SL*.5,abs(x));
     o.s=.019*(.7+.6*h.z);
   }else if(f<.93){
     float S=3.14159265/SW;
     float x=mod(floor(h.x*8.)*S+ST*t/SW+SL*.5,8.*S)-SL*.5;
     vec3 r=vec3(h.y,h.z,fract(h.w*7.3))-.5;
-    o.p=vec3(x,0.,0.)+normalize(r+1e-3)*.75*sqrt(-log(1.-.95*fract(h.w*3.7)));
+    o.p=vec3(x,0.,0.)+normalize(r+1e-3)*.75*sqrt(max(-log(1.-.95*fract(h.w*3.7)),0.));
     o.c=mix(uInk[4],k<.5?uInk[0]:uInk[2],.15*h.y);
-    o.a=.36*exp(-dot(o.p.yz,o.p.yz)*.6)*smoothstep(SL*.5,SL*.5-5.,abs(x));
+    o.a=.36*exp(-dot(o.p.yz,o.p.yz)*.6)*fall(SL*.5-5.,SL*.5,abs(x));
     o.s=.018;
   }else{
     float x=(fract(h.x+t*SV*.5/SL)-.5)*SL;
     o.p=vec3(x,(h.y-.5)*7.,(h.z-.5)*7.);
     o.c=mix(uInk[5],uInk[4],h.w*h.w);
-    o.a=.13*smoothstep(SL*.5,SL*.5-5.,abs(x));
+    o.a=.13*fall(SL*.5-5.,SL*.5,abs(x));
     o.s=.017;
   }
   return o;
