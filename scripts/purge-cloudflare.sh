@@ -46,11 +46,14 @@ want=$(sha256sum "$site/index.html" | cut -d' ' -f1)
 log "waiting up to ${wait_s}s for GitHub Pages to serve the new ${path}index.html"
 deadline=$((SECONDS + wait_s))
 served=false
+# Each request and each pause is cut to the time left, so the wait never runs past PURGE_WAIT.
+left() { local n=$((deadline - SECONDS)); ((n < $1)) || n=$1; ((n > 1)) || n=1; echo "$n"; }
 while ((SECONDS < deadline)); do
-  got=$(curl -sk --max-time 20 --resolve "$host:443:$ip" "https://$host${path}index.html?purge=$RANDOM$SECONDS" \
-    | sha256sum | cut -d' ' -f1) || true
+  got=$(curl -sk --max-time "$(left 20)" --resolve "$host:443:$ip" \
+    "https://$host${path}index.html?purge=$RANDOM$SECONDS" | sha256sum | cut -d' ' -f1) || true
   if [[ "$got" == "$want" ]]; then served=true; break; fi
-  sleep 10
+  ((SECONDS < deadline)) || break
+  sleep "$(left 10)"
 done
 if $served; then
   log "GitHub Pages serves the new build"

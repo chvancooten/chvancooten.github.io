@@ -187,6 +187,7 @@ jobs:
           path: ${{ runner.temp }}/site
 
       - name: Publish to pr-preview/pr-N
+        id: publish
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -222,9 +223,11 @@ jobs:
               await github.rest.issues.createComment({ ...context.repo, issue_number: pr.number, body });
             }
 
-      # Last, so a failed purge never holds up the deploy. Skipped with a notice until the
+      # Last, so a failed purge never holds up the deploy, and whenever the publish
+      # succeeded, even if a step after it failed. Skipped with a notice until the
       # CLOUDFLARE_ZONE_ID variable and the CLOUDFLARE_API_TOKEN secret exist.
       - name: Purge the Cloudflare cache
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' }}
         env:
           CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -280,6 +283,7 @@ jobs:
           path: ${{ runner.temp }}/site
 
       - name: Publish to the gh-pages root
+        id: publish
         if: steps.tip.outputs.current == 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -321,10 +325,11 @@ jobs:
         if: steps.tip.outputs.current == 'true' && steps.open-prs.outcome != 'success'
         run: echo "::warning::Could not list open PRs, so no previews were pruned"
 
-      # Last, so a failed purge never holds up the deploy. Skipped with a notice until the
+      # Last, so a failed purge never holds up the deploy, and whenever the publish
+      # succeeded, even if a step after it failed. Skipped with a notice until the
       # CLOUDFLARE_ZONE_ID variable and the CLOUDFLARE_API_TOKEN secret exist.
       - name: Purge the Cloudflare cache
-        if: steps.tip.outputs.current == 'true'
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' }}
         env:
           CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
