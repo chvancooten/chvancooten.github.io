@@ -1,0 +1,232 @@
+/* Fonts, self-hosted, latin subsets, SIL OFL 1.1 (licences in static/fonts/).
+   Bricolage Grotesque is instanced to the axes the design uses: wght 700-800, wdth 75-100, opsz fixed at 60.
+   Instrument Sans is instanced to wdth 100 (wght 400-700). JetBrains Mono keeps wght 400-700 and drops its
+   ligature tables, since code never shows ligatures here.
+   The two faces every page starts with (the name and titles, and the text) are preloaded and optional: browsers
+   hold the first render briefly for a preloaded optional font, so it is there from the first paint, and one that
+   is late is not swapped in mid-view (the page keeps the metric-matched fallback below), so nothing ever shifts.
+   The italic and the mono face are not preloaded and swap. */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("../fonts/bricolage-grotesque-latin-var.woff2") format("woff2");
+  font-weight: 700 800;
+  font-stretch: 75% 100%;
+  font-style: normal;
+  font-display: optional;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("../fonts/instrument-sans-latin-var-normal.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: optional;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("../fonts/instrument-sans-latin-var-italic.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: italic;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../fonts/jetbrains-mono-latin-var-normal.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* Metric-matched fallbacks (average advance and vertical metrics measured against Arial / Liberation),
+   so the swap to the web fonts does not move the layout. Bricolage is matched at the hero name's
+   instance (wdth 90, wght 800). */
+@font-face {
+  font-family: "Bricolage Fallback";
+  src: local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"), local("LiberationSans-Bold"), local("Helvetica Bold");
+  font-weight: 700 800;
+  size-adjust: 87.86%;
+  ascent-override: 105.85%;
+  descent-override: 30.73%;
+  line-gap-override: 0%;
+}
+/* Instrument Sans: one fallback per weight range and style, each measured as the ratio of the two faces' advance
+   on post prose (Arial and Liberation Sans share advances). Its own ascent and descent are 0.97 and 0.25 em; the
+   overrides are divided by size-adjust, which scales them too. */
+@font-face {
+  font-family: "Instrument Fallback";
+  src: local("Arial"), local("ArialMT"), local("Liberation Sans"), local("LiberationSans"), local("Helvetica");
+  font-weight: 400 500;
+  font-style: normal;
+  size-adjust: 101.08%;
+  ascent-override: 95.96%;
+  descent-override: 24.73%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Instrument Fallback";
+  src: local("Arial Italic"), local("Arial-ItalicMT"), local("Liberation Sans Italic"), local("LiberationSans-Italic"), local("Helvetica Oblique");
+  font-weight: 400 500;
+  font-style: italic;
+  size-adjust: 101.47%;
+  ascent-override: 95.59%;
+  descent-override: 24.64%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Instrument Fallback";
+  src: local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"), local("LiberationSans-Bold"), local("Helvetica Bold");
+  font-weight: 600 700;
+  font-style: normal;
+  size-adjust: 97.32%;
+  ascent-override: 99.67%;
+  descent-override: 25.69%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Instrument Fallback";
+  src: local("Arial Bold Italic"), local("Arial-BoldItalicMT"), local("Liberation Sans Bold Italic"), local("LiberationSans-BoldItalic"), local("Helvetica Bold Oblique");
+  font-weight: 600 700;
+  font-style: italic;
+  size-adjust: 96.82%;
+  ascent-override: 100.18%;
+  descent-override: 25.82%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "JetBrains Mono Fallback";
+  src: local("Courier New"), local("CourierNewPSMT"), local("Liberation Mono"), local("LiberationMono");
+  size-adjust: 99.98%;
+  ascent-override: 102.02%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}
+
+/* Colours: Flexoki (MIT, kepano/flexoki, https://stephango.com/flexoki), dark and light. Values marked "adj." are the
+   official colour with only its OKLCH lightness moved, by the smallest step that passes WCAG AA on the surfaces it is
+   used on (4.5:1 for text, 3:1 for borders, controls and large numerals); the names are Flexoki's. */
+:root {
+  color-scheme: dark;
+  --bg: #100f0f;          /* black */
+  --bg-2: #1c1b1a;        /* base-950: surface for code, cards, boxes */
+  --bg-3: #282726;        /* base-900: hover fills, never behind muted text */
+  --text: #cecdc3;        /* base-200, 12.0:1 on bg, 10.8:1 on bg-2 */
+  --text-2: #878580;      /* base-500, 5.2:1 on bg, 4.7:1 on bg-2 */
+  --muted: #85847f;       /* adj. base-600, 5.1:1 on bg, 4.6:1 on bg-2 */
+  --line: #62615e;        /* adj. base-700: borders and controls, 3.1:1 */
+  --hair: #282726;        /* base-900: decorative hairlines */
+  --accent: #de594c;      /* adj. red-400, 5.1:1 on bg, 4.6:1 on bg-2 */
+  --accent-ink: #100f0f;  /* black on the accent, 5.1:1 */
+  --accent-2: #8b7ec8;    /* purple-400, 5.4:1 on bg, 4.9:1 on bg-2 */
+  --blue: #4385be;        /* blue-400 */
+  --gold: #d0a215;        /* yellow-400: star counts, 8.1:1 */
+  --gold-sm: #d0a215;     /* yellow-400 for small text */
+  --focus: #8b7ec8;       /* purple-400, 5.4:1 */
+  --header-bg: rgb(16 15 15 / 0.9);     /* the title bar's frosted surface (layout.css) */
+  --header-solid: rgb(16 15 15 / 0.97); /* and where it cannot be frosted */
+  --sel: rgb(139 126 200 / 0.32);
+  --shadow: 0 40px 80px -40px rgb(0 0 0 / 0.8);
+
+  /* The scene (assets/js/scene): two currents, red and blue, that turn purple where they meet; Flexoki's own red,
+     blue and purple (each with a second shade) and a neutral dust. On dark the inks glow over the page (added, at
+     most a little above each ink's own brightness); --scrim is the background as "r g b", for the soft clouds
+     under the landing's text. */
+  --scene-bg: #100f0f;
+  --scene-red: #d14d41;     /* red-400 */
+  --scene-red-2: #af3029;   /* red-600 */
+  --scene-blue: #4385be;    /* blue-400 */
+  --scene-blue-2: #205ea6;  /* blue-600 */
+  --scene-purple: #8b7ec8;  /* purple-400 */
+  --scene-dust: #575653;    /* base-700 */
+  --scene-ink: add;
+  --scrim: 16 15 15;
+
+  /* Syntax roles: Flexoki's own mapping (400 shades on dark), on --bg-2 and on a highlighted line (--syn-hl). adj. =
+     lightened to 4.5:1 on both. */
+  --syn-kw: #879a39;      /* keywords: green-400, 5.5:1 */
+  --syn-ns: #ea6456;      /* imports: adj. red-400, 5.3:1 */
+  --syn-fn: #db712e;      /* functions: adj. orange-400, 5.3:1 */
+  --syn-name: #5294ce;    /* variables, attributes: adj. blue-400, 5.3:1 */
+  --syn-type: #d0a215;    /* types, constants: yellow-400, 7.3:1 */
+  --syn-str: #3aa99f;     /* strings: cyan-400, 6.0:1 */
+  --syn-num: #9285d0;     /* numbers: adj. purple-400, 5.3:1 */
+  --syn-feat: #da68a2;    /* language features: adj. magenta-400, 5.3:1 */
+  --syn-punct: #918f8a;   /* punctuation, operators: adj. base-500 (tx-2), 5.3:1 */
+  --syn-com: #908f8b;     /* comments: adj. base-700 (tx-3), 5.3:1, in italics */
+  --syn-del: #ea6456;     /* deleted: adj. red-400 */
+  --syn-ins: #879a39;     /* inserted: green-400 */
+  --syn-hl: #282726;      /* highlighted line: base-900 */
+
+  --f-display: "Bricolage Grotesque", "Bricolage Fallback", "Instrument Sans", system-ui, sans-serif;
+  --f-text: "Instrument Sans", "Instrument Fallback", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: "JetBrains Mono", "JetBrains Mono Fallback", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --fs-body: 1.0625rem;
+  --fs-prose: clamp(1.0625rem, 1rem + 0.25vw, 1.125rem);
+  --fs-sm: 0.9375rem;
+  --fs-xs: 0.8125rem;
+  --fs-code: 0.875rem;
+
+  /* One content grid for header, hero, sections, posts and footer: 120px gutters at 1440, 20px at 390.
+     --gutter is only used as padding or offset on full-width blocks, where 100% is the page width. */
+  --maxw: 75rem;
+  --pad: clamp(1.25rem, 5vw, 4rem);
+  --gutter: max(var(--pad), calc((100% - var(--maxw)) / 2));
+  --measure: 34em;
+  --header-h: 4rem;
+  --radius: 10px;
+  --radius-sm: 6px;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur: 180ms;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #fffcf0;          /* paper */
+  --bg-2: #f2f0e5;        /* base-50: surface */
+  --bg-3: #e6e4d9;        /* base-100: overlay */
+  --text: #100f0f;        /* black, 18.6:1 on bg, 16.7:1 on bg-2 */
+  --text-2: #6d6c67;      /* adj. base-600, 5.1:1 on bg, 4.6:1 on bg-2 */
+  --muted: #6e6c68;       /* adj. base-500, 5.1:1 on bg, 4.6:1 on bg-2 */
+  --line: #939188;        /* adj. base-300: borders and controls, 3.1:1 */
+  --hair: #e6e4d9;        /* base-100 */
+  --accent: #af3029;      /* red-600, 6.2:1 on bg, 5.6:1 on bg-2 */
+  --accent-ink: #ffffff;  /* white on the accent, 6.4:1 */
+  --accent-2: #5e409d;    /* purple-600, 7.6:1 on bg, 6.8:1 on bg-2 */
+  --blue: #205ea6;        /* blue-600 */
+  --gold: #a87e00;        /* adj. yellow-600, still a yellow: 3.6:1 on bg, 3.3:1 on bg-2, large numerals only */
+  --gold-sm: #8e6500;     /* adj. yellow-600 for small text, 5.1:1 on bg, 4.6:1 on bg-2 */
+  --focus: #5e409d;       /* purple-600, 7.6:1 */
+  --header-bg: rgb(255 252 240 / 0.92); /* a little more on paper: nav text keeps 4.5:1 over dark or red content */
+  --header-solid: rgb(255 252 240 / 0.97);
+  --sel: rgb(94 64 157 / 0.2);
+  --shadow: 0 36px 70px -40px rgb(16 15 15 / 0.4);
+
+  /* The scene on paper: the 600 shades first, laid over the paper like ink (never subtracted from it). */
+  --scene-bg: #fffcf0;
+  --scene-red: #af3029;     /* red-600 */
+  --scene-red-2: #d14d41;   /* red-400 */
+  --scene-blue: #205ea6;    /* blue-600 */
+  --scene-blue-2: #4385be;  /* blue-400 */
+  --scene-purple: #5e409d;  /* purple-600 */
+  --scene-dust: #878580;    /* base-500 */
+  --scene-ink: ink;
+  --scrim: 255 252 240;
+
+  /* Syntax roles: Flexoki's mapping in its 600 shades for light. adj. = darkened to 4.5:1 on --bg-2 and --syn-hl. */
+  --syn-kw: #556e00;      /* adj. green-600, 5.1:1 */
+  --syn-ns: #af3029;      /* red-600, 5.6:1 */
+  --syn-fn: #ad4400;      /* adj. orange-600, 5.1:1 */
+  --syn-name: #205ea6;    /* blue-600, 5.7:1 */
+  --syn-type: #855d00;    /* adj. yellow-600, 5.2:1 */
+  --syn-str: #00716a;     /* adj. cyan-600, 5.2:1 */
+  --syn-num: #5e409d;     /* purple-600, 6.8:1 */
+  --syn-feat: #a02f6f;    /* magenta-600, 5.9:1 */
+  --syn-punct: #666560;   /* adj. base-600 (tx-2), 5.1:1 */
+  --syn-com: #66655c;     /* adj. base-300 (tx-3), 5.1:1, in italics */
+  --syn-del: #af3029;     /* red-600 */
+  --syn-ins: #556e00;     /* adj. green-600 */
+  --syn-hl: #e6e4d9;      /* base-100 */
+}

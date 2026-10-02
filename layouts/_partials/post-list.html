@@ -1,0 +1,4 @@
+{{- /* A list of post rows. Pass a page collection. */ -}}
+<ul class="rows" role="list">
+  {{- range . }}{{ partial "post-row.html" . }}{{ end }}
+</ul>

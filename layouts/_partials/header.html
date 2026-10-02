@@ -1,0 +1,11 @@
+{{- /* The title bar. The wordmark's two words (.bw) are where the home page's name lines dock (js/dock.js). */ -}}
+{{- $words := split site.Params.author.name " " }}
+{{- $last := index $words (sub (len $words) 1) }}
+{{- $rest := delimit (first (sub (len $words) 1) $words) " " }}
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand" href="{{ site.Home.RelPermalink }}"{{ if .IsHome }} aria-current="page"{{ end }}>{{ with $rest }}<span class="bw">{{ . }}</span> {{ end }}<span class="bw">{{ $last }}</span></a>
+    {{- partial "nav.html" . }}
+    {{- partial "tools.html" . }}
+  </div>
+</header>

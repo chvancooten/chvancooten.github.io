@@ -1,0 +1,146 @@
+/* Page frame: the shared content grid, header, footer. */
+.frame { padding-inline: var(--gutter); }
+
+.preview-banner {
+  padding: 0.4rem var(--gutter);
+  background: #d0a215; /* Flexoki yellow-400, with black: 8.1:1 */
+  color: #100f0f;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* The title bar: wordmark at the left gutter; nav, search and theme toggle at the right. Pinned on every page; on
+   the home page it arrives as the hero's name docks into the wordmark (home.css, js/dock.js). Its surface is frosted
+   glass: the page colour, mostly opaque (--header-bg), over a blur of what scrolls under it. The surface and the
+   blur sit on the bar itself, which sees the page behind it (a pseudo-element's backdrop would end at the bar,
+   which is a backdrop root: it has a view-transition name, and on home the dock fades it). Where backdrop-filter
+   is not supported the surface is near-opaque instead. The hairline (::before) gives the bar its edge. */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  view-transition-name: site-header;
+  background: var(--header-bg);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .site-header { background: var(--header-solid); }
+}
+.site-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-bottom: 1px solid var(--hair);
+  pointer-events: none;
+}
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem clamp(0.75rem, 2vw, 1.75rem);
+  min-height: var(--header-h);
+  padding-inline: var(--gutter);
+}
+.brand {
+  margin-right: auto;
+  padding-block: 0.5rem;
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-stretch: 90%;
+  font-size: 1.125rem;
+  letter-spacing: -0.042em; /* the name's own setting: the docking name cross-fades into this */
+  word-spacing: 0.08em; /* the tight tracking leaves the words only 2 px apart at this size: "Cas van Cooten" */
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--text);
+  text-decoration: none;
+}
+.brand .bw { display: inline-block; }
+.brand:hover { color: var(--text); }
+
+.site-nav ul {
+  display: flex;
+  gap: clamp(0.25rem, 1.6vw, 1.25rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.site-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0 0.35rem;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  text-decoration: none;
+  text-underline-offset: 0.35em;
+  transition: color var(--dur) var(--ease-out);
+}
+.site-nav a:hover { color: var(--text); }
+.site-nav a[aria-current] { color: var(--text); text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 2px; }
+
+.site-tools { display: flex; align-items: center; gap: 0.25rem; }
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+}
+.icon-btn:hover { color: var(--text); border-color: var(--line); }
+.search-btn kbd { font-size: 0.6875rem; }
+[data-theme="dark"] .theme-toggle .icon--moon,
+[data-theme="light"] .theme-toggle .icon--sun { display: none; }
+
+@media (max-width: 47.99em) {
+  .search-btn kbd { display: none; }
+  .search-btn { padding: 0; }
+}
+@media (max-width: 31.24em) {
+  /* Below 500px the nav gets a row of its own under the wordmark and the tools, rather than squeezing the
+     wordmark against Work (and, from 375px down, pushing the theme toggle off the screen). --header-h follows, so
+     anchors and sticky elements still clear the header. */
+  :root { --header-h: 5.25rem; }
+  .site-header__inner { flex-wrap: wrap; row-gap: 0; padding-block: 0.25rem; }
+  .site-nav { order: 3; flex-basis: 100%; margin-left: -0.35rem; }
+  .site-nav ul { gap: 0.75rem; }
+  .site-nav a { min-height: 2.25rem; }
+}
+
+/* Footer */
+.site-footer {
+  margin-top: clamp(4rem, 9vw, 6rem);
+  padding: 2rem var(--gutter) 2.5rem;
+  border-top: 1px solid var(--hair);
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+}
+.kind-home .site-footer { margin-top: 0; }
+.site-footer p { margin: 0; }
+.site-footer a { color: var(--text); text-decoration: none; }
+.site-footer a:hover { color: var(--accent); text-decoration: underline; }
+.site-footer__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem 2rem;
+}
+.site-footer__links { display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; padding: 0; list-style: none; }
+.site-footer__links a { display: inline-block; padding-block: 0.2rem; }
+.site-footer__credits { margin-top: 1rem !important; color: var(--muted); font-size: var(--fs-xs); }
+.site-footer__credits a { color: inherit; text-decoration: underline; text-decoration-color: var(--line); }
+/* Links inside a sentence need more than colour to stand out from it (WCAG 1.4.1). */
+.site-footer__row > p a { text-decoration: underline; text-decoration-color: var(--line); }
+.site-footer__row > p a:hover { text-decoration-color: currentColor; }

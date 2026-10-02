@@ -1,0 +1,34 @@
+# Static renderings of embedded X posts, keyed by status id (used by layouts/_shortcodes/x.html).
+# Extracted from the previously published site so no network access is needed at build time.
+
+["1374993077639733250"]
+user = "chvancooten"
+name = "Cas van Cooten"
+handle = "chvancooten"
+date = "March 25, 2021"
+url = "https://x.com/chvancooten/status/1374993077639733250"
+html = "Officially passed the 48h certification exam! Y'all may now call me OSEP🥳<br><br>Blog post soon-ish (hopefully) <a href=\"https://t.co/SBqHP5MiXS\">pic.twitter.com/SBqHP5MiXS</a>"
+
+["1393655024866283520"]
+user = "chvancooten"
+name = "Cas van Cooten"
+handle = "chvancooten"
+date = "May 15, 2021"
+url = "https://x.com/chvancooten/status/1393655024866283520"
+html = "NEEDS MORE BACON <a href=\"https://t.co/0Mu0UfLEYr\">pic.twitter.com/0Mu0UfLEYr</a>"
+
+["1410624406687260679"]
+user = "chvancooten"
+name = "Cas van Cooten"
+handle = "chvancooten"
+date = "July 1, 2021"
+url = "https://x.com/chvancooten/status/1410624406687260679"
+html = "So taking hacking exams with a slight fever (thanks Pfizer...) turns out not to be the best idea, but I made it! All four flags for the <a href=\"https://twitter.com/zeropointsecltd?ref_src=twsrc%5Etfw\">@zeropointsecltd</a> CRTO certification exam submitted 😄<br><br>Very fun course and exam, especially the last flag was worth it. Blog post soon™! <a href=\"https://t.co/kvJXnIXbvj\">pic.twitter.com/kvJXnIXbvj</a>"
+
+["1414267057617739782"]
+user = "domchell"
+name = "Dominic Chell 👻"
+handle = "domchell"
+date = "July 11, 2021"
+url = "https://x.com/domchell/status/1414267057617739782"
+html = "Ironically I also built a stage 0 implant in nim called nimplant 😆 never quite finished it tho, as with many projects 🤣 UIs looking sharp 😎"

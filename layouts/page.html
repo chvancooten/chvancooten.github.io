@@ -1,0 +1,23 @@
+{{ define "main" }}
+{{- if eq .Section "posts" }}
+{{- partial "post/article.html" . }}
+{{- else }}
+{{- $about := eq .RelPermalink (site.GetPage "/about").RelPermalink }}
+<article class="page{{ with .File }} page--{{ .ContentBaseName | urlize }}{{ end }}">
+  <header class="page-head">
+    {{- /* front matter `heading` sets the visible heading where it differs from the title (sentence case). */}}
+    <h1>{{ .Params.heading | default .Title }}</h1>
+  </header>
+  <div class="page__body prose" data-post-body>
+    {{ .Content }}
+  </div>
+  {{- if $about }}
+  {{- partial "social-text.html" . }}
+  {{- /* The business card, the same one as on the home page (outside the article body). */}}
+  <div class="card-stage">
+    {{- partial "card.html" . }}
+  </div>
+  {{- end }}
+</article>
+{{- end }}
+{{ end }}

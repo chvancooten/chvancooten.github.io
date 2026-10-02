@@ -1,0 +1,7 @@
+{{- /* Compact star count: 953 -> "953", 1824 -> "1.8k". */ -}}
+{{- $n := int . -}}
+{{- $s := string $n -}}
+{{- if ge $n 1000 -}}
+  {{- $s = printf "%.1fk" (div (float $n) 1000) | replaceRE `\.0k$` "k" -}}
+{{- end -}}
+{{- return $s -}}

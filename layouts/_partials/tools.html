@@ -1,0 +1,11 @@
+{{- /* Search and the theme toggle, shared by the title bar and the landing's own bar. */ -}}
+<div class="site-tools">
+  {{- with site.Home.OutputFormats.Get "json" }}
+  <button class="icon-btn search-btn" type="button" data-search-open data-index="{{ .RelPermalink }}" aria-label="Search posts" aria-keyshortcuts="/ Control+K Meta+K">
+    {{- partial "icon.html" "search" }}<kbd aria-hidden="true">/</kbd>
+  </button>
+  {{- end }}
+  <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Switch to light theme">
+    {{- partial "icon.html" "sun" }}{{ partial "icon.html" "moon" -}}
+  </button>
+</div>

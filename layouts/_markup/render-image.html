@@ -1,0 +1,34 @@
+{{- /* Base-path-safe local images with intrinsic size; external images keep working. */ -}}
+{{- $u := urls.Parse .Destination }}
+{{- $src := .Destination }}
+{{- $w := 0 }}{{ $h := 0 }}
+{{- $external := $u.IsAbs }}
+{{- if not $external }}
+  {{- $rel := strings.TrimPrefix "/" $u.Path }}
+  {{- $file := path.Join "static" $rel }}
+  {{- if and (not (strings.HasSuffix $rel ".svg")) (fileExists $file) }}
+    {{- with images.Config $file }}{{ $w = .Width }}{{ $h = .Height }}{{ end }}
+  {{- end }}
+  {{- $src = $rel | relURL }}
+{{- else }}
+  {{- /* Repository cards from gh-card.dev become local SVG cards (no third-party request). */}}
+  {{- with partial "func/repo-card.html" $u }}
+    {{- $src = .url }}{{ $w = .width }}{{ $h = .height }}{{ $external = false }}
+  {{- end }}
+{{- end }}
+{{- /* The first image of a non-post page (the About portrait) is above the fold. */}}
+{{- $eager := and (eq .Ordinal 0) (ne .Page.Section "posts") }}
+{{- /* A <figure> only when there is a caption: linked images are also reported as blocks, and a
+       figure inside <p><a> would break the link apart. */}}
+{{- $figure := and .IsBlock .Title }}
+{{- if $figure }}<figure class="figure">{{ end -}}
+<img src="{{ $src }}" alt="{{ .PlainText }}"{{ if and .IsBlock (not $figure) }} class="img-block"{{ end }}
+  {{- if gt $w 0 }} width="{{ $w }}" height="{{ $h }}"{{ end }}
+  {{- if and .Title (not .IsBlock) }} title="{{ .Title }}"{{ end }}
+  {{- if $eager }} loading="eager" fetchpriority="high"{{ else }} loading="lazy"{{ end }} decoding="async"
+  {{- if $external }} referrerpolicy="no-referrer"{{ end }}>
+{{- if $figure }}
+  <figcaption>{{ .Title }}</figcaption>
+</figure>
+{{- end }}
+{{- /* newline */ -}}

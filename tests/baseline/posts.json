@@ -1,0 +1,286 @@
+{
+ "/posts/2020/05/generating-pretty-pwk-reports-with-pandoc-and-markdown-templates-inside/": {
+  "external_images": [],
+  "has_toc": true,
+  "heading_ids": [
+   "start-from-the-top",
+   "compiling-the-report",
+   "making-it-pretty",
+   "the-final-result"
+  ],
+  "local_images": [],
+  "pre_count": 0,
+  "tweet_ids": [],
+  "word_count": 1078
+ },
+ "/posts/2020/05/oscp-cheat-sheet-and-command-reference/": {
+  "external_images": [],
+  "has_toc": true,
+  "heading_ids": [
+   "reconnaissance",
+   "full-tcp-nmap",
+   "udp-nmap",
+   "enumeration",
+   "ftp-21tcp",
+   "ssh-22tcp",
+   "smtp-25tcp",
+   "dns-53tcp",
+   "rpc--nfs-111tcp",
+   "samba-139tcp-and-445tcp",
+   "snmp-161udp",
+   "https-80tcp-443tcp-8000tcp-8080tcp-8443tcp-",
+   "gobuster",
+   "nikto",
+   "sslscan",
+   "searchsploit",
+   "all-in-one",
+   "exploitation",
+   "directory-traversal-and-local-file-inclusion",
+   "sql-injection",
+   "other-web-based-exploits",
+   "hashes-and-known-credentials",
+   "privilege-escalation",
+   "windows",
+   "juicypotato",
+   "uac-bypass",
+   "local-admin-to-system",
+   "linux",
+   "file-transfers",
+   "windows-1",
+   "linux-1",
+   "pivoting",
+   "post-exploitation-enumeration",
+   "buffer-overflows",
+   "fuzz-buffer-length",
+   "find-eip-offset",
+   "determine-slack-space",
+   "find-bad-chars",
+   "find-suitable-memory-address",
+   "find-opcode",
+   "find-address",
+   "generate-shellcode",
+   "add-nop-sled",
+   "finalize-exploit"
+  ],
+  "local_images": [],
+  "pre_count": 32,
+  "tweet_ids": [],
+  "word_count": 3725
+ },
+ "/posts/2020/05/try-harder-yet-another-journey-to-oscp/": {
+  "external_images": [],
+  "has_toc": true,
+  "heading_ids": [
+   "preamble",
+   "act-i---humble-beginnings",
+   "act-ii---getting-real",
+   "act-iii---working-through-the-labs",
+   "act-iv---the-final-countdown",
+   "act-v---twenty-four-hours",
+   "takeaways",
+   "oscp-faq"
+  ],
+  "local_images": [
+   "/images/pwk-lab-progression.png",
+   "/images/pwk-pass.jpg"
+  ],
+  "pre_count": 0,
+  "tweet_ids": [],
+  "word_count": 3170
+ },
+ "/posts/2020/10/getting-the-crtp-certification-attacking-and-defending-active-directory-course-review/": {
+  "external_images": [],
+  "has_toc": true,
+  "heading_ids": [
+   "introduction",
+   "the-course",
+   "the-labs",
+   "the-exam",
+   "crtp-preparation-tips"
+  ],
+  "local_images": [
+   "/images/crtp-report.png"
+  ],
+  "pre_count": 0,
+  "tweet_ids": [],
+  "word_count": 1988
+ },
+ "/posts/2020/11/windows-active-directory-exploitation-cheat-sheet-and-command-reference/": {
+  "external_images": [],
+  "has_toc": true,
+  "heading_ids": [
+   "general",
+   "powershell-amsi-bypass",
+   "powershell-one-liners",
+   "load-powershell-script-reflectively",
+   "load-c-assembly-reflectively",
+   "download-file",
+   "encoded-commands",
+   "enumeration",
+   "ad-enumeration-with-powerview",
+   "applocker",
+   "powershell-constrained-language-mode",
+   "laps",
+   "lateral-movement",
+   "lateral-movement-enumeration-with-powerview",
+   "bloodhound",
+   "kerberoasting",
+   "automatic",
+   "manual",
+   "targeted-kerberoasting-by-setting-spn",
+   "as-rep-roasting",
+   "targeted-as-rep-roasting-by-disabling-kerberos-pre-authentication",
+   "token-manipulation",
+   "incognito",
+   "invoke-tokenmanipulation",
+   "lateral-movement-with-rubeus",
+   "lateral-movement-with-mimikatz",
+   "command-execution-with-scheduled-tasks",
+   "command-execution-with-wmi",
+   "from-windows",
+   "from-linux",
+   "command-execution-with-powershell-remoting",
+   "unconstrained-delegation",
+   "exploitation",
+   "constrained-delegation",
+   "exploitation-1",
+   "resource-based-constrained-delegation",
+   "exploitation-2",
+   "abusing-domain-trust",
+   "using-domain-trust-key",
+   "using-krbtgt-hash",
+   "abusing-inter-forest-trust",
+   "abusing-mssql-databases-for-lateral-movement",
+   "abusing-group-policy-objects-for-lateral-movement",
+   "privilege-escalation",
+   "powerup",
+   "uac-bypass",
+   "persistence",
+   "startup-folder",
+   "domain-persistence",
+   "mimikatz-skeleton-key-attack",
+   "grant-specific-user-dcsync-rights-with-powerview",
+   "domain-controller-dsrm-admin",
+   "modifying-security-descriptors-for-remote-wmi-access",
+   "modifying-security-descriptors-for-powershell-remoting-access",
+   "modifying-dc-registry-security-descriptors-for-remote-hash-retrieval-using-damp",
+   "dcshadow",
+   "post-exploitation",
+   "lsass-protection",
+   "dumping-os-credentials-with-mimikatz",
+   "abusing-the-data-protection-api-dpapi-with-mimikatz",
+   "dumping-secrets-without-mimikatz",
+   "dumping-lsass",
+   "dumping-secrets-from-the-registry",
+   "dumping-secrets-from-a-volume-shadow-copy",
+   "windows-defender-evasion",
+   "chisel-proxying",
+   "juicy-files"
+  ],
+  "local_images": [],
+  "pre_count": 86,
+  "tweet_ids": [],
+  "word_count": 6222
+ },
+ "/posts/2021/03/getting-the-osep-certification-evasion-techniques-and-breaching-defenses-pen-300-course-review/": {
+  "external_images": [
+   "https://gh-card.dev/repos/chvancooten/OSCP-MarkdownReportingTemplates.svg?fullname=",
+   "https://gh-card.dev/repos/chvancooten/OSEP-Code-Snippets.svg?fullname="
+  ],
+  "has_toc": true,
+  "heading_ids": [
+   "introduction",
+   "the-theory--exercises",
+   "the-challenge-labs",
+   "the-exam",
+   "conclusion"
+  ],
+  "local_images": [],
+  "pre_count": 0,
+  "tweet_ids": [
+   "1374993077639733250"
+  ],
+  "word_count": 1941
+ },
+ "/posts/2021/07/operate-like-you-mean-it-red-team-ops-crto-course-review/": {
+  "external_images": [],
+  "has_toc": true,
+  "heading_ids": [
+   "introduction",
+   "the-course",
+   "the-labs",
+   "the-exam",
+   "conclusion"
+  ],
+  "local_images": [
+   "/images/crto-pathway.png"
+  ],
+  "pre_count": 0,
+  "tweet_ids": [
+   "1393655024866283520",
+   "1410624406687260679"
+  ],
+  "word_count": 1556
+ },
+ "/posts/2021/08/building-a-c2-implant-in-nim-considerations-and-lessons-learned/": {
+  "external_images": [],
+  "has_toc": true,
+  "heading_ids": [
+   "nim-for-offensive-security",
+   "why-another-c2",
+   "introducing-nimplant---a-lightweight-implant-and-c2-framework",
+   "the-tech-stuff",
+   "the-c2-server",
+   "the-web-interface",
+   "the-implant",
+   "the-wrapper",
+   "detection-guidance",
+   "when-open-source"
+  ],
+  "local_images": [
+   "/images/nimplant-console.png",
+   "/images/nimplant-logo.png",
+   "/images/nimplant-registry.png",
+   "/images/nimplant-web.png",
+   "/images/nimplant-webconsole.png"
+  ],
+  "pre_count": 9,
+  "tweet_ids": [
+   "1414267057617739782"
+  ],
+  "word_count": 4984
+ },
+ "/posts/2021/10/so-you-wanna-hack-a-bank-global-central-bank-paces-certification-review/": {
+  "external_images": [],
+  "has_toc": true,
+  "heading_ids": [
+   "introduction",
+   "the-labs",
+   "the-exam",
+   "the-verdict"
+  ],
+  "local_images": [],
+  "pre_count": 0,
+  "tweet_ids": [],
+  "word_count": 1207
+ },
+ "/posts/2025/02/abusing-vs-codes-bootstrapping-functionality-to-quietly-load-malicious-extensions/": {
+  "external_images": [],
+  "has_toc": true,
+  "heading_ids": [
+   "the-threat-of-vs-code-extensions",
+   "vs-code-extensions-for-initial-access",
+   "vs-codes-bootstrap-feature",
+   "making-it-portable",
+   "prevention-and-detection"
+  ],
+  "local_images": [
+   "/images/vscode-bootstrapextensionfile.png",
+   "/images/vscode-extensioninstalled.png",
+   "/images/vscode-publishertrust.png"
+  ],
+  "pre_count": 1,
+  "tweet_ids": [],
+  "word_count": 1176
+ }
+}

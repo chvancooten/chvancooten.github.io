@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="{{ site.Language.Locale | default "en-US" }}" data-theme="dark">
+<head>
+  {{- partial "head.html" . }}
+</head>
+<body class="kind-{{ .Kind }}{{ with .Section }} section-{{ . }}{{ end }}">
+  <a class="skip-link" href="#main">Skip to content</a>
+  {{- if eq hugo.Environment "preview" }}
+  <div class="preview-banner" role="note">Preview build{{ with site.Params.previewPR }} (PR #{{ . }}){{ end }}</div>
+  {{- end }}
+  {{- partial "header.html" . }}
+  <main id="main" tabindex="-1">
+    {{- block "main" . }}{{ end }}
+  </main>
+  {{- partial "footer.html" . }}
+  {{- partial "search.html" . }}
+</body>
+</html>

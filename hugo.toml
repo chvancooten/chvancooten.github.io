@@ -1,0 +1,112 @@
+baseURL       = "https://casvancooten.com/"
+title         = "Cas van Cooten"
+locale        = "en-US"
+enableGitInfo = true
+enableEmoji   = true
+copyright     = "CC BY-NC 4.0"
+
+# Post URLs are live and linked from elsewhere: never change this pattern.
+[permalinks]
+  posts = "/posts/:year/:month/:title/"
+
+# `category = "blog"` looks odd, but /blog/ and its feed are live URLs.
+[taxonomies]
+  category = "blog"
+  tag      = "tags"
+  series   = "series"
+
+# Every list fits on one page; paginating still emits the /page/1/ redirect aliases.
+[pagination]
+  pagerSize = 1000
+
+[outputs]
+  home = ["html", "rss", "json"]
+
+# Prefer an explicit `lastmod` in front matter, then the git author date.
+# ":git" as the last date fallback gives the list pages' _index.md files a date, which the
+# embedded RSS template needs before it prints <lastBuildDate> (the newest item's lastmod).
+# Posts always set `date`, so their dates are unaffected.
+[frontmatter]
+  date    = ["date", "publishDate", "lastmod", ":git"]
+  lastmod = ["lastmod", ":git", "date"]
+
+[markup]
+  [markup.goldmark.renderer]
+    unsafe = false
+  [markup.goldmark.parser]
+    wrapStandAloneImageWithinParagraph = false
+  [markup.highlight]
+    noClasses   = false
+    codeFences  = true
+    guessSyntax = false
+    tabWidth    = 4
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel   = 3
+    ordered    = false
+
+[params]
+  description = "Cas van Cooten's blog on offensive security, red teaming and security tooling. Offensive security enthusiast and co-founder of Offensys."
+  homeTitle   = "Offensive security, red teaming and tooling"
+  images      = ["preview.png"]
+  imageAlt    = "Cas van Cooten, offensive security enthusiast and co-founder of Offensys, beside a 3D scene of a red and a blue current braiding into purple"
+  # Home page: how many rows the Speaking list shows (a talk given at several events in one year is one row;
+  # featured talks always show, livestreams only when there is room; see data/talks.toml).
+  homeTalks   = 6
+  repoURL     = "https://github.com/chvancooten/chvancooten.github.io"
+  commitURL   = "https://github.com/chvancooten/chvancooten.github.io/commit/"
+  license     = "https://creativecommons.org/licenses/by-nc/4.0/"
+  # Set by CI for preview builds (HUGO_PARAMS_PREVIEWPR=<N>).
+  previewPR   = ""
+
+  [params.author]
+    name     = "Cas van Cooten"
+    handle   = "chvancooten"
+    jobTitle = "Offensive security enthusiast and co-founder of Offensys"
+    image    = "images/portrait.webp"
+
+  [params.company]
+    name = "Offensys"
+    url  = "https://offensys.com"
+
+  [[params.social]]
+    name  = "GitHub"
+    icon  = "github"
+    url   = "https://github.com/chvancooten"
+  [[params.social]]
+    name  = "X"
+    icon  = "x"
+    url   = "https://twitter.com/chvancooten"
+  [[params.social]]
+    name  = "LinkedIn"
+    icon  = "linkedin"
+    url   = "https://www.linkedin.com/in/chvancooten/"
+  [[params.social]]
+    name  = "Email"
+    icon  = "mail"
+    url   = "mailto:hello@casvancooten.com"
+
+[menus]
+  # "Work" and "About" are sections of the home page (layouts/_partials/nav.html adds the fragment: "#work" on the
+  # home page, "/#work" elsewhere). "Writing" goes straight to the posts. The About entry also counts as current on
+  # the /about/ page, which the home page's About section links to.
+  [[menus.main]]
+    identifier = "work"
+    name       = "Work"
+    pageRef    = "/"
+    weight     = 10
+    [menus.main.params]
+      fragment = "work"
+  [[menus.main]]
+    identifier = "writing"
+    name       = "Writing"
+    pageRef    = "/posts"
+    weight     = 20
+  [[menus.main]]
+    identifier = "about"
+    name       = "About"
+    pageRef    = "/"
+    weight     = 30
+    [menus.main.params]
+      fragment = "about"
+      current  = "/about"

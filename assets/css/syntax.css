@@ -1,0 +1,25 @@
+/* Chroma token colours in Flexoki's syntax roles (https://stephango.com/flexoki: keywords green, strings cyan,
+   functions orange, variables and attributes blue, numbers purple, constants yellow, imports red, language features
+   magenta, punctuation tx-2, comments tx-3). Hugo's Chroma has no Flexoki style, so the classes point at role
+   variables and tokens.css sets the role colours per theme (lightness nudged to 4.5:1 or more on the code surface and
+   on a highlighted line). Error tokens are neutralised: lexers flag valid shell and PowerShell as errors. */
+.chroma .err { color: inherit; background: none; }
+.chroma .hl { background-color: var(--syn-hl); }
+.chroma .lnt, .chroma .ln { margin-right: 0.4em; padding: 0 0.4em; color: var(--muted); -webkit-user-select: none; user-select: none; white-space: pre; }
+.chroma .lntd { vertical-align: top; padding: 0; margin: 0; border: 0; }
+.chroma .lntable { border-spacing: 0; padding: 0; margin: 0; border: 0; }
+.chroma .lnlinks { outline: none; text-decoration: none; color: inherit; }
+.chroma :is(.k, .kd, .kp, .kr, .kt, .ow) { color: var(--syn-kw); }
+.chroma :is(.kn, .gu) { color: var(--syn-ns); }
+.chroma :is(.nf, .fm) { color: var(--syn-fn); }
+.chroma :is(.na, .py, .nt, .nv, .vc, .vg, .vi, .vm, .nn) { color: var(--syn-name); }
+.chroma :is(.nc, .no, .kc, .ld) { color: var(--syn-type); }
+.chroma :is(.s, .sa, .sb, .sc, .dl, .sd, .s2, .sh, .si, .sx, .sr, .s1, .ss, .l) { color: var(--syn-str); }
+.chroma :is(.m, .mb, .mf, .mh, .mi, .il, .mo) { color: var(--syn-num); }
+.chroma :is(.nb, .bp, .nd, .ne, .se, .ni, .nl) { color: var(--syn-feat); }
+.chroma :is(.o, .or, .p) { color: var(--syn-punct); }
+.chroma :is(.c, .ch, .cm, .c1, .cs, .cp, .cpf) { color: var(--syn-com); font-style: italic; }
+.chroma .gd { color: var(--syn-del); }
+.chroma .gi { color: var(--syn-ins); }
+.chroma .ge { font-style: italic; }
+.chroma .gs { font-weight: 700; }

@@ -1,0 +1,14 @@
+{{- /* Search index for the command palette (JS). */ -}}
+{{- $items := slice -}}
+{{- range where site.RegularPages "Section" "posts" -}}
+  {{- $tags := slice -}}
+  {{- range .GetTerms "tags" }}{{ $tags = $tags | append .LinkTitle }}{{ end -}}
+  {{- $items = $items | append (dict
+    "title" .Title
+    "url" .RelPermalink
+    "date" (.Date.Format "2006-01-02")
+    "tags" $tags
+    "description" (partial "func/description.html" .)
+  ) -}}
+{{- end -}}
+{{- $items | jsonify -}}

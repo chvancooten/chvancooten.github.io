@@ -1,0 +1,115 @@
+{{ define "main" }}
+{{- $posts := where site.RegularPages "Section" "posts" }}
+{{- $postsPage := site.GetPage "/posts" }}
+{{- $company := site.Params.company }}
+{{- $email := "" }}
+{{- range where site.Params.social "icon" "mail" }}{{ $email = strings.TrimPrefix "mailto:" .url }}{{ end }}
+
+{{- /* The scene: one WebGL2 canvas (added by js/scene), fixed behind the page. It shows in the landing and in the
+       windows between the chapters, and nowhere else (C3 "Windows"). */}}
+<div class="scene" data-scene data-src="{{ (partial "func/scene-runtime.html" .).RelPermalink }}" aria-hidden="true"></div>
+<section class="hero" aria-labelledby="hero-name">
+  {{- /* The landing's designed still: what shows without JS or WebGL2 (and if the scene is late). */}}
+  <div class="stage" aria-hidden="true"></div>
+  {{- /* The landing's own quiet bar (with JS): the same nav and tools as the title bar, which takes over as the
+         name docks into its wordmark (js/dock.js). Only one of the two is ever exposed. */}}
+  <div class="hero-bar">
+    {{- partial "nav.html" . }}
+    {{- partial "tools.html" . }}
+  </div>
+  <div class="hero__copy">
+    <p class="hero__role">Offensive security enthusiast<span class="hero__sep" aria-hidden="true">·</span><span class="sr-only">, </span><span class="hero__role2">Co-founder of <a href="{{ $company.url }}">{{ $company.name }}</a></span></p>
+    <h1 class="hero__name" id="hero-name"><span class="nm"><span>Cas van</span></span> <span class="nm"><span>Cooten</span></span></h1>
+    <div class="hero__lede">{{ .Content }}</div>
+    <p class="hero__cta">
+      <a class="btn btn--primary" href="#contact">Get in touch</a>
+      <a class="link-quiet" href="{{ $company.url }}">Visit {{ $company.name }}{{ partial "icon.html" (dict "name" "arrow-up-right" "size" 16) }}</a>
+    </p>
+  </div>
+  <a class="cue" href="#offensys"><span class="cue__line" aria-hidden="true"></span><span class="cue__long">Offensys, talks and open source</span><span class="cue__short">More below</span></a>
+  <div class="hero__ctrl">
+    <button class="motion-btn" type="button" data-motion-toggle hidden>
+      {{- partial "icon.html" (dict "name" "pause" "size" 12) }}{{ partial "icon.html" (dict "name" "play" "size" 12) }}<span>Pause motion</span>
+    </button>
+  </div>
+</section>
+
+<section class="offensys" id="offensys" aria-labelledby="offensys-title">
+  <h2 class="offensys__title" id="offensys-title">Currently building - {{ $company.name }}</h2>
+  <p class="claim"><span class="claim__line">Continuous</span> <span class="claim__line claim__purple">Purple Teaming</span></p>
+  <div class="offensys__body">
+    <p>The {{ $company.name }} platform runs realistic, behavior-based attack simulations in your environment, so you can see what your controls block, what they detect, and what they miss.</p>
+    <a class="link-arrow" href="{{ $company.url }}">Visit offensys.com{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a>
+  </div>
+</section>
+
+{{- partial "window.html" 1 }}
+<div id="work">
+{{- with hugo.Data.talks }}
+{{- partial "talks.html" (dict "talks" .talks "cap" (site.Params.homeTalks | default 6) "repo" hugo.Data.projects.talks) }}
+{{- end }}
+
+{{- partial "window.html" 2 }}
+
+{{- with hugo.Data.projects }}
+<section class="sec oss" aria-labelledby="oss-title">
+  <div class="sec-head"><h2 class="sec-title" id="oss-title">Open source</h2></div>
+  <p class="sec-intro">Most of my tooling starts as a side project in Go, Python, Rust or Nim, and I publish it as open source. Releasing offensive tools is a much-debated call, I know. I still think it's the right one: when the tools are out in the open, defenders get to test against them too.</p>
+  <ul class="repos">
+    {{- range sort .projects "stars" "desc" }}
+    <li class="repo">
+      <p class="repo__stars"><span class="repo__n">{{ partial "func/stars.html" .stars }}</span><span class="repo__star" aria-hidden="true">&#9733;</span><span class="sr-only"> stars</span></p>
+      <h3 class="repo__name"><a href="{{ .url }}">{{ .name | htmlEscape | replaceRE `-` "-<wbr>" | replaceRE `([a-z])([A-Z])` "$1<wbr>$2" | safeHTML }}</a></h3>
+      <p class="repo__desc">{{ .description }}</p>
+      {{- with .language }}
+      <p class="repo__lang">{{ . }}</p>
+      {{- end }}
+    </li>
+    {{- end }}
+  </ul>
+  {{- range first 1 (where site.Params.social "icon" "github") }}
+  <p class="sec-foot"><a class="link-arrow" href="{{ .url }}">More on GitHub{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a></p>
+  {{- end }}
+</section>
+{{- end }}
+</div>
+
+{{- partial "window.html" 3 }}
+<section class="writing" id="writing" aria-labelledby="writing-title">
+  <div class="writing__head">
+    <h2 class="sec-title" id="writing-title">Writing</h2>
+    {{- with $posts }}
+    <a class="link-arrow" href="{{ $postsPage.RelPermalink }}">All {{ len $posts }} {{ cond (eq (len $posts) 1) "post" "posts" }}{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a>
+    {{- end }}
+  </div>
+  {{- with first 3 $posts }}
+  <ul class="rows" role="list">
+    {{- range . }}{{ partial "post-row.html" (dict "page" . "compact" true) }}{{ end }}
+  </ul>
+  {{- else }}
+  <p class="section-empty">Nothing published yet.</p>
+  {{- end }}
+</section>
+
+{{- partial "window.html" 4 }}
+{{- /* About and contact: the menu's About entry and the hero's "Get in touch" (#contact) both land here. */}}
+<section class="contact" id="about" aria-labelledby="about-title">
+  <div class="contact__copy">
+    <h2 class="contact__title" id="about-title">About</h2>
+    <p class="contact__intro">I'm Cas, an offensive security enthusiast and red teamer based in the Netherlands. These days most of my time goes into <a href="{{ $company.url }}">{{ $company.name }}</a>, the company I co-founded. I'm always up for a chat about offensive security and new programming languages.</p>
+    {{- with site.GetPage "/about" }}
+    <p class="contact__more"><a class="link-arrow" href="{{ .RelPermalink }}">More about me{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a></p>
+    {{- end }}
+    <div class="contact__reach" id="contact">
+      <p class="contact__mail">
+        <a href="mailto:{{ $email }}">{{ $email }}</a>
+        <button class="btn copy-btn" type="button" data-copy="{{ $email }}" data-copy-label="Copy the email address" hidden>Copy</button>
+      </p>
+      {{- partial "social-text.html" . }}
+    </div>
+  </div>
+  <div class="card-stage">
+    {{- partial "card.html" . }}
+  </div>
+</section>
+{{ end }}

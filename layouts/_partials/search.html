@@ -1,0 +1,18 @@
+{{- /* Search palette (opened by JS only; a closed <dialog> is never rendered). */ -}}
+{{- with site.Home.OutputFormats.Get "json" }}
+<dialog class="palette" id="search" aria-label="Search posts" data-index="{{ .RelPermalink }}">
+  <form class="palette__form" method="dialog" role="search">
+    <label class="palette__prompt" for="search-input">{{ partial "icon.html" "search" }}<span class="sr-only">Search posts</span></label>
+    <input class="palette__input" id="search-input" type="text" autocomplete="off" spellcheck="false"
+      placeholder="Search by title, tag or topic" role="combobox" aria-expanded="true" aria-controls="search-results"
+      aria-autocomplete="list" aria-describedby="search-help">
+    <button class="palette__close" type="submit" value="close"><kbd class="palette__esc">Esc</kbd><span class="palette__x" aria-hidden="true">&times;</span><span class="sr-only">Close search</span></button>
+  </form>
+  {{- /* The listbox holds options only; loading, empty and error messages go in the <p> after it.
+         tabindex=-1: arrow keys on the input drive it, so it is not an extra tab stop. */}}
+  <div class="palette__results" id="search-results" role="listbox" aria-label="Results" tabindex="-1"></div>
+  <p class="palette__empty" id="search-message" hidden></p>
+  <p class="palette__status sr-only" role="status" aria-live="polite"></p>
+  <p class="palette__foot" id="search-help"><span><kbd>↑</kbd><kbd>↓</kbd> to move</span><span><kbd>Enter</kbd> to open</span><span><kbd>Esc</kbd> to close</span></p>
+</dialog>
+{{- end }}

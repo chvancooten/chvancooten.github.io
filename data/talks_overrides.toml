@@ -1,0 +1,9 @@
+# Manual fields for data/talks.toml, which scripts/sync_talks.py generates from the folders of
+# https://github.com/chvancooten/conferences. One table per folder, keyed by the exact folder name.
+# Fields (all optional): featured = true (always listed on the home page), title, event, date ("YYYY-MM") and url
+# (replace the parsed value), livestream = true/false, video = "<url>" (or "" to drop the README's link), and
+# skip = true (leave the folder out).
+
+["2022-08 - Nimbly Navigating a Nimiety of Nimplants @ DC30 Adversary Village"]
+event = "DEF CON 30 Adversary Village"
+featured = true

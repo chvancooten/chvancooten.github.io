@@ -1,0 +1,16 @@
+<footer class="site-footer">
+  <div class="site-footer__row">
+    <p>&copy; {{ site.Lastmod.Year }} {{ site.Params.author.name }}, co-founder of <a href="{{ site.Params.company.url }}">{{ site.Params.company.name }}</a></p>
+    <ul class="site-footer__links">
+      {{- with site.GetPage "/about" }}
+      <li><a href="{{ .RelPermalink }}">About</a></li>
+      {{- end }}
+      {{- with site.Home.OutputFormats.Get "rss" }}
+      <li><a href="{{ .RelPermalink }}">RSS</a></li>
+      {{- end }}
+      <li><a href="{{ site.Params.repoURL }}">Source</a></li>
+      <li><a href="{{ site.Params.license }}" rel="license">Content: {{ site.Copyright }}</a></li>
+    </ul>
+  </div>
+  <p class="site-footer__credits">Colours: <a href="https://stephango.com/flexoki">Flexoki</a> (MIT). Type: Bricolage Grotesque, Instrument Sans and JetBrains Mono (SIL OFL).</p>
+</footer>

@@ -1,0 +1,217 @@
+{
+ "/": {
+  "canonical_path": "/",
+  "kind": "home",
+  "title": "Cas van Cooten"
+ },
+ "/404.html": {
+  "canonical_path": "/404.html",
+  "kind": "404",
+  "title": "404 Page not found"
+ },
+ "/about/": {
+  "canonical_path": "/about/",
+  "kind": "page",
+  "title": "About Me"
+ },
+ "/blog/": {
+  "canonical_path": "/blog/",
+  "kind": "section",
+  "title": "Blog"
+ },
+ "/posts/": {
+  "canonical_path": "/posts/",
+  "kind": "section",
+  "title": "Posts"
+ },
+ "/posts/2020/05/generating-pretty-pwk-reports-with-pandoc-and-markdown-templates-inside/": {
+  "canonical_path": "/posts/2020/05/generating-pretty-pwk-reports-with-pandoc-and-markdown-templates-inside/",
+  "kind": "post",
+  "title": "Generating pretty PWK reports with Pandoc and Markdown (templates inside!)"
+ },
+ "/posts/2020/05/oscp-cheat-sheet-and-command-reference/": {
+  "canonical_path": "/posts/2020/05/oscp-cheat-sheet-and-command-reference/",
+  "kind": "post",
+  "title": "OSCP Cheat Sheet and Command Reference"
+ },
+ "/posts/2020/05/try-harder-yet-another-journey-to-oscp/": {
+  "canonical_path": "/posts/2020/05/try-harder-yet-another-journey-to-oscp/",
+  "kind": "post",
+  "title": "Try Harder: Yet Another Journey To OSCP"
+ },
+ "/posts/2020/10/getting-the-crtp-certification-attacking-and-defending-active-directory-course-review/": {
+  "canonical_path": "/posts/2020/10/getting-the-crtp-certification-attacking-and-defending-active-directory-course-review/",
+  "kind": "post",
+  "title": "Getting the CRTP Certification: 'Attacking and Defending Active Directory' Course Review"
+ },
+ "/posts/2020/11/windows-active-directory-exploitation-cheat-sheet-and-command-reference/": {
+  "canonical_path": "/posts/2020/11/windows-active-directory-exploitation-cheat-sheet-and-command-reference/",
+  "kind": "post",
+  "title": "Windows & Active Directory Exploitation Cheat Sheet and Command Reference"
+ },
+ "/posts/2021/03/getting-the-osep-certification-evasion-techniques-and-breaching-defenses-pen-300-course-review/": {
+  "canonical_path": "/posts/2021/03/getting-the-osep-certification-evasion-techniques-and-breaching-defenses-pen-300-course-review/",
+  "kind": "post",
+  "title": "Getting the OSEP Certification: 'Evasion Techniques and Breaching Defenses' (PEN-300) Course Review"
+ },
+ "/posts/2021/07/operate-like-you-mean-it-red-team-ops-crto-course-review/": {
+  "canonical_path": "/posts/2021/07/operate-like-you-mean-it-red-team-ops-crto-course-review/",
+  "kind": "post",
+  "title": "Operate Like You Mean It: 'Red Team Ops' (CRTO) Course Review"
+ },
+ "/posts/2021/08/building-a-c2-implant-in-nim-considerations-and-lessons-learned/": {
+  "canonical_path": "/posts/2021/08/building-a-c2-implant-in-nim-considerations-and-lessons-learned/",
+  "kind": "post",
+  "title": "Building a C2 Implant in Nim - Considerations and Lessons Learned"
+ },
+ "/posts/2021/10/so-you-wanna-hack-a-bank-global-central-bank-paces-certification-review/": {
+  "canonical_path": "/posts/2021/10/so-you-wanna-hack-a-bank-global-central-bank-paces-certification-review/",
+  "kind": "post",
+  "title": "So You Wanna Hack a Bank? 'Global Central Bank' (PACES) Certification Review"
+ },
+ "/posts/2025/02/abusing-vs-codes-bootstrapping-functionality-to-quietly-load-malicious-extensions/": {
+  "canonical_path": "/posts/2025/02/abusing-vs-codes-bootstrapping-functionality-to-quietly-load-malicious-extensions/",
+  "kind": "post",
+  "title": "Abusing VS Code's Bootstrapping Functionality To Quietly Load Malicious Extensions"
+ },
+ "/series/": {
+  "canonical_path": "/series/",
+  "kind": "taxonomy",
+  "title": "Series"
+ },
+ "/series/cheatsheets/": {
+  "canonical_path": "/series/cheatsheets/",
+  "kind": "term",
+  "title": "CheatSheets"
+ },
+ "/series/oscp/": {
+  "canonical_path": "/series/oscp/",
+  "kind": "term",
+  "title": "OSCP"
+ },
+ "/tags/": {
+  "canonical_path": "/tags/",
+  "kind": "taxonomy",
+  "title": "Tags"
+ },
+ "/tags/active-directory/": {
+  "canonical_path": "/tags/active-directory/",
+  "kind": "term",
+  "title": "Active Directory"
+ },
+ "/tags/crtm/": {
+  "canonical_path": "/tags/crtm/",
+  "kind": "term",
+  "title": "CRTM"
+ },
+ "/tags/crto/": {
+  "canonical_path": "/tags/crto/",
+  "kind": "term",
+  "title": "CRTO"
+ },
+ "/tags/crtp/": {
+  "canonical_path": "/tags/crtp/",
+  "kind": "term",
+  "title": "CRTP"
+ },
+ "/tags/documentation/": {
+  "canonical_path": "/tags/documentation/",
+  "kind": "term",
+  "title": "Documentation"
+ },
+ "/tags/gcb/": {
+  "canonical_path": "/tags/gcb/",
+  "kind": "term",
+  "title": "GCB"
+ },
+ "/tags/hacking/": {
+  "canonical_path": "/tags/hacking/",
+  "kind": "term",
+  "title": "Hacking"
+ },
+ "/tags/initial-access/": {
+  "canonical_path": "/tags/initial-access/",
+  "kind": "term",
+  "title": "Initial Access"
+ },
+ "/tags/markdown/": {
+  "canonical_path": "/tags/markdown/",
+  "kind": "term",
+  "title": "Markdown"
+ },
+ "/tags/nim/": {
+  "canonical_path": "/tags/nim/",
+  "kind": "term",
+  "title": "Nim"
+ },
+ "/tags/offensive-security/": {
+  "canonical_path": "/tags/offensive-security/",
+  "kind": "term",
+  "title": "Offensive Security"
+ },
+ "/tags/offensive-tooling/": {
+  "canonical_path": "/tags/offensive-tooling/",
+  "kind": "term",
+  "title": "Offensive Tooling"
+ },
+ "/tags/oscp/": {
+  "canonical_path": "/tags/oscp/",
+  "kind": "term",
+  "title": "OSCP"
+ },
+ "/tags/osep/": {
+  "canonical_path": "/tags/osep/",
+  "kind": "term",
+  "title": "OSEP"
+ },
+ "/tags/paces/": {
+  "canonical_path": "/tags/paces/",
+  "kind": "term",
+  "title": "PACES"
+ },
+ "/tags/page/2/": {
+  "canonical_path": "/tags/",
+  "kind": "taxonomy",
+  "title": "Tags"
+ },
+ "/tags/page/3/": {
+  "canonical_path": "/tags/",
+  "kind": "taxonomy",
+  "title": "Tags"
+ },
+ "/tags/pandoc/": {
+  "canonical_path": "/tags/pandoc/",
+  "kind": "term",
+  "title": "Pandoc"
+ },
+ "/tags/pen-300/": {
+  "canonical_path": "/tags/pen-300/",
+  "kind": "term",
+  "title": "PEN-300"
+ },
+ "/tags/pwk/": {
+  "canonical_path": "/tags/pwk/",
+  "kind": "term",
+  "title": "PWK"
+ },
+ "/tags/red-team-ops/": {
+  "canonical_path": "/tags/red-team-ops/",
+  "kind": "term",
+  "title": "Red Team Ops"
+ },
+ "/tags/red-team/": {
+  "canonical_path": "/tags/red-team/",
+  "kind": "term",
+  "title": "Red Team"
+ },
+ "/tags/vs-code/": {
+  "canonical_path": "/tags/vs-code/",
+  "kind": "term",
+  "title": "VS Code"
+ },
+ "/tags/windows/": {
+  "canonical_path": "/tags/windows/",
+  "kind": "term",
+  "title": "Windows"
+ }
+}

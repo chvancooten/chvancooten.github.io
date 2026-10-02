@@ -1,0 +1,3 @@
+{{- /* Feed readers get a plain heading: same id, no permalink anchor or wrapper. */ -}}
+<h{{ .Level }} id="{{ .Anchor }}">{{ .Text }}</h{{ .Level }}>
+{{- /* newline */ -}}

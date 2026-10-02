@@ -1,0 +1,2 @@
+# The vCard must keep the CRLF line endings RFC 6350 asks for.
+*.vcf -text

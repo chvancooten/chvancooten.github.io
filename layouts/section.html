@@ -1,0 +1,7 @@
+{{ define "main" }}
+<div class="frame">
+  {{- $n := len (where site.RegularPages "Section" "posts") }}
+  {{- partial "list-head.html" (dict "page" . "count" (cond (eq $n 0) "No posts published yet" (printf "%d %s, newest first" $n (cond (eq $n 1) "post" "posts")))) }}
+  {{- partial "archive.html" . }}
+</div>
+{{ end }}

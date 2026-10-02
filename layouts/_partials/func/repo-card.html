@@ -1,0 +1,38 @@
+{{- /* A gh-card.dev repository card URL (parsed) -> a local SVG card built from data/projects.toml.
+       Returns dict url/width/height, or false when the repo is not in the data file. */ -}}
+{{- $out := false -}}
+{{- if eq .Host "gh-card.dev" -}}
+  {{- with findRESubmatch `^/repos/([^/]+)/([^/]+)\.svg$` .Path 1 -}}
+    {{- $owner := index (index . 0) 1 -}}
+    {{- $repo := index (index . 0) 2 -}}
+    {{- range hugo.Data.projects.projects -}}
+      {{- if eq (lower .name) (lower $repo) -}}
+        {{- $lines := slice -}}
+        {{- $cur := "" -}}
+        {{- range split .description " " -}}
+          {{- if and $cur (gt (add (len $cur) (len .) 1) 54) -}}
+            {{- $lines = $lines | append $cur -}}{{- $cur = . -}}
+          {{- else -}}
+            {{- $cur = trim (printf "%s %s" $cur .) " " -}}
+          {{- end -}}
+        {{- end -}}
+        {{- $lines = $lines | append $cur -}}
+        {{- $foot := add 64 (mul 19 (len $lines)) -}}
+        {{- $h := add $foot 22 -}}
+        {{- /* Flexoki dark colours (base-950 card, base-200 text, purple-400 owner, base-500 meta); an <img> cannot load the site's web fonts, so system fonts back the stacks. */ -}}
+        {{- $mono := "JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" -}}
+        {{- $sans := "Instrument Sans, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif" -}}
+        {{- $svg := printf `<svg xmlns="http://www.w3.org/2000/svg" width="440" height="%d" viewBox="0 0 440 %d" role="img"><title>%s/%s</title><rect x=".5" y=".5" width="439" height="%d" rx="10" fill="#1c1b1a" stroke="#343331"/><text x="20" y="36" font-family="%s" font-size="15" font-weight="600" fill="#8b7ec8">%s/<tspan fill="#cecdc3">%s</tspan></text>` $h $h $owner .name (sub $h 1) $mono $owner .name -}}
+        {{- range $i, $l := $lines -}}
+          {{- $svg = printf `%s<text x="20" y="%d" font-family="%s" font-size="13.5" fill="#cecdc3">%s</text>` $svg (add 64 (mul 19 $i)) $sans (htmlEscape $l) -}}
+        {{- end -}}
+        {{- $meta := printf "★ %s" (partial "func/stars.html" .stars) -}}
+        {{- with .language }}{{ $meta = printf "● %s    %s" . $meta }}{{ end -}}
+        {{- $svg = printf `%s<text x="20" y="%d" font-family="%s" font-size="12.5" fill="#878580">%s</text></svg>` $svg (add $foot 6) $mono (htmlEscape $meta) -}}
+        {{- $res := resources.FromString (printf "cards/%s.svg" (lower .name)) $svg -}}
+        {{- $out = dict "url" $res.RelPermalink "width" 440 "height" $h -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $out -}}

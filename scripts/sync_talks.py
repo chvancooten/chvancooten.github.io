@@ -1,0 +1,606 @@
+#!/usr/bin/env python3
+"""Sync data/talks.toml from the public chvancooten/conferences repository.
+
+Usage:
+  python3 scripts/sync_talks.py [--repo OWNER/NAME] [--out data/talks.toml]
+                                [--overrides data/talks_overrides.toml]
+
+Every top-level folder of the repository is one appearance, named "YYYY-MM - Title @ Event". For each folder:
+- date, title and event come from the name. The event drops a trailing year (the date gives it) and spells
+  x33fcon one way; an event that mentions "livestream" is marked livestream = true;
+- video is the first YouTube link in the folder's README.md, if it has one: https on youtube.com/watch?v=<id>
+  (also www. and m.) or youtu.be/<id>, with a valid 11-character video id. It is written back in that form, without
+  other parameters; trailing punctuation or Markdown around the link is ignored, and http links are not taken;
+- url is the folder on GitHub;
+- subtitle: see below.
+
+A folder may hold a talk.toml with structured metadata, which is preferred over everything parsed: the optional
+keys title, subtitle, event, date ("YYYY-MM"), video, slides (a file name in that folder; written out as its
+https://github.com/ URL) and featured. Unknown keys are ignored with a warning; a value that breaks the rules
+(ASCII date, an https YouTube link, no control or bidirectional formatting characters, a visible letter in a
+title or subtitle, length caps of 160 characters for a title, 120 for a subtitle and 100 for an event) is an error,
+as is a talk.toml nested too deeply to parse.
+
+Without a talk.toml, the subtitle is guessed, and only taken when it cleanly extends the title: the README's first
+heading, or else a slide PDF's file name (in name order), with the file extension, a leading date and event or year
+suffixes (" @ Event", "(Event 2026)", " - Event", " 2026") removed, must read "<title><separator><subtitle>",
+where the separator is ": ", " - ", " | " or a spaced en or em dash. A guess over 120 characters, or one that only
+repeats the event, is dropped. No match, no subtitle.
+
+The fields in the overrides file, a table per folder name, win over both (featured = true, a title or event fix,
+subtitle = "" or video = "" to drop one, skip = true to leave the folder out). Override values are held to the same
+rules (and url to https://github.com/...).
+
+Folders whose names start with "." (such as .github) are not talks and are ignored. A folder name with control or
+bidirectional formatting characters, or with an empty title or event, is an error.
+
+The output is deterministic: newest first (folders of the same month by name), a fixed key order and a header
+that marks the file as generated. The file is only rewritten when its content changes.
+
+The GitHub API is read with GITHUB_TOKEN when it is set (60 requests an hour without it; a run takes three API
+requests, plus one raw download per README.md and talk.toml). Standard library only.
+
+Responses over 1 MB are refused. Exit status: 0 when the file is unchanged or updated; 1 on a fetch or parse error,
+which leaves the file as it was.
+"""
+
+import argparse
+import http.client
+import json
+import os
+import re
+import sys
+import tempfile
+import time
+import tomllib
+import unicodedata
+import urllib.error
+import urllib.parse
+import urllib.request
+
+sys.dont_write_bytecode = True  # keep scripts/ free of __pycache__
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+API = "https://api.github.com"
+RAW = "https://raw.githubusercontent.com"
+UA = "casvancooten.com sync_talks.py"
+TIMEOUT, ATTEMPTS = 20, 3
+MAX_BYTES = 1_000_000  # per response
+
+# ASCII digits only ([0-9], not \d): Hugo has to parse the date.
+FOLDER = re.compile(r"([0-9]{4})-(0[1-9]|1[0-2]) - (.+?) @ (.+)")  # used with fullmatch
+DATE = re.compile(r"[0-9]{4}-(0[1-9]|1[0-2])")
+LINK = re.compile(r"https://\S+")  # candidates; each one is then checked by youtube_url()
+VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")
+WATCH_HOSTS = ("youtube.com", "www.youtube.com", "m.youtube.com")
+TRAIL = "*_~`'\")]}>.,;:!?"  # Markdown and punctuation that can follow a link
+# Characters a name must not contain: controls, bidirectional and other format characters, line separators.
+BAD_CATEGORIES = {"Cc", "Cf", "Zl", "Zp"}
+# Fields: their types, the ones each source may set, and caps on the text fields.
+FIELD_TYPES = {"date": str, "title": str, "subtitle": str, "event": str, "video": str, "url": str, "slides": str,
+               "featured": bool, "livestream": bool, "skip": bool}
+OVERRIDE_FIELDS = tuple(FIELD_TYPES)
+TALK_TOML_FIELDS = ("title", "subtitle", "event", "date", "video", "slides", "featured")
+TEXT_MAX = {"title": 160, "subtitle": 120, "event": 100}
+SEPARATORS = (": ", " - ", " | ", " \u2013 ", " \u2014 ")  # what may sit between a title and its subtitle
+KEYS = ("date", "title", "subtitle", "event", "livestream", "featured", "url", "video", "slides")
+
+HEADER = """\
+# Conference talks and workshops, newest first.
+# Generated by scripts/sync_talks.py from https://github.com/{repo}: the folder names
+# ("YYYY-MM - Title @ Event"), each folder's talk.toml if it has one, and otherwise the first YouTube link in its
+# README.md and a subtitle found in the README's first heading or a slide PDF's name. Do not edit this file by
+# hand; manual fields go in data/talks_overrides.toml, keyed by folder name.
+# event: the event without its year (the date gives it). livestream = true: listed on the home page only when there
+# is room. featured = true: always listed on the home page. video: the recording. slides: the slide file.
+"""
+
+
+class SyncError(Exception):
+    pass
+
+
+def fetch(url, accept=None, token=None):
+    """GET url and return the body as text (invalid UTF-8 replaced); retries network errors and 5xx responses.
+    The token is never sent on to a redirect target, and a body over MAX_BYTES is an error."""
+    headers = {"User-Agent": UA}
+    if accept:
+        headers["Accept"] = accept
+    if token:
+        headers["X-GitHub-Api-Version"] = "2022-11-28"
+    for attempt in range(1, ATTEMPTS + 1):
+        req = urllib.request.Request(url, headers=headers)
+        if token:
+            req.add_unredirected_header("Authorization", f"Bearer {token}")
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+                body = resp.read(MAX_BYTES + 1)
+                if len(body) <= MAX_BYTES and resp.length:  # fewer bytes than the Content-Length announced
+                    raise http.client.IncompleteRead(body, resp.length)
+            if len(body) > MAX_BYTES:
+                raise SyncError(f"GET {url}: the response is over {MAX_BYTES} bytes")
+            return body.decode("utf-8", errors="replace")
+        except urllib.error.HTTPError as err:
+            if err.code >= 500 and attempt < ATTEMPTS:
+                time.sleep(2 * attempt)
+                continue
+            hint = ""
+            if err.code in (403, 429) and err.headers.get("X-RateLimit-Remaining") == "0":
+                hint = " (API rate limit reached; set GITHUB_TOKEN)"
+            raise SyncError(f"GET {url}: HTTP {err.code}{hint}") from None
+        except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException) as err:
+            if attempt < ATTEMPTS:
+                time.sleep(2 * attempt)
+                continue
+            raise SyncError(f"GET {url}: {getattr(err, 'reason', err)}") from None
+    raise SyncError(f"GET {url}: failed")  # not reached
+
+
+def api(path, token):
+    try:
+        data = json.loads(fetch(API + path, "application/vnd.github+json", token))
+    except json.JSONDecodeError as err:
+        raise SyncError(f"GET {API}{path}: invalid JSON ({err})") from None
+    if not isinstance(data, dict):
+        raise SyncError(f"GET {API}{path}: expected a JSON object")
+    return data
+
+
+def shown(path):
+    """A path for messages: relative to the repository root when it is inside it, absolute otherwise."""
+    path = os.path.abspath(path)
+    rel = os.path.relpath(path, ROOT)
+    return path if rel == os.pardir or rel.startswith(os.pardir + os.sep) else rel
+
+
+def normalize_event(event):
+    event = re.sub(r"\s+(?:19|20)[0-9]{2}$", "", event.strip())
+    return re.sub(r"(?i)\bx33fcon\b", "x33fcon", event)
+
+
+def printable(text):
+    """text for a log line: control, format and separator characters escaped, so a message stays one line (and a
+    name can never start a line with a CI workflow command)."""
+    return "".join(f"\\u{ord(c):04x}" if unicodedata.category(c) in BAD_CATEGORIES else c for c in str(text))
+
+
+def bad_char(text):
+    """The first control, bidirectional/format or line-separator character in text, or None."""
+    return next((c for c in text if unicodedata.category(c) in BAD_CATEGORIES), None)
+
+
+# Letters that render as nothing: the Hangul fillers.
+INVISIBLE_LETTERS = {"\u115f", "\u1160", "\u3164", "\uffa0"}
+
+
+def has_letter(text):
+    """Whether text has at least one visible letter (a title or subtitle of only digits, marks, symbols or fillers
+    such as U+3164 is rejected)."""
+    return any(unicodedata.category(c).startswith("L") and c not in INVISIBLE_LETTERS for c in text)
+
+
+def parse_folder(name):
+    c = bad_char(name)
+    if c is not None:
+        raise SyncError(f"folder {json.dumps(name)} contains the character U+{ord(c):04X}, which a name may not contain "
+                        "(rename the folder, or add skip = true for it in the overrides file)")
+    m = FOLDER.fullmatch(name)
+    if not m:
+        raise SyncError(f'folder {json.dumps(name)} does not match "YYYY-MM - Title @ Event" '
+                        '(add skip = true for it in the overrides file to leave it out)')
+    year, month, title, event = m.groups()
+    title, event = title.strip(), normalize_event(event)
+    if not title or not event:
+        raise SyncError(f"folder {json.dumps(name)} has an empty title or event")
+    if not has_letter(title):
+        raise SyncError(f"folder {json.dumps(name)}: the title must contain a letter")
+    talk = {"date": f"{year}-{month}", "title": title, "event": event}
+    if "livestream" in event.lower():
+        talk["livestream"] = True
+    return talk
+
+
+def youtube_url(link):
+    """The canonical https URL of a YouTube video link, or None if link is not one. Accepted: https on youtube.com,
+    www.youtube.com or m.youtube.com with /watch?v=<id>, or youtu.be/<id>, where <id> is a valid video id; Markdown
+    or punctuation after the id is ignored, and so are other parameters."""
+    try:
+        u = urllib.parse.urlsplit(link)
+    except ValueError:
+        return None
+    host = u.netloc.lower()  # the whole netloc: no user info, no port
+    if u.scheme != "https":
+        return None
+    if host == "youtu.be":
+        candidate = u.path[1:]
+    elif host in WATCH_HOSTS and u.path == "/watch":
+        values = urllib.parse.parse_qs(u.query).get("v")
+        candidate = values[0] if values else ""
+    else:
+        return None
+    vid, rest = candidate[:11], candidate[11:]
+    if not VIDEO_ID.fullmatch(vid) or rest.strip(TRAIL):
+        return None
+    return f"https://youtu.be/{vid}" if host == "youtu.be" else f"https://{host}/watch?v={vid}"
+
+
+def first_youtube_link(markdown):
+    for m in LINK.finditer(markdown):
+        url = youtube_url(m.group(0))
+        if url:
+            return url
+    return None
+
+
+def github_url(url):
+    """True for an https://github.com/... URL without spaces, quotes, angle brackets or control characters."""
+    try:
+        u = urllib.parse.urlsplit(url)
+    except ValueError:
+        return False
+    return (u.scheme == "https" and u.netloc == "github.com" and u.path.startswith("/")
+            and not re.search(r"[\s\"'<>`\\]", url) and bad_char(url) is None)
+
+
+def warn(message):
+    print(printable(f"sync_talks: warning: {message}"), file=sys.stderr)
+
+
+def file_name(name):
+    """True for a plain file name (no path, no control or bidirectional formatting characters)."""
+    return (0 < len(name) <= 200 and name not in (".", "..") and "/" not in name and "\\" not in name
+            and bad_char(name) is None)
+
+
+def check_fields(fields, allowed, where, unknown="error"):
+    """Validated (and normalised) copy of fields from the overrides file or a talk.toml. unknown: "error" or "warn"."""
+    out = {}
+    for key, value in fields.items():
+        if key not in allowed:
+            if unknown == "warn":
+                warn(f'{where}: unknown field "{key}" ignored (known: {", ".join(allowed)})')
+                continue
+            raise SyncError(f'{where}: unknown field "{key}" (allowed: {", ".join(sorted(allowed))})')
+        want = FIELD_TYPES[key]
+        if not isinstance(value, want):
+            raise SyncError(f"{where}: {key} must be a {want.__name__}")
+        if key == "date" and not DATE.fullmatch(value):
+            raise SyncError(f"{where}: date must be YYYY-MM")
+        if key in TEXT_MAX:
+            if bad_char(value) is not None:
+                raise SyncError(f"{where}: {key} contains a control or bidirectional formatting character")
+            value = " ".join(value.split())
+            if not value and key != "subtitle":
+                raise SyncError(f"{where}: {key} must not be empty")
+            if value and key in ("title", "subtitle") and not has_letter(value):
+                raise SyncError(f"{where}: {key} must contain a letter")
+            if len(value) > TEXT_MAX[key]:
+                raise SyncError(f"{where}: {key} is over {TEXT_MAX[key]} characters")
+        if key == "video" and value:
+            video = youtube_url(value)
+            if not video:
+                raise SyncError(f"{where}: video must be an https YouTube video link "
+                                '(youtube.com/watch?v=<id> or youtu.be/<id>), or "" for none')
+            value = video
+        if key == "url" and not github_url(value):
+            raise SyncError(f"{where}: url must be an https://github.com/ URL")
+        if key == "slides" and value and not file_name(value):
+            raise SyncError(f'{where}: slides must be the name of a file in the folder, or "" for none')
+        out[key] = value
+    return out
+
+
+def load_overrides(path):
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, "rb") as fh:
+            data = tomllib.load(fh)
+    except RecursionError:
+        raise SyncError(f"{path}: nested too deeply to parse") from None
+    except tomllib.TOMLDecodeError as err:
+        raise SyncError(f"{path}: {err}") from None
+    out = {}
+    for folder, fields in data.items():
+        if not isinstance(fields, dict):
+            raise SyncError(f'{path}: "{folder}" must be a table of fields')
+        out[folder] = check_fields(fields, OVERRIDE_FIELDS, f"{path}: {json.dumps(folder)}")
+    return out
+
+
+def load_talk_toml(text, folder):
+    where = f"folder {json.dumps(folder)}: talk.toml"
+    try:
+        data = tomllib.loads(text)
+    except tomllib.TOMLDecodeError as err:
+        raise SyncError(f"{where}: {err}") from None
+    except RecursionError:  # nesting deep enough to exhaust the parser's recursion (e.g. a = [[[[...]]]])
+        raise SyncError(f"{where}: nested too deeply to parse") from None
+    return check_fields(data, TALK_TOML_FIELDS, where, unknown="warn")
+
+
+# ---- Subtitle guesses (no talk.toml). Every input is capped in length before any regular expression sees it.
+
+def first_heading(markdown):
+    """The text of the first heading in a README (ATX "# ..." or setext "...\\n==="), without Markdown, or None."""
+    lines = markdown.splitlines()
+    for i, line in enumerate(lines):
+        stripped = line.lstrip(" ")
+        if len(line) - len(stripped) <= 3 and stripped.startswith("#"):
+            level = len(stripped) - len(stripped.lstrip("#"))
+            if level <= 6 and (len(stripped) == level or stripped[level] in " \t"):
+                text = stripped[level:].strip()
+                closed = text.rstrip("#")
+                if closed != text and (not closed or closed[-1] in " \t"):
+                    text = closed.strip()
+                return plain(text)
+        if line.strip() and i + 1 < len(lines) and lines[i + 1].strip() and not lines[i + 1].strip().strip("="):
+            return plain(line.strip())
+    return None
+
+
+def plain(text):
+    """Markdown inline syntax off a heading: links and images to their text, emphasis and code marks removed."""
+    if len(text) > 400:
+        return None
+    text = re.sub(r"!?\[([^\[\]]*)\]\([^()]*\)", r"\1", text)
+    text = re.sub(r"\*\*|__|`", "", text)
+    return " ".join(text.strip("*_ ").split())
+
+
+def strip_affixes(text, event):
+    """A heading or file name without a leading date and without event or year suffixes."""
+    text = " ".join(text.split())
+    text = re.sub(r"^[0-9]{4}-[0-9]{2}(?:-[0-9]{2})?\s+", "", text)
+    if " @ " in text:
+        text = text[:text.index(" @ ")]
+    ev = event.lower()
+    for _ in range(4):
+        before = text
+        m = re.search(r"\s*[(\[]([^()\[\]]*)[)\]]$", text)
+        if m and (ev in m[1].lower() or re.search(r"\b(?:19|20)[0-9]{2}\b", m[1])):
+            text = text[:m.start()]
+        text = re.sub(r"\s+(?:19|20)[0-9]{2}$", "", text)
+        for sep in SEPARATORS + (", ",):
+            if ev and text.lower().endswith((sep + ev).lower()):
+                text = text[:len(text) - len(sep + ev)]
+        if ev and text.lower().endswith(" " + ev):
+            text = text[:len(text) - len(ev) - 1]
+        text = text.rstrip(" -:|,–—")
+        if text == before:
+            break
+    return text
+
+
+def subtitle_of(candidate, titles, event):
+    """The subtitle when candidate reads "<one of titles><separator><subtitle>", else None."""
+    if not candidate or len(candidate) > 400:
+        return None
+    text = strip_affixes(candidate, event)
+    for title in titles:
+        title = " ".join(title.split())
+        if not title or len(text) <= len(title) or text[:len(title)].lower() != title.lower():
+            continue
+        rest = text[len(title):]
+        sep = next((s for s in SEPARATORS if rest.startswith(s)), None)
+        if sep is None:
+            continue
+        sub = rest[len(sep):].strip().rstrip(",;")
+        if (2 < len(sub) <= TEXT_MAX["subtitle"] and has_letter(sub) and bad_char(sub) is None
+                and sub.lower() not in (event.lower(), title.lower()) and " @ " not in sub):
+            return sub
+    return None
+
+
+def guess_subtitle(readme, files, titles, event):
+    """(subtitle, "README" or "PDF") from the README's first heading, else the first slide PDF name that gives one."""
+    if readme:
+        sub = subtitle_of(first_heading(readme), titles, event)
+        if sub:
+            return sub, "README"
+    for name in sorted(files):
+        if name.lower().endswith(".pdf") and len(name) <= 255:
+            sub = subtitle_of(name[:-4].replace("_", " "), titles, event)
+            if sub:
+                return sub, "PDF"
+    return None, None
+
+
+def collect(repo, token):
+    """One dict per talk folder of the repository's default branch: folder, url, branch, files (the names of the
+    files directly in it), readme (text or None), video (from the README, if any) and meta (its validated talk.toml,
+    or None)."""
+    branch = api(f"/repos/{repo}", token).get("default_branch")
+    if not isinstance(branch, str) or not branch:
+        raise SyncError(f"{repo}: no default branch in the API response")
+    sha = api(f"/repos/{repo}/commits/{urllib.parse.quote(branch, safe='')}", token).get("sha")
+    if not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{40}", sha):
+        raise SyncError(f"{repo}: could not resolve {branch} to a commit")
+    tree = api(f"/repos/{repo}/git/trees/{sha}?recursive=1", token)
+    if tree.get("truncated"):
+        raise SyncError(f"{repo}: the tree listing is truncated")
+    entries = tree.get("tree")
+    if not isinstance(entries, list):
+        raise SyncError(f"{repo}: no tree in the API response")
+    folders, files = [], {}
+    for e in entries:
+        if not isinstance(e, dict) or not isinstance(e.get("path"), str) or not isinstance(e.get("type"), str):
+            raise SyncError(f"{repo}: unexpected entry in the tree listing")
+        path, kind = e["path"], e["type"]
+        if path.startswith("."):
+            continue  # .github and other dot folders are not talks
+        if kind == "tree" and "/" not in path:
+            folders.append(path)
+        elif kind == "blob" and path.count("/") == 1:
+            folder, name = path.split("/")
+            files.setdefault(folder, []).append(name)
+    folders.sort()
+
+    def raw(folder, name):
+        return fetch(f"{RAW}/{repo}/{sha}/{urllib.parse.quote(folder + '/' + name)}")
+
+    talks = []
+    for folder in folders:
+        names = sorted(files.get(folder, []))
+        talk = {"folder": folder, "branch": branch, "files": names, "readme": None, "meta": None,
+                "url": f"https://github.com/{repo}/tree/{urllib.parse.quote(branch)}/{urllib.parse.quote(folder, safe='')}"}
+        readme = next((n for n in names if n.lower() == "readme.md"), None)
+        if readme:
+            talk["readme"] = raw(folder, readme)
+            link = first_youtube_link(talk["readme"])
+            if link:
+                talk["video"] = link
+        meta = next((n for n in names if n.lower() == "talk.toml"), None)
+        if meta:
+            talk["meta"] = load_talk_toml(raw(folder, meta), folder)
+        talks.append(talk)
+    return talks
+
+
+def build(talks, overrides, overrides_path, repo):
+    out = []
+    seen = set()
+    for t in talks:
+        folder = t["folder"]
+        where = f"folder {json.dumps(folder)}"
+        ov = overrides.get(folder, {})
+        seen.add(folder)
+        if ov.get("skip"):
+            continue
+        meta = t["meta"] or {}
+        # A folder whose name does not parse can still be listed when talk.toml and the overrides give date, title
+        # and event.
+        given = {**meta, **ov}
+        talk = {} if all(k in given for k in ("date", "title", "event")) else parse_folder(folder)
+        talk.pop("livestream", None)  # decided below, from the final event
+        parsed_title = talk.get("title")
+        talk["url"] = t["url"]
+        if "video" in t:
+            talk["video"] = t["video"]
+        source = None
+        if t["meta"] is not None:  # talk.toml: preferred over everything parsed, and no guessing
+            talk.update(meta)
+            source = "talk.toml" if meta.get("subtitle") else None
+        else:
+            event = ov.get("event") or talk.get("event", "")
+            titles = list(dict.fromkeys(x for x in (ov.get("title"), parsed_title) if x))
+            sub, source = guess_subtitle(t["readme"], t["files"], titles, event)
+            if sub:
+                talk["subtitle"] = sub
+        talk.update({k: v for k, v in ov.items() if k != "skip"})
+        if "subtitle" in ov:
+            source = "overrides" if ov["subtitle"] else None
+        if "livestream" not in ov:
+            talk["livestream"] = "livestream" in talk["event"].lower()
+        for key in ("featured", "livestream"):
+            if talk.get(key) is False:
+                del talk[key]
+        for key in ("video", "subtitle", "slides"):
+            if talk.get(key) == "":
+                del talk[key]
+        if "slides" in talk:
+            name = talk["slides"]
+            if name not in t["files"]:
+                raise SyncError(f"{where}: slides: no file {json.dumps(name)} in the folder")
+            talk["slides"] = (f"https://github.com/{repo}/blob/{urllib.parse.quote(t['branch'])}/"
+                              f"{urllib.parse.quote(folder, safe='')}/{urllib.parse.quote(name, safe='')}")
+        # Backstops: every text is within its cap, and every link that reaches the site is one of two kinds.
+        for key, cap in TEXT_MAX.items():
+            if key in talk and (len(talk[key]) > cap or bad_char(talk[key]) is not None):
+                raise SyncError(f"{where}: {key} is over {cap} characters or contains a control character")
+        for key in ("url", "slides"):
+            if key in talk and not github_url(talk[key]):
+                raise SyncError(f"{where}: {key} is not an https://github.com/ URL")
+        if "video" in talk and youtube_url(talk["video"]) != talk["video"]:
+            raise SyncError(f"{where}: video is not a canonical YouTube link")
+        talk["_folder"] = folder
+        talk["_subtitle_from"] = source if "subtitle" in talk else None
+        out.append(talk)
+    for folder in sorted(set(overrides) - seen):
+        warn(f"{overrides_path}: no folder {json.dumps(folder)} in the repository")
+    out.sort(key=lambda t: t["_folder"])
+    out.sort(key=lambda t: t["date"], reverse=True)
+    return out
+
+
+def toml_string(s):
+    escapes = {"\\": "\\\\", '"': '\\"', "\b": "\\b", "\t": "\\t", "\n": "\\n", "\f": "\\f", "\r": "\\r"}
+    return '"' + "".join(escapes.get(c, f"\\u{ord(c):04x}" if ord(c) < 0x20 or ord(c) == 0x7F else c)
+                         for c in s) + '"'
+
+
+def render(talks, repo):
+    lines = [HEADER.format(repo=repo)]
+    for talk in talks:
+        lines.append("[[talks]]")
+        for key in KEYS:
+            if key not in talk:
+                continue
+            value = talk[key]
+            lines.append(f"{key} = {'true' if value is True else toml_string(value)}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def check_rendered(text, talks):
+    """The rendered file must parse back to exactly the synced talks, so Hugo never gets a file it cannot read."""
+    want = [{k: t[k] for k in KEYS if k in t} for t in talks]
+    try:
+        got = tomllib.loads(text).get("talks")
+    except tomllib.TOMLDecodeError as err:
+        raise SyncError(f"the rendered file is not valid TOML ({err})") from None
+    if got != want:
+        raise SyncError("the rendered file does not parse back to the synced talks")
+
+
+def write_if_changed(path, text):
+    try:
+        with open(path, encoding="utf-8") as fh:
+            if fh.read() == text:
+                return False
+    except FileNotFoundError:
+        pass
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path) or ".", prefix=".talks-", suffix=".toml")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(text)
+        os.replace(tmp, path)
+    except BaseException:
+        os.unlink(tmp)
+        raise
+    return True
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("--repo", default="chvancooten/conferences", help="OWNER/NAME (default: %(default)s)")
+    ap.add_argument("--out", default=os.path.join(ROOT, "data", "talks.toml"))
+    ap.add_argument("--overrides", default=os.path.join(ROOT, "data", "talks_overrides.toml"))
+    args = ap.parse_args(argv)
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", args.repo):
+        ap.error("--repo must be OWNER/NAME")
+    token = os.environ.get("GITHUB_TOKEN") or None
+    try:
+        overrides = load_overrides(args.overrides)
+        talks = build(collect(args.repo, token), overrides, shown(args.overrides), args.repo)
+        if not talks:
+            raise SyncError(f"{args.repo}: no talks found")
+        text = render(talks, args.repo)
+        check_rendered(text, talks)
+        changed = write_if_changed(args.out, text)
+    except SyncError as err:
+        print(printable(f"sync_talks: error: {err}"), file=sys.stderr)
+        return 1
+    except (ValueError, KeyError, AttributeError, TypeError) as err:  # an API response of an unexpected shape
+        print(printable(f"sync_talks: error: unexpected data ({type(err).__name__}: {err})"), file=sys.stderr)
+        return 1
+    videos = sum(1 for t in talks if "video" in t)
+    sources = [t["_subtitle_from"] for t in talks if t["_subtitle_from"]]
+    by = ", ".join(f"{name} {sources.count(name)}" for name in ("talk.toml", "README", "PDF", "overrides"))
+    print(f"sync_talks: {len(talks)} talks, {videos} with a recording, {len(sources)} with a subtitle ({by}); "
+          f"{shown(args.out)} {'updated' if changed else 'unchanged'}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,11 @@
+{{- /* Full post archive grouped by year. Pass the list page; it paginates so /page/1/ stays a redirect. */ -}}
+{{- $posts := where site.RegularPages "Section" "posts" }}
+{{- $pager := .Paginate ($posts.GroupByDate "2006") }}
+<div class="archive">
+  {{- range $pager.PageGroups }}
+  <section class="archive-year" aria-labelledby="y-{{ .Key }}">
+    <h2 class="archive-year__title" id="y-{{ .Key }}">{{ .Key }}</h2>
+    {{- partial "post-list.html" .Pages }}
+  </section>
+  {{- end }}
+</div>

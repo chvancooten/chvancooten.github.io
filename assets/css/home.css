@@ -1,0 +1,434 @@
+/* ---------- The landing: a full-viewport composition where the scene and the name are the first impression.
+   The scene (a WebGL2 canvas from js/scene) sits behind the copy. The display name is left in the open over it;
+   the body text, links and cue each sit on a soft cloud (a pseudo-element with a wide shadow) whose core is opaque
+   enough that the text keeps 4.5:1 over the brightest pixel of the scene. ---------- */
+
+/* ---------- The title bar on the home page: none over the landing ----------
+   The title bar takes no space here (the landing runs under it). With JS, the landing carries its own quiet bar
+   (.hero-bar: the same nav and tools), which scrolls away with it, and the title bar is hidden (visibility: out of
+   the tab order and the accessibility tree) until the name docks into its wordmark: js/dock.js drives it with CSS
+   scroll timelines where they exist, else inline styles from a rAF loop. Without JS there is no landing bar and the
+   title bar is the usual pinned one. */
+.kind-home .site-header { margin-bottom: calc(-1 * var(--header-h)); }
+.js .kind-home .site-header { visibility: hidden; opacity: 0; transform: translateY(-100%); }
+.js .kind-home .site-header .brand { visibility: hidden; opacity: 0; }
+.dock-measure :is(.hero__name .nm, .site-header, .site-header .brand, .site-header .site-nav) { animation: none !important; transform: none !important; }
+html.js.is-docked .kind-home :is(.site-header, .site-header .brand) { visibility: visible; opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  /* no morph: the name stays in the page and scrolls under the bar like everything else; the bar fades in */
+  .js .kind-home .site-header { transform: none; transition: opacity 0.25s ease, visibility 0.25s; }
+  .js .kind-home .site-header .brand { transition: opacity 0.25s ease, visibility 0.25s; }
+}
+
+.hero-bar { display: none; }
+.js .hero-bar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem clamp(0.75rem, 2vw, 1.75rem);
+  min-height: 4rem;
+  padding-inline: var(--gutter);
+}
+.hero-bar .site-nav a { color: var(--text); }
+/* the bar's links and tools sit on soft clouds of the page colour, like the copy, over the scene */
+.hero-bar :is(.site-nav, .site-tools) { position: relative; }
+.hero-bar :is(.site-nav, .site-tools)::before {
+  content: "";
+  position: absolute;
+  inset: 0.2rem -0.4rem;
+  z-index: -1;
+  border-radius: 1em;
+  background: rgb(var(--scrim) / 0.88);
+  box-shadow: 0 0 2.25rem 1.1rem rgb(var(--scrim) / 0.82);
+  pointer-events: none;
+}
+@media (max-width: 31.24em) {
+  /* one row on the landing: the links on the left, the tools on the right (the wordmark only exists docked) */
+  .js .hero-bar { justify-content: space-between; min-height: 3.5rem; }
+  .hero-bar .site-nav { order: 0; flex-basis: auto; margin-left: -0.35rem; } /* not the title bar's own row */
+  .hero-bar .site-nav ul { gap: 0.75rem; }
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: end;
+  height: 100vh;
+  height: 100svh;
+  min-height: 34rem;
+  padding: calc(var(--header-h) + 1rem) var(--gutter) 0;
+  overflow: clip;
+}
+
+/* Layers inside the landing: the stage, the scrims, the clouds, then all the text, so no cloud ever covers text.
+   The landing is not a stacking context of its own (they are in the root's, above the page colour), so the docking
+   name (z-index 30) can rise above the title bar (20). */
+
+/* The scene: one canvas, fixed behind the whole page (below the landing's scrims and clouds), sized to the large
+   viewport so a mobile toolbar that comes and goes does not resize it. Its frames (the landing, the windows) are
+   masked in its own shader; everywhere else it is the page colour. The canvas crossfades in on its first frame, from
+   the page colour: no blurred placeholder before it. */
+.scene { position: fixed; inset: 0 0 auto; z-index: -4; height: 100vh; height: 100lvh; pointer-events: none; }
+.scene > canvas { display: block; width: 100%; height: 100%; opacity: 0; }
+.scene.is-shown > canvas { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .scene > canvas { transition: opacity 0.6s var(--ease-out); }
+}
+
+/* The landing's designed still (static/scene/): without JS, without WebGL2 (html.no-gl), or when the scene has not
+   come up 2.5 s after load (html.scene-late, from js/scene/hero.js). With the scene, the page colour. The image is
+   only set where it shows, so a visit whose scene runs never fetches it. */
+.stage { position: absolute; inset: 0; z-index: -3; overflow: hidden; pointer-events: none; --still: url("../scene/still-wide-dark.webp"); }
+[data-theme="light"] .stage { --still: url("../scene/still-wide-light.webp"); }
+@media (orientation: portrait) {
+  .stage { --still: url("../scene/still-tall-dark.webp"); }
+  [data-theme="light"] .stage { --still: url("../scene/still-tall-light.webp"); }
+}
+.stage::before { content: ""; position: absolute; inset: 0; background: 50% 50% / cover no-repeat var(--bg); }
+:is(html:not(.js), .no-gl, .scene-late:not(.scene-live)) .stage::before { background-image: var(--still); }
+.js .stage::before { opacity: 0; }
+:is(.no-gl, .scene-late:not(.scene-live)) .stage::before { opacity: 1; }
+.scene-late:not(.scene-live) :is(.stage, .window)::before { animation: still-in 0.6s var(--ease-out) both; }
+@keyframes still-in { from { opacity: 0; } }
+
+/* Scrims: a thin band under the header and a soft floor across the frame; the rest is per text. */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgb(var(--scrim) / 0.82), rgb(var(--scrim) / 0.4) var(--header-h), rgb(var(--scrim) / 0) calc(var(--header-h) + 4rem)),
+    linear-gradient(to top, rgb(var(--scrim) / 0.55), rgb(var(--scrim) / 0) 16%);
+}
+.hero :is(.hero__role, .hero__lede, .hero__cta, .cue)::before {
+  content: "";
+  position: absolute;
+  inset: -0.35em -0.6em;
+  z-index: -1;
+  border-radius: 1.5em;
+  background: rgb(var(--scrim) / 0.9);
+  box-shadow: 0 0 var(--cloud-blur, 4.5rem) var(--cloud-spread, 2rem) rgb(var(--scrim) / 0.86);
+  pointer-events: none;
+}
+[data-theme="light"] .hero :is(.hero__role, .hero__lede, .hero__cta, .cue)::before { background: rgb(var(--scrim) / 0.95); }
+
+.hero__copy {
+  position: relative;
+  align-self: end;
+  width: min(100%, 47rem);
+  padding-block: 0 clamp(5.25rem, 12vh, 8rem);
+}
+.hero :is(.hero__role, .hero__name, .hero__lede, .hero__cta) { position: relative; }
+.hero__role { width: fit-content; margin-bottom: 1rem; color: var(--text); font-size: clamp(1rem, 0.95rem + 0.2vw, 1.125rem); font-weight: 500; --cloud-spread: 1.25rem; --cloud-blur: 2.5rem; }
+.hero__role a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.hero__role a:hover { color: var(--accent); text-decoration: underline; }
+.hero__sep { margin-inline: 0.4em; color: var(--text-2); }
+/* Two clean lines on narrow screens: the role, then the company. */
+.hero__role2 { white-space: nowrap; }
+@media (max-width: 31em) {
+  .hero__role .hero__sep { display: none; }
+  .hero__role2 { display: block; margin-top: 0.15rem; }
+}
+.hero__name {
+  margin-bottom: clamp(1.25rem, 2.8vh, 2.25rem);
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-stretch: 90%;
+  font-size: clamp(4.25rem, 12.4vw, 11.5rem);
+  letter-spacing: -0.042em;
+  line-height: 0.86;
+  text-wrap: wrap;
+}
+.hero__name { z-index: 30; }
+/* Each line (.nm) docks into its word of the wordmark (js/dock.js); inside it, the line itself (span) carries the
+   intro's lift and the pointer parallax (js/scene/hero.js). */
+.hero__name .nm { display: inline-block; white-space: nowrap; transform-origin: 50% 50%; will-change: transform, opacity; }
+.hero__name .nm > span { display: inline-block; transform-origin: 0 100%; will-change: transform; }
+@media (prefers-reduced-motion: reduce) { .hero__name { z-index: auto; } }
+/* First paint of a first visit: the name and the landing's UI already sit where the intro starts them (transform
+   only, from the final layout, never hidden): the name a little lifted and enlarged, the rest a few pixels off. The
+   scene's first frame takes over (js/scene/hero.js); if the script never runs, they settle by themselves. The start
+   state is on the name's inner lines only: the outer ones belong to the title bar's dock. The lede, the calls to
+   action and the cue move their contents, so their clouds stay put, under all text (a transformed element would
+   paint as a layer of its own, its cloud over a neighbour's text). */
+@media (prefers-reduced-motion: no-preference) {
+  [data-intro] .hero__name .nm > span { transform: translate3d(0, 0.04em, 0) scale(1.05); }
+  [data-intro] .hero-bar { transform: translate3d(0, -10px, 0); }
+  [data-intro] .hero__role { transform: translate3d(0, 14px, 0); }
+  [data-intro] :is(.hero__lede, .hero__cta) > * { transform: translate3d(0, 16px, 0); }
+  [data-intro] :is(.cue > *, .hero__ctrl) { transform: translate3d(0, 10px, 0); }
+  [data-intro] :is(.hero__name .nm > span, .hero-bar, .hero__role, .hero__lede > *, .hero__cta > *, .cue > *, .hero__ctrl) { animation: intro-settle 0.6s 3s var(--ease-out) forwards; }
+  /* the intro cannot play: the landing settles from its start state rather than snapping */
+  .intro-release :is(.hero__name .nm > span, .hero-bar, .hero__role, .hero__lede > *, .hero__cta > *, .cue > *, .hero__ctrl) { transition: transform 0.45s var(--ease-out); }
+}
+@keyframes intro-settle { to { transform: none; } }
+.hero__lede { max-width: 31em; font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.3125rem); line-height: 1.55; }
+.hero__lede p + p { margin-top: 0.75em; }
+.hero__lede a { color: inherit; text-decoration-color: var(--line); }
+.hero__lede a:hover { text-decoration-color: var(--accent); }
+.hero__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.75rem; width: fit-content; margin-top: 2rem; }
+.hero .link-quiet { color: var(--text); }
+
+/* The cue into the content: quiet, centred at the foot of the landing (without a transform: its position stays
+   its own while the intro moves its contents). */
+.cue {
+  position: absolute;
+  inset: auto 0 1.3rem;
+  width: fit-content;
+  margin-inline: auto;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text-2);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  --cloud-spread: 1rem;
+  --cloud-blur: 2rem;
+}
+.cue:hover { color: var(--text); }
+[data-theme="light"] .cue { color: var(--text); }
+.cue__line { display: block; order: 2; width: 1px; height: 2.25rem; background: linear-gradient(var(--line), transparent); }
+.cue__short { display: none; }
+
+.hero__ctrl { position: absolute; right: var(--gutter); bottom: 1.25rem; }
+.motion-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2rem;
+  padding: 0 0.85rem 0 0.7rem;
+  border: 1px solid var(--hair);
+  border-radius: 999px;
+  background: var(--bg); /* opaque: the scene never shows through the label */
+  color: var(--text-2);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+}
+.motion-btn:hover { color: var(--text); border-color: var(--line); }
+.motion-btn .icon { width: 0.75rem; height: 0.75rem; }
+.motion-btn .icon--play, .motion-btn[data-paused] .icon--pause { display: none; }
+.motion-btn[data-paused] .icon--play { display: block; }
+
+@media (max-width: 59.99em) {
+  /* Portrait: the name above the scene, the rest of the card below it. */
+  .hero {
+    grid-template-rows: auto auto minmax(4rem, 1fr) auto auto;
+    align-content: stretch;
+    padding-top: calc(var(--header-h) + clamp(1rem, 4.5vh, 2.5rem));
+    padding-bottom: 4.5rem;
+  }
+  .hero::before {
+    background:
+      linear-gradient(to bottom, rgb(var(--scrim) / 0.85) 0, rgb(var(--scrim) / 0.45) var(--header-h), rgb(var(--scrim) / 0) calc(var(--header-h) + 3rem)),
+      linear-gradient(to top, rgb(var(--scrim) / 0.6), rgb(var(--scrim) / 0) 14%);
+  }
+  .hero__copy { display: contents; }
+  .hero__copy > * { position: relative; }
+  .hero__role { grid-row: 1; margin-bottom: 0.7rem; }
+  .hero__name { grid-row: 2; margin-bottom: 0; font-size: clamp(3.4rem, 17.4vw, 6.5rem); }
+  .hero__lede { grid-row: 4; font-size: 1.0625rem; line-height: 1.5; --cloud-spread: 1.5rem; --cloud-blur: 2.5rem; }
+  .hero__cta { grid-row: 5; margin-top: 1.25rem; }
+  .cue { left: var(--gutter); bottom: 1.45rem; margin-inline: 0; flex-direction: row; }
+  .cue__long { display: none; }
+  .cue__short { display: inline; }
+  .cue__line { order: 0; width: 1.75rem; height: 1px; background: linear-gradient(to right, var(--line), transparent); }
+}
+@media (max-height: 40em) and (min-width: 60em) {
+  .hero__lede { font-size: 1.0625rem; }
+  .hero__name { font-size: clamp(4rem, 17vh, 9rem); }
+}
+
+/* ---------- Windows: full-bleed bands between the chapters, the only places below the landing where the scene
+   shows (js/scene/windows.js). They are empty and decorative: the canvas behind the page shows through, and the
+   chapters around them sit calmly on the page colour. They need JS; without the scene (no WebGL2, a failure, or a
+   scene that has not come up 2.5 s after load) each shows a still of its own view, captured from the scene with
+   motion off (static/scene/window-*), fetched only then, and only once the window is about a screen away
+   (.is-near, js/scene/hero.js). ---------- */
+.window { display: none; }
+.js .window { position: relative; display: block; height: clamp(14rem, 46vh, 32rem); pointer-events: none; }
+@media (max-width: 59.99em) { .js .window { height: clamp(12rem, 34vh, 22rem); } }
+.window::before { content: ""; position: absolute; inset: 0; opacity: 0; background: 50% 50% / cover no-repeat; }
+:is(.no-gl, .scene-late:not(.scene-live)) .window::before { opacity: 1; }
+:is(.no-gl, .scene-late:not(.scene-live)) .window.is-near::before { background-image: var(--still); }
+.window--1 { --still: url("../scene/window-1-dark.webp"); }
+.window--2 { --still: url("../scene/window-2-dark.webp"); }
+.window--3 { --still: url("../scene/window-3-dark.webp"); }
+.window--4 { --still: url("../scene/window-4-dark.webp"); }
+[data-theme="light"] .window--1 { --still: url("../scene/window-1-light.webp"); }
+[data-theme="light"] .window--2 { --still: url("../scene/window-2-light.webp"); }
+[data-theme="light"] .window--3 { --still: url("../scene/window-3-light.webp"); }
+[data-theme="light"] .window--4 { --still: url("../scene/window-4-light.webp"); }
+
+/* ---------- Offensys: one typographic statement, on the page colour like every chapter (nothing in them moves). */
+.offensys {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 1.5rem;
+  padding: clamp(4.5rem, 9vw, 8rem) var(--gutter);
+}
+.offensys__title {
+  grid-column: 1 / -1;
+  margin-bottom: clamp(1.25rem, 2.5vw, 2rem);
+  color: var(--text-2);
+  font-family: var(--f-text);
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+.claim {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-stretch: 80%;
+  font-size: clamp(3rem, 9vw, 8.25rem);
+  letter-spacing: -0.04em;
+  line-height: 0.92;
+  text-wrap: balance;
+}
+.claim__line { display: block; }
+.claim__purple { color: var(--accent-2); } /* purple: 5.4:1 on dark, 7.6:1 on light */
+.offensys__body { grid-column: 1 / -1; margin-top: clamp(1.75rem, 4vw, 3rem); }
+.offensys__body p { max-width: 30em; margin-bottom: 1.25rem; font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem); line-height: 1.55; }
+@media (min-width: 75em) {
+  .claim { grid-column: 1 / span 8; grid-row: 2; }
+  .offensys__body { grid-column: 9 / -1; grid-row: 2; align-self: end; margin-top: 0; }
+}
+
+/* ---------- Work: Speaking and Open source ---------- */
+.sec { padding: clamp(4rem, 8vw, 7rem) var(--gutter) 0; }
+.sec-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 1rem 2rem; margin-bottom: clamp(1.75rem, 3vw, 2.75rem); }
+.sec-foot { margin-top: 2rem; }
+
+.years { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--hair); }
+.year { display: grid; grid-template-columns: minmax(8rem, 3fr) 9fr; column-gap: 1.5rem; padding-block: 1.5rem; border-bottom: 1px solid var(--hair); }
+.year__num {
+  align-self: start;
+  color: var(--muted);
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-stretch: 75%;
+  font-size: clamp(2.625rem, 5.6vw, 5rem);
+  letter-spacing: -0.04em;
+  line-height: 0.85;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.4s var(--ease-out);
+}
+.year:hover .year__num, .year:focus-within .year__num { color: var(--accent-2); }
+.talks { margin: 0; padding: 0; list-style: none; }
+.talk { padding-block: 0.7rem; }
+.talk:first-child { padding-top: 0.2rem; }
+.talk__title { font-size: clamp(1.125rem, 1rem + 0.4vw, 1.3125rem); font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.talk__title a { color: var(--text); text-decoration: none; }
+.talk__title a:hover { color: var(--accent); }
+/* The subtitle: quieter than the title, in --text-2 (5.2:1 on dark, 5.1:1 on light). */
+.talk__subtitle { max-width: 40em; margin-top: 0.15rem; color: var(--text-2); font-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem); line-height: 1.4; overflow-wrap: anywhere; }
+.talk__events { display: flex; flex-wrap: wrap; gap: 0.1rem 0; margin: 0.3rem 0 0; padding: 0; list-style: none; color: var(--text-2); font-size: var(--fs-sm); }
+.talk__events li + li { margin-left: 0.85rem; padding-left: 0.85rem; border-left: 1px solid var(--hair); }
+.talk__sep { color: var(--muted); }
+.talk__events a { color: inherit; text-decoration: none; }
+.talk__events a:hover { color: var(--text); text-decoration: underline; }
+.talk__events time { color: var(--muted); }
+/* The recording of an appearance: a 28 px target, inline after the date. */
+.talk__video {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: -0.25rem 0 -0.25rem 0.35rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-2);
+  vertical-align: middle;
+}
+.talk__events .talk__video:hover { color: var(--accent); }
+.talk__video .icon { width: 1.25rem; height: 1.25rem; }
+@media (max-width: 44.99em) {
+  .year { grid-template-columns: 1fr; row-gap: 0.75rem; }
+  .year__num { font-size: 2.5rem; }
+}
+
+.oss { padding-top: clamp(3rem, 6vw, 5rem); }
+.sec-intro { max-width: 36em; margin: calc(-1 * clamp(0.5rem, 1vw, 1rem)) 0 clamp(2rem, 4vw, 3rem); color: var(--text-2); font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem); line-height: 1.6; }
+.repos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(2rem, 5vw, 4.5rem); margin: 0; padding: 0; list-style: none; }
+.repo {
+  position: relative;
+  display: grid;
+  grid-template-columns: clamp(5.25rem, 9vw, 8rem) minmax(0, 1fr);
+  grid-template-areas: "stars name" "stars desc" "stars lang";
+  align-content: start;
+  gap: 0.35rem 1.25rem;
+  height: 100%;
+  padding-block: 1.6rem 1.8rem;
+  border-top: 1px solid var(--hair);
+}
+.repo__stars { grid-area: stars; display: flex; align-items: flex-start; gap: 0.2rem; }
+.repo__n {
+  color: var(--gold);
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-stretch: 78%;
+  font-size: clamp(2.5rem, 4.2vw, 3.6rem);
+  letter-spacing: -0.03em;
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur) var(--ease-out);
+}
+.repo__star { margin-top: 0.15rem; color: var(--gold-sm); font-size: 0.875rem; }
+.repo__name { grid-area: name; font-family: var(--f-display); font-weight: 700; font-stretch: 86%; font-size: clamp(1.3rem, 1.1rem + 0.7vw, 1.7rem); letter-spacing: -0.015em; line-height: 1.1; overflow-wrap: anywhere; }
+.repo__name a { color: var(--text); text-decoration: none; }
+.repo__name a::after { content: ""; position: absolute; inset: 0; }
+.repo__name a:focus-visible { outline: none; }
+.repo__name a:focus-visible::after { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
+.repo__desc { grid-area: desc; color: var(--text-2); font-size: var(--fs-sm); line-height: 1.5; }
+.repo__lang { grid-area: lang; margin-top: 0.25rem; color: var(--muted); font-size: var(--fs-xs); font-weight: 500; }
+.repo:hover .repo__name a { color: var(--accent); }
+@media (max-width: 61.99em) { .repos { grid-template-columns: 1fr; } }
+@media (max-width: 44.99em) { .repo { grid-template-columns: 4.75rem minmax(0, 1fr); column-gap: 0.9rem; } }
+
+/* ---------- Writing: compact and secondary ---------- */
+.writing { display: grid; grid-template-columns: minmax(14rem, 4fr) 8fr; gap: 1.5rem; padding: clamp(4rem, 8vw, 7rem) var(--gutter); }
+.writing__head { display: flex; flex-direction: column; align-items: flex-start; gap: 1.25rem; }
+.writing .rows { border-top: 0; }
+.writing .row__meta { margin-top: 0.25rem; }
+.writing .row:first-child { padding-top: 0.2rem; }
+@media (max-width: 61.99em) {
+  .writing { grid-template-columns: 1fr; }
+  .writing__head { flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; }
+}
+
+/* ---------- About and contact: a short intro, one address, one button, and a card you can save ---------- */
+.contact {
+  display: grid;
+  grid-template-columns: 5fr 7fr;
+  align-items: center;
+  gap: 3rem clamp(2rem, 5vw, 5rem);
+  padding: clamp(5rem, 10vw, 8.5rem) var(--gutter);
+}
+.contact__title { margin-bottom: 1.5rem; font-family: var(--f-display); font-weight: 800; font-stretch: 84%; font-size: clamp(2.75rem, 1.8rem + 4vw, 4.75rem); letter-spacing: -0.035em; line-height: 0.95; }
+.contact__intro { max-width: 32em; color: var(--text-2); font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem); line-height: 1.6; }
+.contact__intro a { color: var(--text); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 0.2em; }
+.contact__intro a:hover { text-decoration-color: var(--accent); }
+.contact__more { margin-top: 1.25rem; }
+.contact__reach { margin-top: clamp(2.25rem, 4vw, 3rem); }
+.contact__mail { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
+.contact__mail a { color: var(--text); font-size: clamp(1.25rem, 1rem + 1vw, 1.5rem); font-weight: 500; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 0.25em; overflow-wrap: anywhere; }
+.contact__mail a:hover { text-decoration-color: var(--accent); }
+.copy-btn { min-height: 2.25rem; padding: 0 0.85rem; font-size: 0.875rem; font-weight: 500; }
+.contact .social-text { margin-top: 2rem; }
+@media (max-width: 61.99em) {
+  .contact { grid-template-columns: 1fr; }
+  .contact .card-stage { align-items: flex-start; }
+}

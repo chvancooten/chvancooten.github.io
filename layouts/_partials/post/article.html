@@ -1,0 +1,33 @@
+{{- $toc := and .Params.toc (gt (len .Fragments.Headings) 0) }}
+{{- $posts := site.GetPage "/posts" }}
+<div class="progress" aria-hidden="true"></div>
+<article class="post{{ if $toc }} post--toc{{ end }}">
+  <header class="post-head">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="{{ $posts.RelPermalink }}">Writing</a></li>
+        <li><a href="{{ $posts.RelPermalink }}#y-{{ .Date.Format "2006" }}">{{ .Date.Format "2006" }}</a></li>
+      </ol>
+    </nav>
+    <h1 class="post-title" style="view-transition-name: {{ partial "func/vt-name.html" . }}">{{ .Title }}</h1>
+    {{- partial "post/meta.html" . }}
+  </header>
+  {{- if $toc }}
+  {{- partial "post/toc.html" . }}
+  {{- end }}
+  <div class="post-body prose" data-post-body>
+    {{ .Content }}
+  </div>
+  <footer class="post-foot">
+    {{- partial "post/series.html" . }}
+    {{- partial "post/author.html" . }}
+    {{- partial "post/pager.html" . }}
+    <p class="post-foot__links">
+      {{- with .GitInfo }}
+      <a href="{{ site.Params.commitURL }}{{ .Hash }}">{{ partial "icon.html" "commit" }}<span>View the source of this post ({{ .AbbreviatedHash }})</span></a>
+      {{- end }}
+      {{- /* #main (tabindex=-1) moves focus as well as the scroll position. */}}
+      <a href="#main">{{ partial "icon.html" "arrow-up" }}<span>Back to top</span></a>
+    </p>
+  </footer>
+</article>

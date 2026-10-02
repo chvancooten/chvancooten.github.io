@@ -1,0 +1,6 @@
+{{- /* Document title: "Page title · Cas van Cooten"; the home page gets a descriptive suffix. */ -}}
+{{- $t := printf "%s · %s" .Title site.Title -}}
+{{- if .IsHome -}}
+  {{- $t = printf "%s · %s" site.Title site.Params.homeTitle -}}
+{{- end -}}
+{{- return $t -}}

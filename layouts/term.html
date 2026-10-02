@@ -1,0 +1,23 @@
+{{ define "main" }}
+<div class="frame">
+  {{- $isSeries := eq .Data.Plural "series" }}
+  {{- $pages := .Pages }}
+  {{- if $isSeries }}{{ $pages = .Pages.ByDate }}{{ end }}
+  {{- $pager := .Paginate $pages }}
+  {{- $n := len .Pages }}
+  {{- $list := site.GetPage (printf "/%s" .Data.Plural) }}
+  {{- $count := printf "%d %s%s" $n (cond (eq $n 1) "post" "posts") (cond $isSeries ", in reading order" "") }}
+  {{- $kind := printf `<a href="%s">%s</a>` $list.RelPermalink (cond $isSeries "Series" "Tag") | safeHTML }}
+  {{- partial "list-head.html" (dict "page" . "kind" $kind "count" $count) }}
+  <div class="archive">
+    {{- if $isSeries }}
+    <ol class="rows rows--series" role="list">
+      {{- range $pager.Pages }}{{ partial "post-row.html" . }}{{ end }}
+    </ol>
+    {{- else }}
+    {{- partial "post-list.html" $pager.Pages }}
+    {{- end }}
+  </div>
+  <p class="list-foot"><a class="link-arrow" href="{{ $list.RelPermalink }}">All {{ lower $list.Title }}{{ partial "icon.html" (dict "name" "arrow-right" "size" 16) }}</a></p>
+</div>
+{{ end }}

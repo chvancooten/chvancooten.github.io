@@ -1,0 +1,131 @@
+/* Reset and element defaults. */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-h) + 1rem);
+  background: var(--bg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+  /* No background of its own: html paints the page colour, so the home hero's layers (negative z-index, in the
+     root stacking context so the docking name can rise above the title bar) stay above it. */
+  color: var(--text);
+  font-family: var(--f-text);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+main { flex: 1; outline: none; }
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+p, ul, ol, figure, blockquote { margin: 0; }
+
+a {
+  color: var(--accent);
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+a:hover { color: var(--text); }
+
+img, svg, video, canvas { max-width: 100%; }
+img { height: auto; }
+
+code, kbd, pre, samp {
+  font-family: var(--f-mono);
+  /* Commands must show what you type: no != or >= ligatures. */
+  font-variant-ligatures: none;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 0.15em 0.4em;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--text-2);
+  background: var(--bg);
+}
+
+button { font: inherit; color: inherit; }
+
+hr {
+  margin: 3rem 0;
+  border: 0;
+  border-top: 1px solid var(--hair);
+}
+
+::selection { background: var(--sel); color: var(--text); }
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.num { font-variant-numeric: tabular-nums; }
+
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 0.75rem;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+.skip-link:focus { transform: none; color: var(--bg); }
+
+[hidden] { display: none !important; }
+
+/* Controls that only work with JS (search, theme toggle, copy, motion). */
+html:not(.js) .js-only,
+html:not(.js) [data-search-open],
+html:not(.js) [data-theme-toggle] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *:not(.progress), *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

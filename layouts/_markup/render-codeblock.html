@@ -1,0 +1,14 @@
+{{- /* Chroma output in a figure. The language label is drawn by CSS from data-lang (no text node);
+       the copy button is added by JS. */ -}}
+{{- $lang := lower .Type }}
+{{- $label := $lang }}
+{{- if in (slice "" "text" "plaintext" "plain" "txt") $lang }}{{ $label = "text" }}{{ end }}
+<figure class="code" data-lang="{{ $label }}">
+{{- $html := transform.Highlight .Inner .Type .Options }}
+{{- if not (strings.Contains $html "tabindex=") }}
+{{- /* Scrollable blocks must be reachable by keyboard. */}}
+{{- $html = replace $html "<pre>" `<pre tabindex="0">` 1 }}
+{{- end }}
+{{- $html }}
+</figure>
+{{- /* newline */ -}}
