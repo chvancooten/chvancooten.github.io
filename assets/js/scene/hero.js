@@ -1,6 +1,6 @@
 // The home page: mounts the scene behind the page once it has painted, and ties it to the page.
-// - The scene is one canvas, fixed behind the page ([data-scene]); it shows in the landing and in the windows
-//   between the chapters (windows.js), and nowhere else. Its runtime (stage.js: the renderer, the world, the
+// - The scene is one canvas behind the page ([data-scene]), scrolling with it (index.js); it shows in the landing
+//   and in the windows between the chapters (windows.js), and nowhere else. Its runtime (stage.js: the renderer, the world, the
 //   windows) is a chunk of its own, fetched as soon as this script runs (the URL is the scene element's data-src;
 //   its integrity is in the page's import map) and started after the first contentful paint.
 // - The intro plays on the first visit per tab session, from the scene's first frame. The session flag is written

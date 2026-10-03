@@ -32,7 +32,7 @@ const FUSE = { z: -4.3, narrow: -1.5, half: 1.4 };
 // The strands' join: it spans x - j in [a, b], with j going from enter to leave as the window crosses the screen. On
 // narrow screens the view is narrower (about x = -6.6 .. 6.6 against -8.3 .. 8.3) and the band crosses it sooner, so
 // the join starts just inside the right edge and still leaves the left edge apart as the band goes.
-const ZIP = { a: -2, b: 3.5, enter: 9, leave: -5, narrow: { enter: 5.5, leave: -3.5 } };
+const ZIP = { a: -2, b: 3.5, enter: 9, leave: -5, narrow: { enter: 6, leave: -5 } };
 // Where the join is (j, the strands' param) for the window at k (0 entering .. 1 leaving), and how far the strands
 // have joined at x for it (0 apart .. 1 one rope): the shader's zip(), for the crossings' glows (windows.js).
 export const zipJoin = (k, narrow) => { const z = narrow ? ZIP.narrow : ZIP; return mix(z.enter, z.leave, k); };

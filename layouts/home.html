@@ -5,8 +5,8 @@
 {{- $email := "" }}
 {{- range where site.Params.social "icon" "mail" }}{{ $email = strings.TrimPrefix "mailto:" .url }}{{ end }}
 
-{{- /* The scene: one WebGL2 canvas (added by js/scene), fixed behind the page. It shows in the landing and in the
-       windows between the chapters, and nowhere else (C3 "Windows"). */}}
+{{- /* The scene: one WebGL2 canvas (added by js/scene) behind the page, scrolling with it. It shows in the landing
+       and in the windows between the chapters, and nowhere else (C3 "Windows"). */}}
 <div class="scene" data-scene data-src="{{ (partial "func/scene-runtime.html" .).RelPermalink }}" aria-hidden="true"></div>
 <section class="hero" aria-labelledby="hero-name">
   {{- /* The landing's designed still: what shows without JS or WebGL2 (and if the scene is late). */}}
