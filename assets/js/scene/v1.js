@@ -1,8 +1,11 @@
 // The world of the home page, and V1 "Pass-through", its landing.
 //
 // Two currents, red (the red team) and blue (the blue team), sweep in from far upstream as wide streams of helical
-// flow lines, converge and twist into a tight braid that turns purple where they meet. The knot is at the origin, the
-// braid runs down -z, the red arm comes in from +x and the blue one from -x.
+// flow lines, converge and twist into a tight braid, red and blue still, with a purple tinge where they meet; further
+// down, the two strands fuse into one purple cord. The fuse point drifts slowly along the braid, and around it the
+// strands tangle: they wind round each other unevenly, wander and fray a little. The knot is at the origin, the braid
+// runs down -z, the red arm comes in from +x and the blue one from -x. param (uP.w) is 1 on narrow layouts, where the
+// copy's veil covers the braid further down, so the strands fuse nearer the knot (FUSE).
 // - Startup: every particle starts scattered (4 to 11 units from its place) and converges into the flow, fading in
 //   on the way, staggered by its distance from the knot, so the braid draws itself from the knot outward along both
 //   arms. It is driven by the intro clock, so a page without the intro shows the assembled flow.
@@ -11,30 +14,50 @@
 //   one between the name and the copy on portrait screens.
 // - The strands (uP.z = 1, the last window): the two currents as one calm braid seen from the side, along x. Each
 //   strand is a wide, soft cloud of fibres around its centreline; red stays red and blue stays blue between the
-//   crossings, and purple glows only where they cross. The flow along them and the twist are slow (STRANDS), and
-//   both are functions of the time alone.
+//   crossings, and purple glows only where they cross. Toward +x they zip into one purple rope: the helix narrows and
+//   both turn purple. The join follows the window across the screen (param, uP.w: 0 as it enters at the bottom, 1 as
+//   it leaves at the top), from beyond the right edge to past the middle (ZIP), so the strands zip together as the
+//   page scrolls on. The flow along them (+x, into the join) and the twist are slow (STRANDS), and both are functions
+//   of the time alone.
 //
 // Every particle is derived from its id and the time (see gl.js for the Pt struct, hash and uniforms), so there are
 // no buffers. Ink slots: 0 red, 1 red (second), 2 blue, 3 blue (second), 4 purple, 5 dust.
-import { makePath, blendKeys, rig, smooth } from "./math.js";
+import { makePath, blendKeys, rig, smooth, mix } from "./math.js";
 
 // The strands' braid: angular frequency along x (crossings every pi / w units), twist (rad/s, the crossings drift
 // along +x at twist / w units/s), flow along the strands (units/s), helix radius and length.
 export const STRANDS = { w: 0.55, twist: 0.12, flow: 0.3, radius: 1.25, length: 46 };
+// The landing's fuse point (z): at rest on wide and on narrow layouts, and the half-width of the fuse.
+const FUSE = { z: -4.3, narrow: -1.5, half: 1.4 };
+// The strands' join: it spans x - j in [a, b], with j going from enter to leave as the window crosses the screen.
+const ZIP = { a: -2, b: 3.5, enter: 9, leave: -5 };
+// How far the strands have joined at x (0 apart .. 1 one rope), for the window at k (0 entering .. 1 leaving): the
+// shader's zip(), for the crossings' glows (windows.js).
+export const zipAt = (x, k) => smooth(ZIP.a, ZIP.b, x - mix(ZIP.enter, ZIP.leave, k));
 const f1 = (v) => v.toFixed(4);
 const GLSL = `
 const float ZT=44.,ZL=88.;
 const float SW=${f1(STRANDS.w)},ST=${f1(STRANDS.twist)},SV=${f1(STRANDS.flow)},SA=${f1(STRANDS.radius)},SL=${f1(STRANDS.length)};
+const float FZ=${f1(FUSE.z)},FN=${f1(FUSE.narrow)},FH=${f1(FUSE.half)};
+const float ZA=${f1(ZIP.a)},ZB=${f1(ZIP.b)},ZE=${f1(ZIP.enter)},ZX=${f1(ZIP.leave)};
 // 1 below a, 0 above b (smoothstep with its edges reversed is undefined in GLSL, and some drivers take that literally)
 float fall(float a,float b,float x){return 1.-smoothstep(a,b,x);}
 float twist(float z){return z<0.?1.2*z:1.6*(1.-exp(-z/3.));}
-vec3 ctr(float z,float k,out float w,out float S){
+// The fuse point at time t: it drifts on two slow sines that never quite repeat (less on narrow layouts).
+float fuseZ(float t){return mix(FZ,FN,uP.w)+mix(1.,.6,uP.w)*(.9*sin(.23*t)+.5*sin(.37*t+1.3));}
+// Strand k's centreline at z, its width w, its spread S (0 the tight braid .. 1 far upstream), how far it has fused
+// (m: 0 two strands .. 1 one cord) and the tangle around the fuse point (g: 1 at it).
+vec3 ctr(float z,float k,float t,out float w,out float S,out float m,out float g){
   S=pow(max(smoothstep(-1.,26.,z),1e-12),.6);
-  float R=mix(.2,6.4,S);
-  float th=twist(z)-1.28+k*3.14159265;
+  float zf=fuseZ(t),dz=(z-zf)/2.6;
+  m=fall(zf-FH,zf+FH,z);
+  g=exp(-dz*dz);
+  float R=mix(.2,6.4,S)*(1.-m);
+  float th=twist(z)-1.28+k*3.14159265+g*(.75*sin(.7*t+.6*z)+.35*sin(.43*t-.9*z+k));
   vec2 c=vec2(cos(th),sin(th)*mix(1.,.38,S))*R;
   c+=vec2(1.4*sin(.09*z+.3),.8*sin(.06*z+1.4))*S*S;
-  w=mix(.11,1.85,S);
+  c+=g*.09*vec2(sin(.9*z+.8*t+k*2.4),cos(.7*z-.6*t+k*1.3));
+  w=mix(.11,1.85,S)*(1.+.35*m);
   return vec3(c,z);
 }
 Pt braid(uint id,vec4 h,float t){
@@ -43,14 +66,14 @@ Pt braid(uint id,vec4 h,float t){
   if(f<.8){
     float k=float(id&1u);
     float z=ZT-mod(h.x*ZL+(1.2+1.1*h.y)*t,ZL);
-    float w,S;
-    vec3 c=ctr(z,k,w,S);
+    float w,S,m,g;
+    vec3 c=ctr(z,k,t,w,S,m,g);
     float halo=step(.78,fract(h.z*7.31));
-    float rr=w*sqrt(max(-log(1.-.96*h.z),0.))*.5*(1.+1.5*halo);
+    float rr=w*sqrt(max(-log(1.-.96*h.z),0.))*.5*(1.+1.5*halo)*(1.+.6*g);
     float ph=6.2832*h.w+1.7*z*(1.-.65*S);
     o.p=c+vec3(cos(ph),sin(ph),0.)*rr;
     vec3 base=k<.5?mix(uInk[0],uInk[1],h.y*h.y*.8):mix(uInk[2],uInk[3],h.y*.9);
-    o.c=mix(base,uInk[4],fall(-2.5,5.,z)*(h.y<.22?.4:.92));
+    o.c=mix(base,uInk[4],max(.5*fall(-2.5,5.,z)*(h.y<.22?.4:1.),m));
     float core=exp(-rr*rr/(w*w)*1.6);
     o.a=(.28+.72*core)*(1.-.55*halo)*(1.+.9*exp(-z*z/5.))*mix(.42,1.,S)*smoothstep(-44.,-34.,z)*fall(32.,44.,z);
     o.s=.019*(.7+.6*h.z);
@@ -72,6 +95,8 @@ Pt braid(uint id,vec4 h,float t){
   }
   return o;
 }
+// 0 where the strands run apart, 1 where they have zipped into one (zipAt in JS)
+float zip(float x){return smoothstep(ZA,ZB,x-mix(ZE,ZX,uP.w));}
 Pt strands(uint id,vec4 h,float t){
   Pt o;
   float f=float(id)/uN;
@@ -79,12 +104,15 @@ Pt strands(uint id,vec4 h,float t){
   if(f<.86){
     float x=(fract(h.x+t*SV*(.8+.4*h.y)/SL)-.5)*SL;
     float ph=SW*x-ST*t+k*3.14159265;
-    float rr=.6*sqrt(max(-log(1.-.97*h.z),0.));
+    float m=zip(x);
+    // joined, the helix narrows to a thin twist and the fibres draw in: one rope
+    float A=SA*mix(1.,.16,m);
+    float rr=.6*mix(1.,.62,m)*sqrt(max(-log(1.-.97*h.z),0.));
     float a=6.2832*h.w+1.3*x-.2*t;
-    o.p=vec3(x,SA*sin(ph),.9*SA*cos(ph))+vec3(0.,cos(a),sin(a))*rr;
+    o.p=vec3(x,A*sin(ph),.9*A*cos(ph))+vec3(0.,cos(a),sin(a))*rr;
     vec3 base=k<.5?mix(uInk[0],uInk[1],h.y*.6):mix(uInk[2],uInk[3],h.y*.7);
     float s=sin(ph);
-    o.c=mix(base,uInk[4],.88*exp(-s*s/.2));
+    o.c=mix(base,uInk[4],max(.88*exp(-s*s/.2)*(1.-m),.94*smoothstep(.15,.85,m)));
     o.a=.5*(.3+.7*exp(-rr*rr*2.4))*fall(SL*.5-5.,SL*.5,abs(x));
     o.s=.019*(.7+.6*h.z);
   }else if(f<.93){
@@ -93,7 +121,7 @@ Pt strands(uint id,vec4 h,float t){
     vec3 r=vec3(h.y,h.z,fract(h.w*7.3))-.5;
     o.p=vec3(x,0.,0.)+normalize(r+1e-3)*.75*sqrt(max(-log(1.-.95*fract(h.w*3.7)),0.));
     o.c=mix(uInk[4],k<.5?uInk[0]:uInk[2],.15*h.y);
-    o.a=.36*exp(-dot(o.p.yz,o.p.yz)*.6)*fall(SL*.5-5.,SL*.5,abs(x));
+    o.a=.36*exp(-dot(o.p.yz,o.p.yz)*.6)*fall(SL*.5-5.,SL*.5,abs(x))*(1.-zip(x));
     o.s=.018;
   }else{
     float x=(fract(h.x+t*SV*.5/SL)-.5)*SL;

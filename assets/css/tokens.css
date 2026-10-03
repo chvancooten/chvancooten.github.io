@@ -123,8 +123,9 @@
   --gold: #d0a215;        /* yellow-400: star counts, 8.1:1 */
   --gold-sm: #d0a215;     /* yellow-400 for small text */
   --focus: #8b7ec8;       /* purple-400, 5.4:1 */
-  --header-bg: rgb(16 15 15 / 0.9);     /* the title bar's frosted surface (layout.css) */
+  --header-bg: rgb(16 15 15 / 0.7);     /* the title bar's frosted surface (layout.css) */
   --header-solid: rgb(16 15 15 / 0.97); /* and where it cannot be frosted */
+  --header-text-2: #9f9d96; /* base-400: the bar's secondary text, 4.8:1 or more over red or blue under the glass */
   --sel: rgb(139 126 200 / 0.32);
   --shadow: 0 40px 80px -40px rgb(0 0 0 / 0.8);
 
@@ -199,8 +200,9 @@
   --gold: #a87e00;        /* adj. yellow-600, still a yellow: 3.6:1 on bg, 3.3:1 on bg-2, large numerals only */
   --gold-sm: #8e6500;     /* adj. yellow-600 for small text, 5.1:1 on bg, 4.6:1 on bg-2 */
   --focus: #5e409d;       /* purple-600, 7.6:1 */
-  --header-bg: rgb(255 252 240 / 0.92); /* a little more on paper: nav text keeps 4.5:1 over dark or red content */
+  --header-bg: rgb(255 252 240 / 0.76); /* a little more on paper */
   --header-solid: rgb(255 252 240 / 0.97);
+  --header-text-2: #575653; /* base-700: 5.2:1 or more over red or blue under the glass */
   --sel: rgb(94 64 157 / 0.2);
   --shadow: 0 36px 70px -40px rgb(16 15 15 / 0.4);
 
