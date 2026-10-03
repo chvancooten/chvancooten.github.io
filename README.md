@@ -253,7 +253,8 @@ against the page colour so its flow lines survive a thumbnail.
 **Motion and reduced motion.**
 
 - The scene renders only while one of its frames is on screen and the tab is visible, and caps the pixel ratio at 2
-  (and the canvas at 2560x1600 pixels).
+  (and the viewport's share of the canvas at 2560x1600 pixels; the overscan above and below is drawn at the same
+  density, so the whole canvas can exceed that by the overscan's share, about 30 % on most screens).
 - One motion preference for the whole site (`assets/js/motion.js`): `localStorage["motion"]` is `"on"` or `"off"`,
   kept across pages and visits and shared by open tabs, and it applies to every scene on a page. Without a stored
   choice it follows the browser: off under `prefers-reduced-motion: reduce`, on otherwise. The *Pause motion* /

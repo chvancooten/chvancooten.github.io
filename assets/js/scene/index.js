@@ -45,9 +45,11 @@
 //   page scrolls (a picture moving with the page, not an animation) or the theme changes.
 // - It renders only while a frame is on screen and the tab is visible.
 // - Adaptive quality, judged on frame intervals and kept for the session (sessionStorage "scene-quality"): level 0
-//   is full (pixel ratio up to 2, at most MAX_PIXELS), 1 a pixel ratio of 1, 2 to 7 a half down to 1/32 of the
-//   particles (drawn larger and stronger) at a render scale from 1 down to 0.4, 8 a still frame. A level already
-//   stored for the session is kept, and also lets a software renderer run (for screenshots and measurements).
+//   is full (pixel ratio up to 2, at most MAX_PIXELS over the viewport's share of the canvas; the overscan comes on
+//   top at the same density, so the whole canvas exceeds it by the overscan's share, about 30 % on most screens), 1
+//   a pixel ratio of 1, 2 to 7 a half down to 1/32 of the particles (drawn larger and stronger) at a render scale
+//   from 1 down to 0.4, 8 a still frame. A level already stored for the session is kept, and also lets a software
+//   renderer run (for screenshots and measurements).
 import { createRenderer, VERTS_PER_PARTICLE, GLOW_SLOTS } from "./gl.js";
 import { createWorld } from "./v1.js";
 import { clamp, mix, smooth, easeOutCubic, viewProj, project } from "./math.js";
