@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://casvancooten.com/sitemap.xml
