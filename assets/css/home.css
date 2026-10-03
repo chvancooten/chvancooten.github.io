@@ -68,11 +68,27 @@ html.js.is-docked .kind-home :is(.site-header, .site-header .brand) { visibility
    The landing is not a stacking context of its own (they are in the root's, above the page colour), so the docking
    name (z-index 30) can rise above the title bar (20). */
 
-/* The scene: one canvas, fixed behind the whole page (below the landing's scrims and clouds), sized to the large
-   viewport so a mobile toolbar that comes and goes does not resize it. Its frames (the landing, the windows) are
-   masked in its own shader; everywhere else it is the page colour. The canvas crossfades in on its first frame, from
-   the page colour: no blurred placeholder before it. */
-.scene { position: fixed; inset: 0 0 auto; z-index: -4; height: 100vh; height: 100lvh; pointer-events: none; }
+/* The scene: one canvas behind the whole page (below the landing's scrims and clouds). It scrolls with the page, so
+   its frames (the landing, the windows) never trail the content: js/scene moves it to the scroll position as it draws
+   each frame. It is the large viewport (so a mobile toolbar that comes and goes does not resize it) plus an overscan
+   band above and below (--scene-over, its negative margin-top: the script reads it back), so a fast flick between two
+   frames does not uncover an edge. Its frames are masked in its own shader; everywhere else it is the page colour.
+   The canvas crossfades in on its first frame, from the page colour: no blurred placeholder before it. */
+.scene {
+  --scene-over: max(8rem, 15vh);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: -4;
+  height: calc(100vh + 2 * var(--scene-over));
+  margin-top: calc(-1 * var(--scene-over));
+  pointer-events: none;
+  will-change: transform;
+}
+@supports (height: 100lvh) {
+  .scene { --scene-over: max(8rem, 15lvh); height: calc(100lvh + 2 * var(--scene-over)); }
+}
 .scene > canvas { display: block; width: 100%; height: 100%; opacity: 0; }
 .scene.is-shown > canvas { opacity: 1; }
 @media (prefers-reduced-motion: no-preference) {

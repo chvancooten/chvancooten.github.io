@@ -1,8 +1,10 @@
-// C3 "Windows": where the home page shows the scene. The content never moves; what changes with scroll is only the
-// scene inside its frames. The canvas is fixed behind the page, and each frame is a view of the same world, masked
-// in the shader (soft edges, in device pixels), so there is no overlay element anywhere:
+// C3 "Windows": where the home page shows the scene. The canvas lies behind the page and scrolls with it (index.js),
+// and each frame is a view of the same world, masked in the shader (soft edges, in device pixels), so there is no
+// overlay element anywhere. Frames and veils are attached to the page; everything here is in canvas coordinates
+// (page y - env.top), so they stay locked to the page however fast it scrolls:
 // - the landing, with its own camera (the intro, then rest with pointer parallax and a slow drift), and composition
-//   veils that keep its copy legible: a column under the copy on wide screens, bands above and below on narrow ones;
+//   veils that keep its copy legible: a column under the copy on wide screens, bands above and below on narrow ones.
+//   Its scene scrolls away with it, a little slower than the page (LANDING_LAG), for a hint of depth;
 // - the full-bleed windows between the chapters (.window), each with its own camera and subject: W1 the two
 //   currents side by side, W2 the red current, W3 the blue one, W4 the two strands twined, purple where they cross,
 //   zipping into one purple rope as the band rises (the join follows the band's place on the screen, see v1.js).
@@ -12,9 +14,13 @@
 //   angle on it, which makes its twist seem to turn back as the page scrolls. (Its join does move with the scroll:
 //   it changes the shape, not the time, and the flow keeps running into it.)
 // createWindows() returns the views for the scene (index.js, opts.views) and what they depend on: visible() (is any
-// frame on screen), vignette(theme) and layout() (for measurements); update() re-measures, destroy() stops.
+// frame on screen, or near it), vignette(theme) and layout() (for measurements); update() re-measures, destroy() stops.
 import { clamp, mix, smooth } from "./math.js";
-import { STRANDS, zipAt } from "./v1.js";
+import { STRANDS, zipAt, zipJoin } from "./v1.js";
+
+// The landing's scene trails the page by this share of the scroll: it rises at 85 % of the page's speed. Whatever the
+// scene does relative to the page is drawn a frame or two behind the browser's scroll, so this stays small.
+const LANDING_LAG = 0.15;
 
 // A pose as the band enters (a) and as it leaves (b), framed by horizontal field of view (hfov), so a window keeps
 // its composition from a phone to a wide screen. portrait: the same for narrow screens, where a band is close to
@@ -33,11 +39,11 @@ const WINDOWS = [
 ];
 
 // W4's glows: a soft purple one at each of the three crossings nearest the middle, where they are at flow time ft,
-// fading where the strands have zipped into one (k: the join's progress).
-function crossings(ft, k) {
+// fading where the strands have zipped into one (j: where the join is).
+function crossings(ft, j) {
   const S = Math.PI / STRANDS.w, x0 = ((((STRANDS.twist * ft) / STRANDS.w) % S) + S) % S;
-  return [-1, 0, 1].map((j) => {
-    const x = x0 + (j - 0.5) * S, o = 1 - zipAt(x, k);
+  return [-1, 0, 1].map((i) => {
+    const x = x0 + (i - 0.5) * S, o = 1 - zipAt(x, j);
     return { p: [x, 0, 0], r: 0.13, a: { dark: 0.08 * o, light: 0.055 * o }, ink: 4 };
   });
 }
@@ -80,50 +86,55 @@ export function createWindows({ hero, frames, header, reduced }) {
   // 0 in the landing, 1 once the first section is well in view
   const heroK = (H) => smooth(0, Math.max(1, L.first - 0.32 * H), sy());
 
-  // The landing's veils, attached to the page (they scroll with the copy, so they never slide over it).
-  function heroVeil(s, W) {
+  // The landing's veils, attached to the page (they scroll with the copy, so they never slide over it), with the
+  // canvas's top at page y top.
+  function heroVeil(top, W) {
     const c = L.copy;
     if (L.desk) {
       const colX = Math.max(c.lede?.x1 ?? 0, c.cta?.x1 ?? 0, c.role?.x1 ?? 0) + 24;
-      return { colX, colS: 0.9, bottomY: (c.cue?.y0 ?? L.hero.y1 - 80) - 20 - s, bottomS: 0.82, topH: L.header + 12, topS: 0.85, f: Math.max(140, 0.12 * W) };
+      return { colX, colS: 0.9, bottomY: (c.cue?.y0 ?? L.hero.y1 - 80) - 20 - top, bottomS: 0.82, topH: L.header + 12 - top, topS: 0.85, f: Math.max(140, 0.12 * W) };
     }
-    return { topH: Math.max(L.header + 8, (c.role?.y1 ?? 0) + 16 - s), topS: 0.9, bottomY: (c.lede?.y0 ?? 0.6 * L.hero.y1) - 18 - s, bottomS: 0.93, f: 90 };
+    return { topH: Math.max(L.header + 8, (c.role?.y1 ?? 0) + 16) - top, topS: 0.9, bottomY: (c.lede?.y0 ?? 0.6 * L.hero.y1) - 18 - top, bottomS: 0.93, f: 90 };
   }
 
   function views(e) {
     if (!L) measure();
-    const s = sy(), { W, H } = e;
+    const { W, H, top, vh, sy: s } = e;
     const out = [];
     // the braid's param: 1 on narrow layouts, where the copy's veils sit over the braid's lower part (v1.js)
     const narrow = L.desk ? 0 : 1;
-    if (L.hero.y1 - s > 0) {
-      out.push({ id: "hero", rect: { x0: -400, y0: L.hero.y0 - 400 - s, x1: W + 400, y1: L.hero.y1 - s, f: 0.24 * H }, veil: heroVeil(s, W), param: narrow });
+    if (L.hero.y1 - top > 0) {
+      // the landing's camera frames a viewport-sized box that scrolls with the landing, LANDING_LAG behind it
+      const box = { y: L.hero.y0 + LANDING_LAG * s - top, h: vh };
+      out.push({ id: "hero", rect: { x0: -400, y0: L.hero.y0 - 400 - top, x1: W + 400, y1: L.hero.y1 - top, f: 0.24 * vh }, box, veil: heroVeil(top, W), param: narrow });
     }
     L.windows.forEach((r, i) => {
-      const y0 = r.y0 - s, y1 = r.y1 - s, h = y1 - y0;
+      const y0 = r.y0 - top, y1 = r.y1 - top, h = y1 - y0;
       if (h <= 0 || y1 < 0 || y0 > H) return;
       const P = WINDOWS[i % WINDOWS.length];
       const S = !L.desk && P.portrait ? P.portrait : P;
-      // where the band is: 0 entering at the bottom, 1 leaving at the top (the middle under reduced motion)
-      const p = clamp(((y0 + y1) / 2 - H / 2) / (H / 2 + h / 2), -1, 1);
+      // where the band is on the screen: 0 entering at the bottom, 1 leaving at the top (the middle under reduced
+      // motion)
+      const p = clamp(((r.y0 + r.y1) / 2 - s - vh / 2) / (vh / 2 + h / 2), -1, 1);
       const k = reduced.matches ? 0.5 : (1 - p) / 2;
       const pose = poseMix(S.a, S.b, k);
       const hf = pose.hfov * (L.desk || P.portrait ? 1 : 0.74);
       pose.fov = (2 * Math.atan(Math.tan((hf * Math.PI) / 360) / (W / H)) * 180) / Math.PI;
-      // the lens shift keeps the subject centred in the band, wherever the band is on the screen
+      // the lens shift keeps the subject centred in the band, wherever the band is on the canvas
       pose.shift = [0, 1 - (y0 + y1) / H];
-      const glows = typeof P.glows === "function" ? P.glows(e.ft, k) : P.glows;
-      // the strands' param is the band's progress (their join follows it), the braid's the layout
-      const param = P.form === 1 ? k : narrow;
+      // the strands' param is where their join is (it follows the band), the braid's the layout
+      const param = P.form === 1 ? zipJoin(k, narrow) : narrow;
+      const glows = typeof P.glows === "function" ? P.glows(e.ft, param) : P.glows;
       out.push({ id: `w${i + 1}`, rect: { x0: -400, y0, x1: W + 400, y1, f: 0.34 * h }, pose, form: P.form || 0, param, glows, trail: P.trail });
     });
     return out;
   }
 
-  const visible = () => {
+  // a frame on screen or within margin px of it (the canvas's overscan: drawn before it scrolls into view)
+  const visible = (margin = 0) => {
     if (!L) measure();
     const s = sy(), H = window.innerHeight;
-    return L.hero.y1 - s > 0 || L.windows.some((r) => r.y1 - s > 0 && r.y0 - s < H);
+    return L.hero.y1 - s > -margin || L.windows.some((r) => r.y1 - s > -margin && r.y0 - s < H + margin);
   };
   const vignette = (theme, H) => mix(theme === "light" ? 0.3 : 0.55, 0, heroK(H));
 

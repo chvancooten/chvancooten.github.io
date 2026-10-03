@@ -1,6 +1,14 @@
 // The scene: one WebGL2 canvas behind the home page, rendering views of the world (v1.js): the landing and the
 // windows between the chapters (windows.js), each in its own frame.
 //
+// The canvas scrolls with the page. The container is a viewport-sized box with an overscan band above and below (its
+// negative margin-top, from CSS); every frame moves it to the current scroll position and draws the frames for that
+// position. Between two frames the browser scrolls it with the rest of the page (on its compositor, often a frame
+// or two ahead of script), so the frames stay locked to the page instead of trailing it, and the overscan keeps a
+// fast flick from uncovering an edge. It never reaches past the end of the page, which would make the page longer.
+// The views work in canvas coordinates: env.top is the canvas's top in page px, env.vh the viewport height the
+// framing is measured against (the canvas without its overscan), env.sy the scroll position the frame is drawn for.
+//
 //   const scene = mount(container, { intro, reduced, views, visible, vignette, onFrame, onIntroEnd, onReady, onFail,
 //                                    onQuality });
 //   scene.setScroll(progress)  the page has scrolled (in viewport heights): the frames follow the live scroll
@@ -14,12 +22,13 @@
 // stalls the main thread while the compositor reads the canvas back); onFail() reports a later failure (shaders, a
 // lost context). In all these cases the page keeps its CSS stills.
 //
-// Views (opts.views(env), every frame; env: { it, ft, T, W, H, theme }, W and H the canvas size in CSS px): a list of {
-// id, rect: { x0, y0, x1, y1, f } (where it shows, in canvas CSS px, feathered inside by f), veil, pose (a fixed
-// camera; without one, the landing's camera), form (0 the braid, 1 the strands), param (the form's own setting, 0..1,
-// see v1.js), glows, trail }. Without opts.views the whole canvas is the landing. opts.visible() says whether any view
-// is on screen (otherwise the scene stops after one empty frame); opts.vignette(theme, H) sets the background's
-// vignette.
+// Views (opts.views(env), every frame; env: { it, ft, T, W, H, top, vh, sy, theme }, W and H the canvas size in CSS
+// px): a list of { id, rect: { x0, y0, x1, y1, f } (where it shows, in canvas CSS px, feathered inside by f), veil,
+// pose (a fixed camera; without one, the landing's camera, framed on box: { y, h }, the part of the canvas it frames as
+// if it were the viewport), form (0 the braid, 1 the strands), param (the form's own setting, see v1.js), glows, trail
+// }. Without opts.views the whole canvas is the landing. opts.visible(margin) says whether any view is on screen or
+// within margin CSS px of it (otherwise the scene stops after one empty frame); opts.vignette(theme, H) sets the
+// background's vignette.
 //
 // Colours come from the container's CSS: --scene-bg, --scene-red, --scene-red-2, --scene-blue, --scene-blue-2,
 // --scene-purple, --scene-dust, and --scene-ink ("add" for light on dark, "ink" for ink on paper).
@@ -131,6 +140,9 @@ export function mount(container, opts = {}) {
   // OW x OH: the canvas (device px); W x H: the render size for the particle passes (the canvas at the level's
   // render scale), dpr: render px per CSS px
   let OW = 1, OH = 1, W = 1, H = 1, dpr = 1, cssW = 1, cssH = 1, aspect = 1;
+  // the overscan above and below the viewport (CSS px), the viewport height it surrounds, the page's height, and the
+  // container's current offset (it sits at -over; shift moves it down to the canvas's top)
+  let over = 0, vh = 1, pageH = 0, shift = null;
   let raf = 0, last = 0, seeking = false, emptyShown = false;
   let flowT = FLOW_START;
   let introT = opts.intro && !reduced.matches ? 0 : SETTLED;
@@ -168,9 +180,13 @@ export function mount(container, opts = {}) {
 
   function resize() {
     const r = container.getBoundingClientRect();
+    over = Math.max(0, -parseFloat(getComputedStyle(container).marginTop) || 0);
+    vh = Math.max(1, r.height - 2 * over);
+    pageH = document.body.offsetHeight;
     const native = window.devicePixelRatio || 1;
     let nd = level >= 1 ? Math.min(1, native) : Math.min(2, native);
-    nd = Math.min(nd, Math.sqrt(MAX_PIXELS / Math.max(1, r.width * r.height)));
+    // the pixel budget is for the viewport's share: the overscan comes on top, at the same density
+    nd = Math.min(nd, Math.sqrt(MAX_PIXELS / Math.max(1, r.width * vh)));
     const ow = Math.max(1, Math.round(r.width * nd)), oh = Math.max(1, Math.round(r.height * nd));
     const sc = SCALE[Math.min(level, STILL - 1)];
     const w = Math.max(1, Math.round(ow * sc)), h = Math.max(1, Math.round(oh * sc));
@@ -181,19 +197,44 @@ export function mount(container, opts = {}) {
     OW = ow; OH = oh; W = w; H = h; dpr = W / cssW;
     canvas.width = OW;
     canvas.height = OH;
-    world.layout(1 - smooth(0.62, 1.25, aspect));
+    // the landing's layout follows the viewport's shape, not the taller canvas's
+    world.layout(1 - smooth(0.62, 1.25, cssW / vh));
     return true;
+  }
+
+  // The canvas's top (page px) for scroll position sy: the viewport in the middle of it, without passing the end of
+  // the page. The container follows, in the same frame as the draw.
+  function anchor(sy) {
+    const top = Math.max(-over, Math.min(sy - over, pageH - cssH));
+    const y = Math.round((top + over) * 100) / 100;
+    if (y !== shift) {
+      shift = y;
+      container.style.transform = `translate3d(0,${y}px,0)`;
+    }
+    return y - over;
+  }
+
+  // The landing's camera framed on box (canvas CSS px, top down) instead of on the whole canvas: the same picture as
+  // on a viewport of that size there, through a taller lens shifted onto it.
+  function frameOn(q, box) {
+    const k = cssH / box.h;
+    q.fov = (2 * Math.atan(Math.tan((q.fov * Math.PI) / 360) * k) * 180) / Math.PI;
+    const sh = q.shift || [0, 0];
+    q.shift = [sh[0], 1 - (2 * box.y + box.h) / cssH + sh[1] / k];
   }
 
   // One frame at intro time it and flow time ft.
   function frame() {
     const it = introT, ft = flowT, p = [ptr.x.x, ptr.y.x];
-    const env = { it, ft, T, W: cssW, H: cssH, theme };
+    const sy = window.scrollY;
+    const top = anchor(sy);
+    const env = { it, ft, T, W: cssW, H: cssH, top, vh, sy, theme };
     const list = opts.views ? opts.views(env) : [{ id: "hero" }];
     const df = 1 - focus.x, dim = clamp(intensity.x, 0, 1);
     const n = count();
     f.W = W; f.H = H; f.OW = OW; f.OH = OH; f.dpr = dpr; f.n = n;
-    f.vignette = opts.vignette ? opts.vignette(theme, cssH) : world.vignette[theme];
+    // the vignette is measured on the canvas's height: scaled so that it reads the same on the viewport
+    f.vignette = (opts.vignette ? opts.vignette(theme, vh) : world.vignette[theme]) * (cssH / vh) ** 2;
     f.comp = world.composite[theme];
     f.seed = (ft * 60) % 97;
     f.glows.fill(0);
@@ -206,6 +247,9 @@ export function mount(container, opts = {}) {
       if (!pose) {
         pose = world.pose({}, it, ft, p);
         poseP = world.pose({}, it - SHUTTER, ft - SHUTTER, p);
+        const box = v.box || { y: sy - top, h: vh };
+        frameOn(pose, box);
+        frameOn(poseP, box);
       }
       for (const q of pose === poseP ? [pose] : [pose, poseP]) {
         // out of focus: the focus distance comes close and the aperture opens
@@ -229,7 +273,7 @@ export function mount(container, opts = {}) {
       for (const g of v.glows || world.glows(it)) {
         const q = gi < GLOW_SLOTS && project(s.VP, g.p, W, H);
         if (!q) continue;
-        f.glows.set([q[0], q[1], g.r * H, g.a[theme] * exposure], gi * 4);
+        f.glows.set([q[0], q[1], g.r * H * (vh / cssH), g.a[theme] * exposure], gi * 4);
         f.glowInks.set(f.inks.subarray(g.ink * 3, g.ink * 3 + 3), gi * 3);
         gi++;
       }
@@ -283,7 +327,7 @@ export function mount(container, opts = {}) {
   }
 
   const running = () => ready && !destroyed && !seeking && !paused && !reduced.matches && level < STILL;
-  const visible = () => (opts.visible ? opts.visible() : true);
+  const visible = () => (opts.visible ? opts.visible(over) : true);
   const canRun = () => running() && !document.hidden && visible();
 
   // Adaptive quality, on frame intervals.
@@ -408,15 +452,19 @@ export function mount(container, opts = {}) {
   const onReduce = () => (reduced.matches ? (stop(), still()) : kick());
   reduced.addEventListener("change", onReduce);
   let rt = 0;
+  // the container's size (the canvas) and the page's (where the canvas must stop)
   const ro = new ResizeObserver(() => {
     clearTimeout(rt);
     rt = setTimeout(() => {
-      if (!ready || !resize()) return;
+      if (!ready) return;
+      const was = pageH;
+      if (!resize() && pageH === was) return;
       if (!running()) still();
       else if (!raf) { draw(); kick(); }
     }, 60);
   });
   ro.observe(container);
+  ro.observe(document.body);
   on(canvas, "webglcontextlost", (e) => { e.preventDefault(); fail("context lost"); });
   on(canvas, "webglcontextrestored", () => {
     if (destroyed) return;
