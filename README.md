@@ -151,10 +151,19 @@ braid, they fuse nearer the knot. The scene is raw WebGL2 with no library: every
 shader from its id and the time, so there are no vertex buffers, and a frame is a few uniforms and a few draw calls.
 Heads streak with their true screen motion, and depth of field, depth fog and short trails give the depth.
 
-The scene is one canvas, fixed behind the page, and it shows in exactly five frames: the landing, and four
-full-bleed windows between the chapters (`.window`, from `layouts/_partials/window.html`), each a view of the same
-world with its own camera. Each frame is masked in the shader, with soft edges, so there is no overlay element; the
-chapters themselves sit calmly on the page colour and nothing in them moves.
+The scene is one canvas behind the page, and it shows in exactly five frames: the landing, and four full-bleed windows
+between the chapters (`.window`, from `layouts/_partials/window.html`), each a view of the same world with its own
+camera. Each frame is masked in the shader, with soft edges, so there is no overlay element; the chapters themselves
+sit calmly on the page colour and nothing in them moves.
+
+The canvas scrolls with the page rather than staying fixed. The browser scrolls the page on its compositor, often a
+frame or two ahead of the page's script, so frames drawn into a fixed canvas from the scroll position trailed the page
+and bounced on a fast flick, most visibly on phones. Now the canvas is a viewport-sized box with an overscan band of
+`max(8rem, 15lvh)` above and below; each frame moves it to the current scroll position and draws for that position,
+and between two frames the browser scrolls it with everything else, so the frames stay locked to the page. The
+overscan keeps a fast flick from uncovering an edge, and the canvas stops at the end of the page, so the page never
+gets longer. The landing's scene scrolls away with the landing, a little slower than the page (at 85 % of its speed),
+for a hint of depth.
 
 - W1, after Offensys: the two currents side by side; W2, between Speaking and Open source: the red current; W3,
   before Writing: the blue one.
@@ -162,7 +171,9 @@ chapters themselves sit calmly on the page colour and nothing in them moves.
   crossing along the horizontal axis, red and blue between the crossings and a soft purple glow only where they cross.
   Toward the right they zip into one purple rope, and the join follows the window up the screen: as the band enters at
   the bottom the strands are apart, by the middle the right half has joined, and as it leaves it is nearly all one rope
-  (scrolling back up unzips them; with motion off it shows the middle state). The flow along them (about 0.3 units/s)
+  (scrolling back up unzips them; with motion off it shows the middle state). On narrow screens, where less of the
+  braid is in view, the join starts just inside the right edge as the band enters and still leaves the left edge apart
+  as it goes. The flow along them (about 0.3 units/s)
   and the twist (0.12 rad/s) are slow: at 390 px wide its particles move about 10 px/s, against about 180 px/s for the
   braid this window showed before.
 - As a window crosses the screen the cameras of W1 to W3 only crane (move vertically, across the flow), and W4's holds
@@ -242,7 +253,8 @@ against the page colour so its flow lines survive a thumbnail.
 **Motion and reduced motion.**
 
 - The scene renders only while one of its frames is on screen and the tab is visible, and caps the pixel ratio at 2
-  (and the canvas at 2560x1600 pixels).
+  (and the viewport's share of the canvas at 2560x1600 pixels; the overscan above and below is drawn at the same
+  density, so the whole canvas can exceed that by the overscan's share, about 30 % on most screens).
 - One motion preference for the whole site (`assets/js/motion.js`): `localStorage["motion"]` is `"on"` or `"off"`,
   kept across pages and visits and shared by open tabs, and it applies to every scene on a page. Without a stored
   choice it follows the browser: off under `prefers-reduced-motion: reduce`, on otherwise. The *Pause motion* /

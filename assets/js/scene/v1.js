@@ -15,9 +15,9 @@
 // - The strands (uP.z = 1, the last window): the two currents as one calm braid seen from the side, along x. Each
 //   strand is a wide, soft cloud of fibres around its centreline; red stays red and blue stays blue between the
 //   crossings, and purple glows only where they cross. Toward +x they zip into one purple rope: the helix narrows and
-//   both turn purple. The join follows the window across the screen (param, uP.w: 0 as it enters at the bottom, 1 as
-//   it leaves at the top), from beyond the right edge to past the middle (ZIP), so the strands zip together as the
-//   page scrolls on. The flow along them (+x, into the join) and the twist are slow (STRANDS), and both are functions
+//   both turn purple. The join follows the window across the screen (param, uP.w: where the join is along x, from
+//   zipJoin()), from beyond the right edge to past the middle (ZIP), so the strands zip together as the page scrolls
+//   on. The flow along them (+x, into the join) and the twist are slow (STRANDS), and both are functions
 //   of the time alone.
 //
 // Every particle is derived from its id and the time (see gl.js for the Pt struct, hash and uniforms), so there are
@@ -29,17 +29,20 @@ import { makePath, blendKeys, rig, smooth, mix } from "./math.js";
 export const STRANDS = { w: 0.55, twist: 0.12, flow: 0.3, radius: 1.25, length: 46 };
 // The landing's fuse point (z): at rest on wide and on narrow layouts, and the half-width of the fuse.
 const FUSE = { z: -4.3, narrow: -1.5, half: 1.4 };
-// The strands' join: it spans x - j in [a, b], with j going from enter to leave as the window crosses the screen.
-const ZIP = { a: -2, b: 3.5, enter: 9, leave: -5 };
-// How far the strands have joined at x (0 apart .. 1 one rope), for the window at k (0 entering .. 1 leaving): the
-// shader's zip(), for the crossings' glows (windows.js).
-export const zipAt = (x, k) => smooth(ZIP.a, ZIP.b, x - mix(ZIP.enter, ZIP.leave, k));
+// The strands' join: it spans x - j in [a, b], with j going from enter to leave as the window crosses the screen. On
+// narrow screens the view is narrower (about x = -6.6 .. 6.6 against -8.3 .. 8.3) and the band crosses it sooner, so
+// the join starts just inside the right edge and still leaves the left edge apart as the band goes.
+const ZIP = { a: -2, b: 3.5, enter: 9, leave: -5, narrow: { enter: 6, leave: -5 } };
+// Where the join is (j, the strands' param) for the window at k (0 entering .. 1 leaving), and how far the strands
+// have joined at x for it (0 apart .. 1 one rope): the shader's zip(), for the crossings' glows (windows.js).
+export const zipJoin = (k, narrow) => { const z = narrow ? ZIP.narrow : ZIP; return mix(z.enter, z.leave, k); };
+export const zipAt = (x, j) => smooth(ZIP.a, ZIP.b, x - j);
 const f1 = (v) => v.toFixed(4);
 const GLSL = `
 const float ZT=44.,ZL=88.;
 const float SW=${f1(STRANDS.w)},ST=${f1(STRANDS.twist)},SV=${f1(STRANDS.flow)},SA=${f1(STRANDS.radius)},SL=${f1(STRANDS.length)};
 const float FZ=${f1(FUSE.z)},FN=${f1(FUSE.narrow)},FH=${f1(FUSE.half)};
-const float ZA=${f1(ZIP.a)},ZB=${f1(ZIP.b)},ZE=${f1(ZIP.enter)},ZX=${f1(ZIP.leave)};
+const float ZA=${f1(ZIP.a)},ZB=${f1(ZIP.b)};
 // 1 below a, 0 above b (smoothstep with its edges reversed is undefined in GLSL, and some drivers take that literally)
 float fall(float a,float b,float x){return 1.-smoothstep(a,b,x);}
 float twist(float z){return z<0.?1.2*z:1.6*(1.-exp(-z/3.));}
@@ -96,7 +99,7 @@ Pt braid(uint id,vec4 h,float t){
   return o;
 }
 // 0 where the strands run apart, 1 where they have zipped into one (zipAt in JS)
-float zip(float x){return smoothstep(ZA,ZB,x-mix(ZE,ZX,uP.w));}
+float zip(float x){return smoothstep(ZA,ZB,x-uP.w);}
 Pt strands(uint id,vec4 h,float t){
   Pt o;
   float f=float(id)/uN;
