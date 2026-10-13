@@ -7,12 +7,30 @@
 # is room. featured = true: always listed on the home page. video: the recording. slides: the slide file.
 
 [[talks]]
+date = "2026-10"
+title = "The Best Defense Is A Good Offense"
+subtitle = "A Pragmatic Path to Continuous Purple Teaming"
+event = "ONE Conference"
+url = "https://github.com/chvancooten/conferences/tree/main/2026-10%20-%20The%20Best%20Defense%20Is%20A%20Good%20Offense%20%40%20ONE%20Conference%202026"
+slides = "https://github.com/chvancooten/conferences/blob/main/2026-10%20-%20The%20Best%20Defense%20Is%20A%20Good%20Offense%20%40%20ONE%20Conference%202026/The%20Best%20Defense%20Is%20A%20Good%20Offense%20%28ONE%20Conference%202026%29.pdf"
+
+[[talks]]
+date = "2026-09"
+title = "Your Last Pentest Is Already Outdated"
+subtitle = "The Case For Continuous Purple Teaming"
+event = "CyberSec Netherlands"
+url = "https://github.com/chvancooten/conferences/tree/main/2026-09%20-%20Your%20Last%20Pentest%20Is%20Already%20Outdated%20%40%20CyberSec%20Netherlands%202026"
+video = "https://youtu.be/BO05Aq2WAt8"
+slides = "https://github.com/chvancooten/conferences/blob/main/2026-09%20-%20Your%20Last%20Pentest%20Is%20Already%20Outdated%20%40%20CyberSec%20Netherlands%202026/Your%20Last%20Pentest%20Is%20Already%20Outdated%20%28CyberSec%20Netherlands%202026%29.pdf"
+
+[[talks]]
 date = "2026-06"
 title = "The Best Defense Is A Good Offense"
 subtitle = "A Pragmatic Path to Continuous Purple Teaming"
 event = "OrangeCon"
 url = "https://github.com/chvancooten/conferences/tree/main/2026-06%20-%20The%20Best%20Defense%20Is%20A%20Good%20Offense%20%40%20OrangeCon%202026"
 video = "https://youtu.be/SShEOZBLRhQ"
+slides = "https://github.com/chvancooten/conferences/blob/main/2026-06%20-%20The%20Best%20Defense%20Is%20A%20Good%20Offense%20%40%20OrangeCon%202026/The%20Best%20Defense%20Is%20A%20Good%20Offense%20-%20A%20Pragmatic%20Path%20to%20Continuous%20Purple%20Teaming.pdf"
 
 [[talks]]
 date = "2026-06"
@@ -21,6 +39,7 @@ subtitle = "A Pragmatic Path to Continuous Purple Teaming"
 event = "x33fcon"
 url = "https://github.com/chvancooten/conferences/tree/main/2026-06%20-%20The%20Best%20Defense%20Is%20A%20Good%20Offense%20%40%20X33fcon%202026"
 video = "https://youtu.be/18bUPKqQfuE"
+slides = "https://github.com/chvancooten/conferences/blob/main/2026-06%20-%20The%20Best%20Defense%20Is%20A%20Good%20Offense%20%40%20X33fcon%202026/The%20Best%20Defense%20Is%20A%20Good%20Offense%20%28X33fcon%202026%29.pdf"
 
 [[talks]]
 date = "2024-09"
@@ -28,13 +47,16 @@ title = "Offensive Development in Modern Languages"
 event = "OrangeCon"
 url = "https://github.com/chvancooten/conferences/tree/main/2024-09%20-%20Offensive%20Development%20in%20Modern%20Languages%20%40%20OrangeCon%202024"
 video = "https://youtu.be/zPbH-xJ_RpM"
+slides = "https://github.com/chvancooten/conferences/blob/main/2024-09%20-%20Offensive%20Development%20in%20Modern%20Languages%20%40%20OrangeCon%202024/2024-09-05%20Offensive%20Development%20in%20Modern%20Languages.pdf"
 
 [[talks]]
 date = "2024-08"
 title = "Nimplant"
+subtitle = "A light-weight first-stage implant and C2 written in Python, Nim, and Rust"
 event = "Black Hat Arsenal"
 url = "https://github.com/chvancooten/conferences/tree/main/2024-08%20-%20Nimplant%20%40%20Black%20Hat%20Arsenal%202024"
 video = "https://youtu.be/9xQGjdPyDJc"
+slides = "https://github.com/chvancooten/conferences/blob/main/2024-08%20-%20Nimplant%20%40%20Black%20Hat%20Arsenal%202024/Nimplant-BHUS24-Arsenal.pdf"
 
 [[talks]]
 date = "2023-05"
@@ -45,33 +67,39 @@ url = "https://github.com/chvancooten/conferences/tree/main/2023-05%20-%20MalDev
 [[talks]]
 date = "2023-03"
 title = "Malware Development with Nim"
+subtitle = "A Case Study in NimPlant"
 event = "Prelude livestream"
 livestream = true
 url = "https://github.com/chvancooten/conferences/tree/main/2023-03%20-%20Malware%20Development%20with%20Nim%20%40%20Prelude%20livestream"
 video = "https://youtu.be/FBuTX6brrsA"
+slides = "https://github.com/chvancooten/conferences/blob/main/2023-03%20-%20Malware%20Development%20with%20Nim%20%40%20Prelude%20livestream/Malware%20Development%20with%20Nim%20A%20Case%20Study%20in%20NimPlant.pdf"
 
 [[talks]]
 date = "2023-03"
 title = "Nim for Adversarial Operations"
+subtitle = "Getting Hands-On With NimPlant C2"
 event = "Adversary Village #adversaryguru livestream"
 livestream = true
 url = "https://github.com/chvancooten/conferences/tree/main/2023-03%20-%20Nim%20for%20Adversarial%20Operations%20%40%20Adversary%20Village%20%23adversaryguru%20livestream"
 video = "https://www.youtube.com/watch?v=HIEB24IrMls"
+slides = "https://github.com/chvancooten/conferences/blob/main/2023-03%20-%20Nim%20for%20Adversarial%20Operations%20%40%20Adversary%20Village%20%23adversaryguru%20livestream/Nim%20for%20Adversarial%20Operations%20Getting%20Hands-On%20With%20NimPlant%20C2.pdf"
 
 [[talks]]
 date = "2022-08"
 title = "Nimbly Navigating a Nimiety of Nimplants"
 subtitle = "Writing Nim Malware Like The Cool Kids"
 event = "DEF CON 30 Adversary Village"
-featured = true
 url = "https://github.com/chvancooten/conferences/tree/main/2022-08%20-%20Nimbly%20Navigating%20a%20Nimiety%20of%20Nimplants%20%40%20DC30%20Adversary%20Village"
+slides = "https://github.com/chvancooten/conferences/blob/main/2022-08%20-%20Nimbly%20Navigating%20a%20Nimiety%20of%20Nimplants%20%40%20DC30%20Adversary%20Village/Nimbly%20Navigating%20a%20Nimiety%20of%20Nimplants%20-%20Writing%20Nim%20Malware%20Like%20The%20Cool%20Kids.pdf"
 
 [[talks]]
 date = "2022-07"
-title = "BYOT Build Your Own Tools for Fun & Profit"
+title = "BYOT"
+subtitle = "Build Your Own Tools for Fun & Profit"
 event = "x33fcon"
 url = "https://github.com/chvancooten/conferences/tree/main/2022-07%20-%20BYOT%20Build%20Your%20Own%20Tools%20for%20Fun%20%26%20Profit%20%40%20X33fcon"
 video = "https://www.youtube.com/watch?v=PAxYI99A0mg"
+slides = "https://github.com/chvancooten/conferences/blob/main/2022-07%20-%20BYOT%20Build%20Your%20Own%20Tools%20for%20Fun%20%26%20Profit%20%40%20X33fcon/BYOT%20%20-%20Build%20Your%20Own%20Tools%20For%20Fun%20And%20Profit.pdf"
 
 [[talks]]
 date = "2022-06"
@@ -82,5 +110,7 @@ url = "https://github.com/chvancooten/conferences/tree/main/2022-06%20-%20MalDev
 [[talks]]
 date = "2021-11"
 title = "Nimplant"
+subtitle = "Build Your Own Tools for Fun and Profit"
 event = "HITB Cyberweek Abu Dhabi"
 url = "https://github.com/chvancooten/conferences/tree/main/2021-11%20-%20Nimplant%20%40%20HITB%20Cyberweek%20Abu%20Dhabi"
+slides = "https://github.com/chvancooten/conferences/blob/main/2021-11%20-%20Nimplant%20%40%20HITB%20Cyberweek%20Abu%20Dhabi/NimPlant%20%40%20HITB%20Armory.pdf"
