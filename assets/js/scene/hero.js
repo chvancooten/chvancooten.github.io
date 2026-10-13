@@ -12,9 +12,11 @@
 //   lets the visitor opt in. The control shows whenever the scene can loop, its label always says what it will do,
 //   and only the control changes the preference (kept across pages and visits).
 // - The title bar: the name docks into it as the landing leaves (../dock.js), whether or not the scene runs.
+// - The Speaking timeline reveals each talk as it scrolls into view (../talks.js), whether or not the scene runs.
 // - No WebGL2 (or a failure): html.no-gl, which shows the designed stills instead of the canvas.
 import { smooth } from "./math.js";
 import { initDock } from "../dock.js";
+import { initTalks } from "../talks.js";
 import { motionOn, setMotion, calm } from "../motion.js";
 
 const root = document.documentElement;
@@ -141,6 +143,7 @@ async function boot() {
 
 if (hero) {
   try { initDock(); } catch (err) { console.warn(err); }
+  try { initTalks(); } catch (err) { console.warn(err); }
   window.addEventListener("scroll", () => scene?.setScroll(window.scrollY / window.innerHeight), { passive: true });
   // The scene follows the preference through `calm`; the control only records the choice.
   button?.addEventListener("click", () => setMotion(!motionOn()));
