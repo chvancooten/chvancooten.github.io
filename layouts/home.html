@@ -46,7 +46,7 @@
 {{- partial "window.html" 1 }}
 <div id="work">
 {{- with hugo.Data.talks }}
-{{- partial "talks.html" (dict "talks" .talks "cap" (site.Params.homeTalks | default 6) "repo" hugo.Data.projects.talks) }}
+{{- partial "talks.html" (dict "talks" .talks "cap" (site.Params.homeTalks | default 0) "repo" hugo.Data.projects.talks) }}
 {{- end }}
 
 {{- partial "window.html" 2 }}

@@ -309,16 +309,21 @@ its values replace the parsed ones, and the script guesses nothing for that fold
 title = "The Best Defense Is A Good Offense"
 subtitle = "A Pragmatic Path to Continuous Purple Teaming"
 event = "OrangeCon"                          # without the year
+location = "Amsterdam, Netherlands"          # where it took place, or "" for none
 date = "2026-06"                             # YYYY-MM, ASCII digits
 video = "https://youtu.be/<11-character id>" # https YouTube link, or "" for no recording
 slides = "slides.pdf"                        # a file in this folder, or "" for none
+repo = "https://github.com/<owner>/<name>"   # a related repository (such as a workshop's), or "" for none
+repo_label = "Workshop"                      # the text of the repo link (default "Repository")
 featured = true                              # always listed on the home page
 ```
 
 The rules are the same as for the overrides file: an ASCII date, an https YouTube link (written back in canonical
-form), no control or bidirectional formatting characters, and at most 160 characters for `title`, 120 for `subtitle`
-and 100 for `event`. `subtitle = ""` means no subtitle. `slides` is written to `data/talks.toml` as the file's
-`https://github.com/` URL; the home page does not show it yet. A broken value, or a file that is not valid TOML,
+form), no control or bidirectional formatting characters, and at most 160 characters for `title`, 120 for `subtitle`,
+100 for `event` and `location` and 40 for `repo_label`. A `title`, `subtitle`, `location` or `repo_label` must
+contain a letter. `subtitle = ""` means no subtitle, and `location = ""` no location. `slides` is written to
+`data/talks.toml` as the file's `https://github.com/` URL. `repo` must be an `https://github.com/` URL; a
+`repo_label` without a `repo` is ignored with a warning. A broken value, or a file that is not valid TOML,
 fails the sync, so CI warns and keeps the committed data. An unknown key is ignored with a warning. With a
 `talk.toml` that gives `date`, `title` and `event`, the folder name does not need to follow the pattern.
 
@@ -339,15 +344,24 @@ event = "DEF CON 30 Adversary Village"   # replaces the parsed event
 featured = true                          # always listed on the home page
 ```
 
-The fields are `featured`, `title`, `subtitle` (`""` drops a found one), `event`, `date` (`"YYYY-MM"`), `url` (an
-`https://github.com/` URL), `livestream`, `video` (a YouTube link as above, or `""` to drop the README's link),
-`slides` (a file in the folder) and `skip = true` (leaves the folder out). A folder whose name does not parse fails
+The fields are `featured`, `title`, `subtitle` (`""` drops a found one), `event`, `location`, `date` (`"YYYY-MM"`),
+`url` (an `https://github.com/` URL), `repo` and `repo_label` (as in `talk.toml`), `livestream`, `video` (a YouTube
+link as above, or `""` to drop the README's link), `slides` (a file in the folder) and `skip = true` (leaves the
+folder out). The MalDev for Dummies workshop link is set here, for both of its folders. A folder whose name does not parse fails
 the sync until it gets `skip = true`, or `date`, `title` and `event` (from `talk.toml` or the overrides).
 
 The script's summary line counts the talks, the recordings and the subtitles by source (`talk.toml`, README, PDF,
-overrides). On the home page, `homeTalks` in `hugo.toml` sets how many rows show. A row shows its subtitle under the
-title (for a talk given at several events in one year, the newest one that has a subtitle), and each appearance with
-a recording gets a YouTube link.
+overrides). On the home page, the Speaking list is a timeline per year, newest first. A talk given at several events
+in one year is one row under that year (the same talk in another year is a row of its own). A row shows its title, the
+subtitle (of the newest delivery that has one), and the `repo` link as a pill when there is one. Under it, each
+delivery has a line: the month, the event, the location, and links to the slides and the recording when they exist.
+`homeTalks` in `hugo.toml` sets how many rows show; `0` (the default) shows all of them. With a cap, featured talks
+always show and livestreams only when there is room.
+
+With motion on (the site-wide preference), `assets/js/talks.js` reveals each talk once, as it scrolls into view: the
+year's line draws down, the ring and the title come in, then the deliveries one by one. A reveal starts as the talk's
+first pixel enters the viewport and takes about 0.6 seconds. Without JavaScript, or with motion off, the list shows
+as is.
 
 ## Checks
 
