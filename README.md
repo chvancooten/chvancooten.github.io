@@ -87,7 +87,7 @@ Writing notes:
 
 | Path | What it holds |
 | --- | --- |
-| `hugo.toml` | Site config, menus (Work and About are sections of the home page; Writing is `/posts/`), social links, taxonomies (`blog`, `tags`, `series`), `homeTalks` (Speaking rows on the home page) |
+| `hugo.toml` | Site config, menus (Building, Speaking and About are sections of the home page; Writing is `/posts/`), social links, taxonomies (`blog`, `tags`, `series`), `homeTalks` (Speaking rows on the home page) |
 | `layouts/baseof.html`, `home.html`, `page.html`, `section.html`, `taxonomy.html`, `term.html`, `404.html` | Page templates |
 | `layouts/home.json` | Search index used by the search palette |
 | `layouts/alias.html` | Redirect pages (noindex, canonical, meta refresh) |
