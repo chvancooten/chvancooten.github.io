@@ -87,26 +87,33 @@ copyright     = "CC BY-NC 4.0"
     url   = "mailto:hello@casvancooten.com"
 
 [menus]
-  # "Work" and "About" are sections of the home page (layouts/_partials/nav.html adds the fragment: "#work" on the
-  # home page, "/#work" elsewhere). "Writing" goes straight to the posts. The About entry also counts as current on
-  # the /about/ page, which the home page's About section links to.
+  # "Building", "Speaking" and "About" are sections of the home page (layouts/_partials/nav.html adds the fragment:
+  # "#offensys" on the home page, "/#offensys" elsewhere). "Writing" goes straight to the posts. The About entry also
+  # counts as current on the /about/ page, which the home page's About section links to.
   [[menus.main]]
-    identifier = "work"
-    name       = "Work"
+    identifier = "building"
+    name       = "Building"
     pageRef    = "/"
     weight     = 10
     [menus.main.params]
-      fragment = "work"
+      fragment = "offensys"
+  [[menus.main]]
+    identifier = "speaking"
+    name       = "Speaking"
+    pageRef    = "/"
+    weight     = 20
+    [menus.main.params]
+      fragment = "speaking"
   [[menus.main]]
     identifier = "writing"
     name       = "Writing"
     pageRef    = "/posts"
-    weight     = 20
+    weight     = 30
   [[menus.main]]
     identifier = "about"
     name       = "About"
     pageRef    = "/"
-    weight     = 30
+    weight     = 40
     [menus.main.params]
       fragment = "about"
       current  = "/about"
